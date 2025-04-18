@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/Users/derekjrussell/Documents/repos/ConnectFourGame/build",
+  "command": "/opt/homebrew/bin/aarch64-apple-darwin24-g++-14  -I/Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp -I/Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/include -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk -o CMakeFiles/connect4.dir/src/cpp/main.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/main.cpp",
+  "file": "/Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/main.cpp",
+  "output": "CMakeFiles/connect4.dir/src/cpp/main.cpp.o"
+},
+{
+  "directory": "/Users/derekjrussell/Documents/repos/ConnectFourGame/build",
+  "command": "/opt/homebrew/bin/aarch64-apple-darwin24-g++-14  -I/Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp -I/Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/include -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk -o CMakeFiles/connect4.dir/src/cpp/Game.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/Game.cpp",
+  "file": "/Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/Game.cpp",
+  "output": "CMakeFiles/connect4.dir/src/cpp/Game.cpp.o"
+}
+]
