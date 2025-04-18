@@ -1,0 +1,1 @@
+/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/connect4.dir/src/cpp/main.cpp.o CMakeFiles/connect4.dir/src/cpp/Game.cpp.o -o connect4
