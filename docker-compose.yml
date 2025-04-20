@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    command: npm run start:prod     # or start:dev if you want hot reload
+    ports:
+      - '3000:3000'
+  frontend:
+    build: ./frontend
+    command: npm run start         # or npm run dev for Vite
+    ports:
+      - '5173:5173'
+    depends_on:
+      - backend

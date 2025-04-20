@@ -1,0 +1,12 @@
+{
+    "name": "connect-four-monorepo",
+    "private": true,
+    "scripts": {
+        "start:backend": "cd backend && npm install && npm run start:dev",
+        "start:frontend": "cd frontend && npm install && npm run start",
+        "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\""
+    },
+    "dependencies": {
+        "react-scripts": "^5.0.1"
+    }
+}
