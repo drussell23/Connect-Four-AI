@@ -1,7 +1,7 @@
 // frontend/src/App.tsx
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
-import { Board } from './components/Board';
+import Board from './components/Board';
 
 // cell values
 export type CellValue = 'Empty' | 'Red' | 'Yellow';

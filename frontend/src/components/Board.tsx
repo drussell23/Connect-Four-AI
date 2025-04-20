@@ -1,34 +1,67 @@
+// frontend/src/components/Board.tsx
 import React from 'react';
-import { Cell } from './Cell';
 
-export interface BoardProps {
-  /**
-   * 2D array representing the game board.
-   * Each cell is 'Empty', 'Red', or 'Yellow'.
-   */
-  board: ('Empty' | 'Red' | 'Yellow')[][];
+export type CellValue = 'Empty' | 'Red' | 'Yellow';
 
-  /**
-   * Called when a column is clicked, passing the column index (0-6).
-   */
+interface BoardProps {
+  board: CellValue[][];
   onDrop: (column: number) => void;
 }
 
 /**
- * Renders the Connect Four board using the Cell component.
+ * Board component renders Connect Four slots as circular frames with discs.
  */
-export const Board: React.FC<BoardProps> = ({ board, onDrop }) => {
+const Board: React.FC<BoardProps> = ({ board, onDrop }) => {
+  const gridStyle: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateRows: 'repeat(6, 60px)',
+    gridTemplateColumns: 'repeat(7, 60px)',
+    gap: '8px',
+    background: '#1e2a47',
+    padding: '12px',
+    borderRadius: '8px',
+  };
+
+  const cellStyle: React.CSSProperties = {
+    width: '60px',
+    height: '60px',
+    borderRadius: '50%',
+    border: '4px solid #26418f',
+    background: '#1e2a47',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  };
+
+  const discStyle = (color: 'red' | 'yellow'): React.CSSProperties => ({
+    width: '50px',
+    height: '50px',
+    borderRadius: '50%',
+    backgroundColor: color,
+  });
+
   return (
-    <div className="grid grid-rows-6 grid-cols-7 gap-2 p-4 bg-blue-900 rounded-lg">
-      {board.map((row, rowIndex) =>
-        row.map((cellValue, colIndex) => (
-          <Cell
-            key={`${rowIndex}-${colIndex}`}
-            value={cellValue}
-            onClick={() => onDrop(colIndex)}
-          />
-        )),
-      )}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '2rem' }}>
+      <div style={gridStyle}>
+        {board.map((row, rowIndex) =>
+          row.map((cell, colIndex) => (
+            <div
+              key={`${rowIndex}-${colIndex}`}
+              style={cellStyle}
+              onClick={() => onDrop(colIndex)}
+            >
+              {cell !== 'Empty' && (
+                <div
+                  style={discStyle(cell === 'Red' ? 'red' : 'yellow')}
+                />
+              )}
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };
+
+export default Board;
