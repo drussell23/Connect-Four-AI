@@ -1,0 +1,49 @@
+/* frontend/src/components/Board.css */
+
+.board-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 2rem;
+  }
+  
+  .board-grid {
+    display: grid;
+    grid-template-rows: repeat(6, 60px);
+    grid-template-columns: repeat(7, 60px);
+    gap: 4px;
+    background: #1e2a47;
+    padding: 10px;
+    border-radius: 8px;
+  }
+  
+  .board-cell {
+    width: 60px;
+    height: 60px;
+    background: #26418f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  .disc {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+  }
+  
+  .disc.red {
+    background-color: red;
+  }
+  
+  .disc.yellow {
+    background-color: yellow;
+  }
+  
+  .turn-indicator {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    color: #ffffff;
+  }
+  
