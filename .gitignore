@@ -1,0 +1,12 @@
+# .gitignore (at the repo root)
+
+# Node dependencies
+node_modules/
+
+# Compiled output
+dist/
+build/
+out/
+
+# IDE settings
+.vscode/
