@@ -2,11 +2,9 @@
 import { Module } from '@nestjs/common';
 import { GameGateway } from './game/game.gateway';
 import { GameService } from './game/game.service';
+import { GameAIService } from './game/game-ai.service';
 
-/**
- * Root application module registering WebSocket gateway and game service.
- */
 @Module({
-  providers: [GameGateway, GameService],
+  providers: [GameGateway, GameService, GameAIService],
 })
 export class AppModule {}
