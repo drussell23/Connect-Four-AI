@@ -1,211 +1,162 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Server } from 'socket.io';
+import { getBestAIMove, CellValue } from './ai';
 
 export interface GameState {
-    board: string[][];
-    currentPlayer: string;
-    players: string[];
+  board: CellValue[][];
+  currentPlayer: CellValue;
+  players: string[];
 }
 
 @Injectable()
 export class GameService {
-    // Board dimensions.
-    private static readonly ROWS = 6;
-    private static readonly COLS = 7;
+  private static readonly ROWS = 6;
+  private static readonly COLS = 7;
 
-    private server: Server;
-    private games: Map<string, GameState> = new Map();
+  private server: Server;
+  private games = new Map<string, GameState>();
 
-    /**
-     * Attach Socket.IO server instance for broadcasting
-     */
-    setServer(server: Server) {
-        this.server = server;
+  setServer(server: Server) {
+    this.server = server;
+  }
+
+  async createGame(playerId: string, clientId: string): Promise<string> {
+    const gameId = this.generateGameId();
+    const emptyBoard = Array.from({ length: GameService.ROWS }, () =>
+      Array(GameService.COLS).fill('Empty' as CellValue)
+    );
+    this.games.set(gameId, {
+      board: emptyBoard,
+      currentPlayer: playerId as CellValue,
+      players: [playerId],
+    });
+    return gameId;
+  }
+
+  async joinGame(
+    gameId: string,
+    playerId: string,
+    clientId: string
+  ): Promise<{ board: CellValue[][]; currentPlayer: CellValue } | { error: string }> {
+    const game = this.games.get(gameId);
+    if (!game) return { error: 'Game not found.' };
+    if (game.players.includes(playerId)) return { error: 'Player already joined.' };
+    if (game.players.length >= 2) return { error: 'Game is full.' };
+
+    game.players.push(playerId);
+    return { board: game.board, currentPlayer: game.currentPlayer };
+  }
+
+  async dropDisc(
+    gameId: string,
+    playerId: string,
+    column: number
+  ): Promise<{
+    success: boolean;
+    board?: CellValue[][];
+    winner?: string;
+    draw?: boolean;
+    nextPlayer?: string;
+    error?: string;
+  }> {
+    const game = this.games.get(gameId);
+    if (!game) return { success: false, error: 'Game not found.' };
+    if (!game.players.includes(playerId)) return { success: false, error: 'Player not in game.' };
+    if (game.currentPlayer !== playerId) return { success: false, error: 'Not your turn.' };
+    if (column < 0 || column >= GameService.COLS) return { success: false, error: 'Column out of range.' };
+
+    let placedRow = -1;
+    for (let r = GameService.ROWS - 1; r >= 0; r--) {
+      if (game.board[r][column] === 'Empty') {
+        game.board[r][column] = playerId as CellValue;
+        placedRow = r;
+        break;
+      }
+    }
+    if (placedRow === -1) return { success: false, error: 'Column is full.' };
+
+    const color = game.board[placedRow][column];
+    const won = this.checkWin(game.board, placedRow, column, color);
+
+    let winner: string | undefined;
+    let draw = false;
+    let nextPlayer: string | undefined;
+
+    if (won) {
+      winner = playerId;
+    } else if (game.board[0].every(cell => cell !== 'Empty')) {
+      draw = true;
+    } else {
+      nextPlayer = game.players.find(p => p !== playerId)!;
+      game.currentPlayer = nextPlayer as CellValue;
     }
 
-    /**
-     * Create a new game and return its generated ID
-     */
-    async createGame(playerId: string, clientId: string): Promise<string> {
-        const gameId = this.generateGameId();
-        const emptyBoard = Array(6)
-            .fill(null)
-            .map(() => Array(7).fill('Empty'));
-        this.games.set(gameId, {
-            board: emptyBoard,
-            currentPlayer: playerId,
-            players: [playerId],
-        });
-        return gameId;
+    return { success: true, board: game.board, winner, draw, nextPlayer };
+  }
+
+  handleDisconnect(clientId: string) {
+    for (const [gid, game] of this.games.entries()) {
+      const idx = game.players.indexOf(clientId);
+      if (idx !== -1) {
+        game.players.splice(idx, 1);
+        if (game.players.length === 0) this.games.delete(gid);
+        else game.currentPlayer = game.players[0] as CellValue;
+      }
     }
+  }
 
-    /**
-     * Join an existing game, returning board and current player or error
-     */
-    async joinGame(
-        gameId: string,
-        playerId: string,
-        clientId: string
-    ): Promise<{ board: string[][]; currentPlayer: string } | { error: string }> {
-        const game = this.games.get(gameId);
-        if (!game) {
-            return { error: 'Game not found.' };
-        }
-        if (game.players.includes(playerId)) {
-            return { error: 'Player already joined.' };
-        }
-        if (game.players.length >= 2) {
-            return { error: 'Game is full.' };
-        }
-        game.players.push(playerId);
-        return { board: game.board, currentPlayer: game.currentPlayer };
+  handleLeave(gameId: string, playerId: string) {
+    const game = this.games.get(gameId);
+    if (!game) return;
+    const idx = game.players.indexOf(playerId);
+    if (idx !== -1) {
+      game.players.splice(idx, 1);
+      if (game.players.length === 0) this.games.delete(gameId);
+      else game.currentPlayer = game.players[0] as CellValue;
     }
+  }
 
-    /**
-     * Handle a disc into a column, update game state, and return new board or status.
-     */
-    async dropDisc(
-        gameId: string,
-        playerId: string,
-        column: number
-    ): Promise<{
-        success: boolean;
-        board?: string[][];
-        winner?: string;
-        draw?: boolean;
-        nextPlayer?: string;
-        error?: string;
-    }> {
-        // TODO: implement game logic using Game class or inline
-        const game = this.games.get(gameId);
+  async getAIMove(gameId: string, aiDisc: CellValue): Promise<{ column: number }> {
+    const state = this.games.get(gameId);
+    if (!state) throw new NotFoundException('Game not found');
+    return { column: getBestAIMove(state.board, aiDisc) };
+  }
 
-        if (!game) {
-            return { success: false, error: 'Game not found.' };
-        }
-        if (!game.players.includes(playerId)) {
-            return { success: false, error: 'Player not in game.' };
-        }
-        if (game.currentPlayer !== playerId) {
-            return { success: false, error: 'Not your turn.' };
-        }
-        if (column < 0 || column >= GameService.COLS) {
-            return { success: false, error: 'Column out of range.' };
-        }
+  private generateGameId(): string {
+    return Math.random().toString(36).substr(2, 9);
+  }
 
-        // Place the disc.
-        let placedRow = -1;
-
-        for (let r = GameService.ROWS - 1; r >= 0; r--) {
-            if (game.board[r][column] == 'Empty') {
-                game.board[r][column] = playerId === game.players[0] ? 'Red' : 'Yellow';
-                placedRow = r;
-                break;
-            }
+  private checkWin(
+    board: CellValue[][],
+    row: number,
+    col: number,
+    color: CellValue
+  ): boolean {
+    const dirs = [
+      [0, 1],
+      [1, 0],
+      [1, 1],
+      [1, -1],
+    ];
+    for (const [dr, dc] of dirs) {
+      let count = 1;
+      for (const sign of [1, -1] as const) {
+        let r = row + dr * sign,
+          c = col + dc * sign;
+        while (
+          r >= 0 &&
+          r < GameService.ROWS &&
+          c >= 0 &&
+          c < GameService.COLS &&
+          board[r][c] === color
+        ) {
+          count++;
+          r += dr * sign;
+          c += dc * sign;
         }
-        if (placedRow === -1) {
-            return { success: false, error: 'Column is full.' };
-        }
-
-        // Check for a win. 
-        const color = game.board[placedRow][column];
-        const winnerFound = this.checkWin(game.board, placedRow, column, color);
-
-        let winner: string | undefined;
-        let draw = false;
-        let nextPlayer: string | undefined;
-
-        if (winnerFound) {
-            winner = playerId;
-        } else {
-            // Draw if top row is full.
-            if (game.board[0].every(cell => cell !== 'Empty')) {
-                draw = true;
-            } else {
-                // Switch turn. 
-                nextPlayer = game.players.find(p => p !== playerId);
-                game.currentPlayer = nextPlayer;
-            }
-        }
-        return { success: true, board: game.board, winner, draw, nextPlayer };
+      }
+      if (count >= 4) return true;
     }
-
-    /**
-     * Clean up state on client disconnect.
-     */
-    handleDisconnect(clientId: string) {
-        // TODO: remove player from any game, or mark as disconnected
-        for (const [gid, game] of this.games) {
-            const idx = game.players.indexOf(clientId);
-            if (idx !== -1) {
-                game.players.splice(idx, 1);
-                if (game.players.length === 0) {
-                    this.games.delete(gid);
-                } else {
-                    game.currentPlayer = game.players[0];
-                }
-            }
-        }
-    }
-
-    /**
-     * Remove a player who leaves a game.
-     */
-    handleLeave(gameId: string, playerId: string) {
-        // TODO: remove player from game and cleanup
-        const game = this.games.get(gameId);
-        if (!game) return;
-        const idx = game.players.indexOf(playerId);
-        if (idx !== -1) {
-            game.players.splice(idx, 1);
-            if (game.players.length === 0) {
-                this.games.delete(gameId);
-            } else {
-                game.currentPlayer = game.players[0];
-            }
-        }
-    }
-
-    /**
-     * Generate a simple random game ID.
-     */
-    private generateGameId(): string {
-        return Math.random().toString(36).substr(2, 9);
-    }
-
-    /**
-     * Check for four in a row from a starting point. 
-     */
-    private checkWin(board: string[][], row: number, col: number, color: string): boolean {
-        const directions = [[0, 1], [1, 0], [1, 1], [1, -1],];
-
-        for (const [dr, dc] of directions) {
-            let count = 1;
-
-            // Forward
-            let r = row + dr;
-            let c = col + dc;
-
-            while (this.isBounds(r, c) && board[r][c] === color) {
-                count++;
-                r += dr;
-                c += dc;
-            }
-
-            // Backward
-            r = row - dr;
-            c = col - dc;
-
-            while (this.isBounds(r, c) && board[r][c] === color) {
-                count++;
-                r -= dr;
-                c -= dc;
-            } 
-            if (count >= 4) return true;
-        }
-        return true;
-    }
-
-    private isBounds(row: number, col: number): boolean {
-        return row >= 0 && row < GameService.ROWS && col >= 0 && col < GameService.COLS;
-    }
+    return false;
+  }
 }

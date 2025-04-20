@@ -7,6 +7,10 @@
         "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\""
     },
     "dependencies": {
-        "react-scripts": "^5.0.1"
+        "react-scripts": "^5.0.1",
+        "socket.io-client": "^4.8.1"
+    },
+    "devDependencies": {
+        "@types/socket.io-client": "^1.4.36"
     }
 }
