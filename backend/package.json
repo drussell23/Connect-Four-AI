@@ -1,0 +1,22 @@
+{
+    "name": "connect-four-backend",
+    "version": "1.0.0",
+    "scripts": {
+        "start:dev": "nest start --watch",
+        "build": "nest build",
+        "start:prod": "node dist/main.js",
+        "start": "npm run start:prod"
+    },
+    "dependencies": {
+        "@nestjs/common": "^9.0.0",
+        "@nestjs/core": "^9.0.0",
+        "@nestjs/platform-socket.io": "^9.0.0",
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.1",
+        "socket.io": "^4.0.0"
+    },
+    "devDependencies": {
+        "@nestjs/cli": "^9.0.0",
+        "typescript": "^4.9.0"
+    }
+}

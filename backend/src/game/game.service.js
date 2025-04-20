@@ -1,32 +1,28 @@
-import { Injectable } from '@nestjs/common';
-import { Server } from 'socket.io';
-
-export interface GameState {
-    board: string[][];
-    currentPlayer: string;
-    players: string[];
-}
-
-@Injectable()
-export class GameService {
-    // Board dimensions.
-    private static readonly ROWS = 6;
-    private static readonly COLS = 7;
-
-    private server: Server;
-    private games: Map<string, GameState> = new Map();
-
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var GameService_1;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.GameService = void 0;
+const common_1 = require("@nestjs/common");
+let GameService = GameService_1 = class GameService {
+    constructor() {
+        this.games = new Map();
+    }
     /**
      * Attach Socket.IO server instance for broadcasting
      */
-    setServer(server: Server) {
+    setServer(server) {
         this.server = server;
     }
-
     /**
      * Create a new game and return its generated ID
      */
-    async createGame(playerId: string, clientId: string): Promise<string> {
+    async createGame(playerId, clientId) {
         const gameId = this.generateGameId();
         const emptyBoard = Array(6)
             .fill(null)
@@ -38,15 +34,10 @@ export class GameService {
         });
         return gameId;
     }
-
     /**
      * Join an existing game, returning board and current player or error
      */
-    async joinGame(
-        gameId: string,
-        playerId: string,
-        clientId: string
-    ): Promise<{ board: string[][]; currentPlayer: string } | { error: string }> {
+    async joinGame(gameId, playerId, clientId) {
         const game = this.games.get(gameId);
         if (!game) {
             return { error: 'Game not found.' };
@@ -60,25 +51,12 @@ export class GameService {
         game.players.push(playerId);
         return { board: game.board, currentPlayer: game.currentPlayer };
     }
-
     /**
      * Handle a disc into a column, update game state, and return new board or status.
      */
-    async dropDisc(
-        gameId: string,
-        playerId: string,
-        column: number
-    ): Promise<{
-        success: boolean;
-        board?: string[][];
-        winner?: string;
-        draw?: boolean;
-        nextPlayer?: string;
-        error?: string;
-    }> {
+    async dropDisc(gameId, playerId, column) {
         // TODO: implement game logic using Game class or inline
         const game = this.games.get(gameId);
-
         if (!game) {
             return { success: false, error: 'Game not found.' };
         }
@@ -88,14 +66,12 @@ export class GameService {
         if (game.currentPlayer !== playerId) {
             return { success: false, error: 'Not your turn.' };
         }
-        if (column < 0 || column >= GameService.COLS) {
+        if (column < 0 || column >= GameService_1.COLS) {
             return { success: false, error: 'Column out of range.' };
         }
-
         // Place the disc.
         let placedRow = -1;
-
-        for (let r = GameService.ROWS - 1; r >= 0; r--) {
+        for (let r = GameService_1.ROWS - 1; r >= 0; r--) {
             if (game.board[r][column] == 'Empty') {
                 game.board[r][column] = playerId === game.players[0] ? 'Red' : 'Yellow';
                 placedRow = r;
@@ -105,22 +81,21 @@ export class GameService {
         if (placedRow === -1) {
             return { success: false, error: 'Column is full.' };
         }
-
         // Check for a win. 
         const color = game.board[placedRow][column];
         const winnerFound = this.checkWin(game.board, placedRow, column, color);
-
-        let winner: string | undefined;
+        let winner;
         let draw = false;
-        let nextPlayer: string | undefined;
-
+        let nextPlayer;
         if (winnerFound) {
             winner = playerId;
-        } else {
+        }
+        else {
             // Draw if top row is full.
             if (game.board[0].every(cell => cell !== 'Empty')) {
                 draw = true;
-            } else {
+            }
+            else {
                 // Switch turn. 
                 nextPlayer = game.players.find(p => p !== playerId);
                 game.currentPlayer = nextPlayer;
@@ -128,11 +103,10 @@ export class GameService {
         }
         return { success: true, board: game.board, winner, draw, nextPlayer };
     }
-
     /**
      * Clean up state on client disconnect.
      */
-    handleDisconnect(clientId: string) {
+    handleDisconnect(clientId) {
         // TODO: remove player from any game, or mark as disconnected
         for (const [gid, game] of this.games) {
             const idx = game.players.indexOf(clientId);
@@ -140,72 +114,74 @@ export class GameService {
                 game.players.splice(idx, 1);
                 if (game.players.length === 0) {
                     this.games.delete(gid);
-                } else {
+                }
+                else {
                     game.currentPlayer = game.players[0];
                 }
             }
         }
     }
-
     /**
      * Remove a player who leaves a game.
      */
-    handleLeave(gameId: string, playerId: string) {
+    handleLeave(gameId, playerId) {
         // TODO: remove player from game and cleanup
         const game = this.games.get(gameId);
-        if (!game) return;
+        if (!game)
+            return;
         const idx = game.players.indexOf(playerId);
         if (idx !== -1) {
             game.players.splice(idx, 1);
             if (game.players.length === 0) {
                 this.games.delete(gameId);
-            } else {
+            }
+            else {
                 game.currentPlayer = game.players[0];
             }
         }
     }
-
     /**
      * Generate a simple random game ID.
      */
-    private generateGameId(): string {
+    generateGameId() {
         return Math.random().toString(36).substr(2, 9);
     }
-
     /**
-     * Check for four in a row from a starting point. 
+     * Check for four in a row from a starting point.
      */
-    private checkWin(board: string[][], row: number, col: number, color: string): boolean {
+    checkWin(board, row, col, color) {
         const directions = [[0, 1], [1, 0], [1, 1], [1, -1],];
-
         for (const [dr, dc] of directions) {
             let count = 1;
-
             // Forward
             let r = row + dr;
             let c = col + dc;
-
             while (this.isBounds(r, c) && board[r][c] === color) {
                 count++;
                 r += dr;
                 c += dc;
             }
-
             // Backward
             r = row - dr;
             c = col - dc;
-
             while (this.isBounds(r, c) && board[r][c] === color) {
                 count++;
                 r -= dr;
                 c -= dc;
-            } 
-            if (count >= 4) return true;
+            }
+            if (count >= 4)
+                return true;
         }
         return true;
     }
-
-    private isBounds(row: number, col: number): boolean {
-        return row >= 0 && row < GameService.ROWS && col >= 0 && col < GameService.COLS;
+    isBounds(row, col) {
+        return row >= 0 && row < GameService_1.ROWS && col >= 0 && col < GameService_1.COLS;
     }
-}
+};
+// Board dimensions.
+GameService.ROWS = 6;
+GameService.COLS = 7;
+GameService = GameService_1 = __decorate([
+    (0, common_1.Injectable)()
+], GameService);
+exports.GameService = GameService;

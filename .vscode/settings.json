@@ -1,6 +1,5 @@
-// .vscode/settings.json at your project root
 {
-  // === File‑type associations ===
+  // === File‑type associations for C++ headers ===
   "files.associations": {
     "*.embeddedhtml": "html",
     "ostream": "cpp",
@@ -64,5 +63,14 @@
   // === C/C++ IntelliSense via CMake Tools ===
   "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
   "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
-  "cmake.sourceDirectory": "${workspaceFolder}/c_cpp"
+  "cmake.sourceDirectory": "${workspaceFolder}/c_cpp",
+
+  // === Tailwind & PostCSS validation ===
+  "css.validate": false,
+  "postcss.validate": true,
+  "tailwindCSS.includeLanguages": {
+    "css": "css",
+    "scss": "scss",
+    "plaintext": "css"
+  }
 }
