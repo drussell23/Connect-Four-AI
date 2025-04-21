@@ -1,14 +1,15 @@
+// Updated App.tsx: split connection logic and move listeners into separate useEffects
+// Based on your original App.tsx citeturn0file0
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import Board from './components/Board';
 
 // cell values
-export type CellValue = 'Empty' | 'Red' | 'Yellow';
+type CellValue = 'Empty' | 'Red' | 'Yellow';
 
 const SERVER_URL = 'http://localhost:3001/game';
 
 const App: React.FC = () => {
-  // Derive the socket type from io()
   type ClientSocket = ReturnType<typeof io>;
   const [socket, setSocket] = useState<ClientSocket | null>(null);
   const [gameId, setGameId] = useState<string | null>(null);
@@ -17,9 +18,9 @@ const App: React.FC = () => {
   );
   const [currentPlayer, setCurrentPlayer] = useState<CellValue>('Red');
   const [status, setStatus] = useState<string>('Connecting…');
-  // Highlighted winning discs
   const [winningLine, setWinningLine] = useState<[number, number][]>([]);
 
+  // Effect: establish connection & create game
   useEffect(() => {
     const sock = io(SERVER_URL, { transports: ['websocket'] });
     setSocket(sock);
@@ -27,11 +28,7 @@ const App: React.FC = () => {
     sock.on('connect', () => {
       console.log('🔗 connected, id=', sock.id);
       setStatus('Creating game…');
-      sock.emit('createGame', { playerId: 'Red' }, (res: { gameId: string }) => {
-        console.log('➡️ createGame →', res.gameId);
-        setGameId(res.gameId);
-        setStatus('Your turn (Red)');
-      });
+      sock.emit('createGame', { playerId: 'Red' });
     });
 
     sock.on('disconnect', () => {
@@ -39,67 +36,94 @@ const App: React.FC = () => {
       setStatus('Disconnected');
     });
 
-    // Show AI "thinking" indicator if emitted
-    sock.on('aiThinking', () => {
-      setStatus('AI is thinking (Yellow)…');
+    sock.on('gameCreated', (data: { gameId: string; nextPlayer: CellValue }) => {
+      console.log('⬅️ gameCreated', data);
+      setGameId(data.gameId);
+      setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
+      setWinningLine([]);
+      if (data.nextPlayer === 'Red') {
+        setStatus('Your turn (Red)');
+        setCurrentPlayer('Red');
+      } else {
+        setStatus('AI is thinking (Yellow)…');
+        setCurrentPlayer('Yellow');
+      }
     });
 
-    // Single listener: handles both human & AI moves
-    sock.on(
-      'gameUpdate',
-      (data: {
-        board: CellValue[][];
-        lastMove: { column: number; playerId: string };
-        nextPlayer: CellValue;
-        winner?: CellValue;
-        draw?: boolean;
-        winningLine?: [number, number][];
-      }) => {
-        console.log('⬅️ gameUpdate', data);
-        const { board: newBoard, nextPlayer, winner, draw, winningLine } = data;
-        setBoard(newBoard);
-        // Update winning line (if provided)
-        setWinningLine(winningLine || []);
-
-        if (winner) {
-          setStatus(`${winner} wins!`);
-        } else if (draw) {
-          setStatus('Draw game');
-        } else if (nextPlayer === 'Red') {
-          setStatus('Your turn (Red)');
-        } else {
-          setStatus('AI is thinking (Yellow)…');
-        }
-
-        setCurrentPlayer(nextPlayer);
-      }
-    );
-
     return () => {
+      sock.off('connect');
+      sock.off('disconnect');
+      sock.off('gameCreated');
       sock.disconnect();
     };
   }, []);
 
+  // Effect: listen for move events
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on('playerMove', (data: {
+      board: CellValue[][];
+      lastMove: { column: number; playerId: string };
+      nextPlayer: CellValue;
+      winner?: CellValue;
+      draw?: boolean;
+      winningLine?: [number, number][];
+    }) => {
+      console.log('⬅️ playerMove', data);
+      setBoard(data.board);
+      setWinningLine(data.winningLine || []);
+      setStatus('AI is thinking (Yellow)…');
+      setCurrentPlayer('Yellow');
+    });
+
+    socket.on('aiThinking', () => {
+      setStatus('AI is thinking (Yellow)…');
+    });
+
+    socket.on('aiMove', (data: {
+      board: CellValue[][];
+      lastMove: { column: number; playerId: string };
+      nextPlayer: CellValue;
+      winner?: CellValue;
+      draw?: boolean;
+      winningLine?: [number, number][];
+    }) => {
+      console.log('⬅️ aiMove', data);
+      setBoard(data.board);
+      setWinningLine(data.winningLine || []);
+      setStatus('Your turn (Red)');
+      setCurrentPlayer('Red');
+    });
+
+    return () => {
+      socket.off('playerMove');
+      socket.off('aiThinking');
+      socket.off('aiMove');
+    };
+  }, [socket]);
+
   // Handler for when the human clicks a column
   function onColumnClick(col: number) {
     if (!socket || !gameId) return;
-
-    // 1) Don’t allow any more moves if the game is over
     if (status.endsWith('wins!') || status === 'Draw game') return;
-
-    // 2) Only on Red's turn
     if (currentPlayer !== 'Red') return;
 
     console.log('➡️ human dropDisc at', col);
-
-    // 3) Immediately tell the user AI is thinking
-    setStatus('AI is thinking (Yellow)…');
-    // 4) Block further clicks until server responds
     setCurrentPlayer('Yellow');
+    setStatus('AI is thinking (Yellow)…');
 
-    // 5) Fire the one event – server will apply your Red, then AI's Yellow,
-    //    and emit two back‑to‑back 'gameUpdate's.
-    socket.emit('dropDisc', { gameId, playerId: 'Red', column: col });
+    socket.emit(
+      'dropDisc',
+      { gameId, playerId: 'Red', column: col },
+      (res: { success: boolean; error?: string }) => {
+        if (!res.success) {
+          console.warn('dropDisc error:', res.error);
+          setCurrentPlayer('Red');
+          setStatus(res.error || 'Error occurred');
+        }
+      }
+    );
   }
 
   return (

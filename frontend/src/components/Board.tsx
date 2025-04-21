@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export type CellValue = 'Empty' | 'Red' | 'Yellow';
 
@@ -46,17 +46,22 @@ const discStyle = (color: 'red' | 'yellow'): React.CSSProperties => ({
 
 /**
  * Board renders the 6×7 Connect Four grid and discs,
- * always reflecting the last passed-in board state,
- * even when `board` prop temporarily becomes undefined.
+ * using local state synced from the `board` prop.
  */
 const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
-  // Persist the last known board in a ref
-  const lastBoardRef = useRef<CellValue[][]>(board || []);
+  // Local state for the board, initialized from props
+  const [localBoard, setLocalBoard] = useState<CellValue[][]>(
+    board ?? Array.from({ length: 6 }, () => Array(7).fill('Empty'))
+  );
+
+  // Sync local state whenever the prop changes
   useEffect(() => {
-    if (board) lastBoardRef.current = board;
+    if (board) {
+      setLocalBoard(board);
+    }
   }, [board]);
 
-  const displayBoard = lastBoardRef.current;
+  const displayBoard = localBoard;
 
   // helper to check if a cell is in the winning line
   const isWinningCell = (r: number, c: number) =>
@@ -84,7 +89,10 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
                   boxShadow: highlight
                     ? '0 0 8px 4px rgba(6,214,160,0.7)'
                     : undefined,
-                  cursor: displayBoard[rowIndex][colIndex] === 'Empty' ? 'pointer' : 'default',
+                  cursor:
+                    displayBoard[rowIndex][colIndex] === 'Empty'
+                      ? 'pointer'
+                      : 'default',
                 }}
                 onClick={() => onDrop(colIndex)}
               >

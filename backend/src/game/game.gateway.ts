@@ -14,17 +14,16 @@ import { GameService } from './game.service';
 import type { CellValue } from './ai';
 
 interface CreateGamePayload { playerId: string }
-interface JoinGamePayload   { gameId: string; playerId: string }
-interface DropDiscPayload   { gameId: string; playerId: string; column: number }
+interface JoinGamePayload { gameId: string; playerId: string }
+interface DropDiscPayload { gameId: string; playerId: string; column: number }
 
 @WebSocketGateway({ namespace: '/game', cors: { origin: '*' } })
 export class GameGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() private server!: Server;
   private readonly logger = new Logger(GameGateway.name);
 
-  constructor(private readonly gameService: GameService) {}
+  constructor(private readonly gameService: GameService) { }
 
   afterInit(server: Server) {
     this.logger.log('WebSocket server initialized');
@@ -44,12 +43,19 @@ export class GameGateway
   async handleCreateGame(
     @MessageBody() { playerId }: CreateGamePayload,
     @ConnectedSocket() client: Socket
-  ): Promise<{ gameId: string }> {
+  ): Promise<void> {
+    // 1) Create the game and join the socket room
     const gameId = await this.gameService.createGame(playerId, client.id);
     client.join(gameId);
     this.logger.log(`Game ${gameId} created by ${playerId}`);
-    return { gameId };
-  }
+  
+    // 2) Emit only the game ID (no getBoard call)
+    client.emit('gameCreated', {
+      gameId,
+      board: this.gameService.getBoard(gameId),
+      nextPlayer: 'Red',
+    });
+  }  
 
   @SubscribeMessage('joinGame')
   async handleJoinGame(
@@ -71,51 +77,80 @@ export class GameGateway
   async handleDropDisc(
     @MessageBody() { gameId, playerId, column }: DropDiscPayload
   ): Promise<{ success: boolean; error?: string }> {
+    this.logger.log(`[${gameId}] dropDisc called by ${playerId} at column ${column}`);
+  
     // 1) Apply the human move
     const res = await this.gameService.dropDisc(gameId, playerId, column);
     if (!res.success) {
-      this.logger.warn(`dropDisc failed for ${playerId} in ${gameId}: ${res.error}`);
+      this.logger.warn(`[${gameId}] dropDisc failed for ${playerId}: ${res.error}`);
       return { success: false, error: res.error };
     }
-
-    // Broadcast the human move
-    this.server.to(gameId).emit('gameUpdate', {
+    this.logger.log(
+      `[${gameId}] Human move applied: player=${playerId}, column=${column}, placedBoardState=\n${JSON.stringify(
+        res.board,
+        null,
+        2
+      )}`
+    );
+  
+    // 2) Emit just the player's move
+    this.logger.log(`[${gameId}] Emitting playerMove event`);
+    this.server.to(gameId).emit('playerMove', {
       board:      res.board,
       lastMove:   { column, playerId },
       winner:     res.winner,
       draw:       res.draw,
       nextPlayer: res.nextPlayer,
     });
-
-    // 2) If the game is still ongoing, trigger the AI move immediately
+  
+    // 2.5) Give the client a brief moment to render the red disc
+    this.logger.log(`[${gameId}] Waiting 2000ms before AI move`);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  
+    // 3) If the game is still ongoing, trigger only the AI logic
     if (!res.winner && !res.draw) {
-      // Notify client that AI is thinking (optional)
+      this.logger.log(`[${gameId}] No win/draw—starting AI move`);
+  
+      // Let clients show a “thinking” indicator
+      this.logger.log(`[${gameId}] Emitting aiThinking event`);
       this.server.to(gameId).emit('aiThinking');
-
-      const aiDisc: CellValue = 'Yellow'; // ← use the real disc color
-
-      // Compute AI's best column
-      const { column: aiColumn } = await this.gameService.getAIMove(
-        gameId,
-        aiDisc
-      );
-
-      // Apply the AI move (using 'AI' as playerId)
+  
+      // Choose AI’s disc/color
+      const aiDisc: CellValue = 'Yellow';
+  
+      // Compute best column for AI
+      this.logger.log(`[${gameId}] Computing AI move for color ${aiDisc}`);
+      const { column: aiColumn } = await this.gameService.getAIMove(gameId, aiDisc);
+      this.logger.log(`[${gameId}] AI chose column ${aiColumn}`);
+  
+      // Apply the AI move
       const aiRes = await this.gameService.dropDisc(gameId, aiDisc, aiColumn);
-      this.logger.log(`AI dropped in column ${aiColumn} for game ${gameId}`);
-
-      // Broadcast the AI move
-      this.server.to(gameId).emit('gameUpdate', {
+      this.logger.log(
+        `[${gameId}] AI move applied: disc=${aiDisc}, column=${aiColumn}, placedBoardState=\n${JSON.stringify(
+          aiRes.board,
+          null,
+          2
+        )}`
+      );
+  
+      // Emit exactly one aiMove event
+      this.logger.log(`[${gameId}] Emitting aiMove event`);
+      this.server.to(gameId).emit('aiMove', {
         board:      aiRes.board,
         lastMove:   { column: aiColumn, playerId: aiDisc },
         winner:     aiRes.winner,
         draw:       aiRes.draw,
         nextPlayer: aiRes.nextPlayer,
       });
+    } else {
+      this.logger.log(
+        `[${gameId}] Game ended after human move: winner=${res.winner}, draw=${res.draw}`
+      );
     }
-
+  
+    this.logger.log(`[${gameId}] handleDropDisc complete`);
     return { success: true };
-  }
+  }  
 
   @SubscribeMessage('leaveGame')
   handleLeaveGame(
