@@ -116,6 +116,19 @@ export class GameService {
     }
   }
 
+  /** 
+   * Returns a deep‑copy of the current board for the given gameId,
+   * or throws if the game doesn’t exist.
+   */
+  getBoard(gameId: string): CellValue[][] {
+    const game = this.games.get(gameId);
+    if (!game) {
+      throw new NotFoundException(`Game not found: ${gameId}`);
+    }
+    // Return a copy so callers can’t accidentally mutate the internal state
+    return game.board.map(row => [...row])
+  }
+
   async getAIMove(gameId: string, aiDisc: CellValue): Promise<{ column: number }> {
     const state = this.games.get(gameId);
     if (!state) throw new NotFoundException('Game not found');
