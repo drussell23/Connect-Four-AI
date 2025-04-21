@@ -1,5 +1,5 @@
-// Updated App.tsx: split connection logic and move listeners into separate useEffects
-// Based on your original App.tsx citeturn0file0
+// Updated App.tsx: added early exit on AI win/draw in aiMove handler
+// Based on your original App.tsx :contentReference[oaicite:0]{index=0}&#8203;:contentReference[oaicite:1]{index=1}
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import Board from './components/Board';
@@ -73,6 +73,18 @@ const App: React.FC = () => {
       console.log('⬅️ playerMove', data);
       setBoard(data.board);
       setWinningLine(data.winningLine || []);
+
+      // Early exit if player wins or draw. 
+      if (data.winner) {
+        setStatus(`${data.winner} wins!`);
+        return;
+      }
+
+      if (data.draw) {
+        setStatus('Draw game');
+        return;
+      }
+
       setStatus('AI is thinking (Yellow)…');
       setCurrentPlayer('Yellow');
     });
@@ -92,6 +104,20 @@ const App: React.FC = () => {
       console.log('⬅️ aiMove', data);
       setBoard(data.board);
       setWinningLine(data.winningLine || []);
+
+      // If AI has won, show win and exit early
+      if (data.winner) {
+        setStatus(`${data.winner} wins!`);
+        return;
+      }
+
+      // If it's a draw, show draw and exit early
+      if (data.draw) {
+        setStatus('Draw game');
+        return;
+      }
+
+      // Otherwise, back to the human's turn
       setStatus('Your turn (Red)');
       setCurrentPlayer('Red');
     });
