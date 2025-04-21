@@ -18,7 +18,7 @@ interface CreateGamePayload { playerId: string }
 interface JoinGamePayload   { gameId: string; playerId: string }
 interface DropDiscPayload   { gameId: string; playerId: string; column: number }
 
-const AI_THINK_TIME_MS = 100;
+const AI_THINK_TIME_MS = 200;
 
 @WebSocketGateway({ namespace: '/game', cors: { origin: '*' } })
 export class GameGateway

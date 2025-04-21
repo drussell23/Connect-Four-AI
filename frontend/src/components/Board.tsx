@@ -1,21 +1,16 @@
 // frontend/src/components/Board.tsx
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 
 export type CellValue = 'Empty' | 'Red' | 'Yellow';
 
 interface BoardProps {
-  /** 6×7 matrix; if undefined we fall back to an empty grid */
+  /** 6×7 matrix representing the current board state */
   board?: CellValue[][];
   /** Called with the column index when a slot is clicked */
   onDrop: (column: number) => void;
 }
 
-// default to an empty board so we never hit undefined
-const defaultBoard: CellValue[][] = Array.from(
-  { length: 6 },
-  () => Array(7).fill('Empty')
-);
-
+// Grid container style
 const gridStyle: React.CSSProperties = {
   display: 'grid',
   gridTemplateRows: 'repeat(6, 60px)',
@@ -26,6 +21,7 @@ const gridStyle: React.CSSProperties = {
   borderRadius: '8px',
 };
 
+// Individual slot style (ring)
 const cellStyle: React.CSSProperties = {
   width: '60px',
   height: '60px',
@@ -38,15 +34,28 @@ const cellStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
+// Disc style matching slot interior (60px - 2*4px border = 52px)
 const discStyle = (color: 'red' | 'yellow'): React.CSSProperties => ({
-  width: '50px',
-  height: '50px',
+  width: '52px',
+  height: '52px',
   borderRadius: '50%',
   backgroundColor: color,
-  pointerEvents: 'none',  // ← let clicks pass straight through
+  pointerEvents: 'none',
 });
 
-const Board: React.FC<BoardProps> = ({ board = defaultBoard, onDrop }) => {
+/**
+ * Board renders the 6×7 Connect Four grid and discs,
+ * always reflecting the last passed-in board state,
+ * even when `board` prop temporarily becomes undefined.
+ */
+const Board: React.FC<BoardProps> = ({ board, onDrop }) => {
+  // Persist the last known board in a ref
+  const lastBoardRef = useRef<CellValue[][]>(board || []);
+  useEffect(() => {
+    if (board) lastBoardRef.current = board;
+  }, [board]);
+  const displayBoard = lastBoardRef.current;
+
   return (
     <div
       style={{
@@ -57,17 +66,12 @@ const Board: React.FC<BoardProps> = ({ board = defaultBoard, onDrop }) => {
       }}
     >
       <div style={gridStyle}>
-        {board.map((row, rowIndex) =>
+        {displayBoard.map((row, rowIndex) =>
           row.map((cell, colIndex) => (
             <div
               key={`${rowIndex}-${colIndex}`}
-              role="button"         // accessibility
-              tabIndex={0}
               style={cellStyle}
               onClick={() => onDrop(colIndex)}
-              onKeyPress={e => {
-                if (e.key === 'Enter') onDrop(colIndex);
-              }}
             >
               {cell !== 'Empty' && (
                 <div
