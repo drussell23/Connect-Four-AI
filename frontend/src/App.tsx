@@ -6,89 +6,92 @@ import Board from './components/Board';
 // cell values
 type CellValue = 'Empty' | 'Red' | 'Yellow';
 
-// Point your client at the correct game namespace
-const SERVER_URL = 'http://localhost:3000/game';
+const SERVER_URL = 'http://localhost:3001/game';
 
 const App: React.FC = () => {
-  // Use any for socket to sidestep Socket type conflicts.
-  const [socket, setSocket] = useState<any>(null);
-  const [gameId, setGameId] = useState<string>();
+  // Derive the socket type from io()
+  type ClientSocket = ReturnType<typeof io>;
+  const [socket, setSocket] = useState<ClientSocket | null>(null);
+  const [gameId, setGameId] = useState<string | null>(null);
   const [board, setBoard] = useState<CellValue[][]>(
-    Array(6)
-      .fill(null)
-      .map(() => Array(7).fill('Empty'))
+    Array.from({ length: 6 }, () => Array(7).fill('Empty'))
   );
-  const [currentPlayer, setCurrentPlayer] = useState<'Red' | 'Yellow'>('Red');
+  const [currentPlayer, setCurrentPlayer] = useState<CellValue>('Red');
+  const [status, setStatus] = useState<string>('Connecting…');
 
-  const humanDisc: CellValue = 'Red';
-  const aiDisc: CellValue = 'Yellow'; // AI will play Yellow
-
-  // initialize socket & create game
   useEffect(() => {
     const sock = io(SERVER_URL, { transports: ['websocket'] });
+    setSocket(sock);
 
-    // log when connected to the server
-    sock.on('connect', () => console.log('✅ connected to game server', sock.id));
-
-    // log incoming board updates (includes AI moves)
-    sock.on('gameUpdate', ({ board: newBoard, nextPlayer }: any) => {
-      console.log('⬅️ gameUpdate', newBoard, nextPlayer);
-      setBoard(newBoard);
-      // nextPlayer is the disc that will play next
-      setCurrentPlayer(nextPlayer === humanDisc ? 'Red' : 'Yellow');
+    sock.on('connect', () => {
+      console.log('🔗 connected, id=', sock.id);
+      setStatus('Creating game…');
+      sock.emit(
+        'createGame',
+        { playerId: 'Red' },
+        (res: { gameId: string }) => {
+          console.log('➡️ createGame →', res.gameId);
+          setGameId(res.gameId);
+          setStatus('Your turn (Red)');
+        }
+      );
     });
 
-    // create a new game as human player
-    sock.emit(
-      'createGame',
-      { playerId: humanDisc },
-      (res: { gameId: string }) => {
-        console.log('➡️ createGame response', res.gameId);
-        setGameId(res.gameId);
+    sock.on('disconnect', () => {
+      console.log('❌ disconnected');
+      setStatus('Disconnected');
+    });
+
+    sock.on('aiThinking', () => {
+      setStatus('AI is thinking (Yellow)…');
+    });
+
+    sock.on(
+      'gameUpdate',
+      (data: {
+        board: CellValue[][];
+        lastMove: { column: number; playerId: string };
+        nextPlayer: CellValue;
+        winner?: CellValue;
+        draw?: boolean;
+      }) => {
+        const { board: newBoard, nextPlayer, winner, draw } = data;
+        console.log('⬅️ gameUpdate', data);
+        setBoard(newBoard);
+
+        if (winner) {
+          setStatus(`${winner} wins!`);
+        } else if (draw) {
+          setStatus('Draw game');
+        } else if (nextPlayer === 'Red') {
+          setStatus('Your turn (Red)');
+        } else {
+          setStatus('AI is thinking (Yellow)…');
+        }
+
+        setCurrentPlayer(nextPlayer);
       }
     );
 
-    setSocket(sock);
     return () => {
       sock.disconnect();
     };
   }, []);
 
-  // ask server for AI move
-  const handleAIMove = async () => {
-    if (!socket || !gameId) return;
-    const column: number = await new Promise(resolve => {
-      socket.timeout(5000).emit(
-        'getAIMove',
-        { gameId, aiDisc },
-        (err: any, res: { column: number }) => resolve(res.column)
-      );
-    });
-    console.log('➡️ AI dropDisc at', column);
-    socket.emit('dropDisc', {
-      gameId,
-      playerId: aiDisc,
-      column,
-    });
-  };
-
-  // when human clicks a column
-  const handleDrop = (column: number) => {
-    if (!socket || !gameId || currentPlayer !== humanDisc) return;
-    console.log('➡️ human dropDisc at', column);
-    socket.emit('dropDisc', { gameId, playerId: humanDisc, column });
-    setTimeout(handleAIMove, 300);
-  };
+  // ① Define your click‐handler inside the component
+  function onColumnClick(col: number) {
+    if (!socket || !gameId || currentPlayer !== 'Red') return;
+    console.log('➡️ human dropDisc at', col);
+    setStatus('Waiting for AI…');
+    socket.emit('dropDisc', { gameId, playerId: 'Red', column: col });
+  }
 
   return (
-    <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center space-y-4">
-      <h1 className="text-white text-2xl">Connect Four vs. AI</h1>
-      <Board board={board} onDrop={handleDrop} />
-      <div className="text-white">
-        {currentPlayer === humanDisc
-          ? 'Your turn (Red)'
-          : 'AI is thinking (Yellow)…'}
-      </div>
+    <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4">
+      <h1 className="text-white text-2xl mb-4">Connect Four vs. AI</h1>
+      {/* ② Pass it into your Board */}
+      <Board board={board} onDrop={onColumnClick} />
+      <div className="mt-4 text-white">{status}</div>
     </div>
   );
 };

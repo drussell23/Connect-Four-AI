@@ -1,16 +1,17 @@
+// frontend/src/index.tsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './styles/tailwind.css';
-import App from './App';  // import your App component
+import App from './App';
+import './styles/tailwind.css';  // your Tailwind setup
 
 const container = document.getElementById('root');
 if (!container) {
   throw new Error('Root container not found');
 }
 
-// React 18+ createRoot API
-ReactDOM.createRoot(container).render(
+const root = ReactDOM.createRoot(container);
+root.render(
   <React.StrictMode>
-    <App />
+    <App />  {/* App takes no props */}
   </React.StrictMode>
 );
