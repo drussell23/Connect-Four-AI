@@ -75,24 +75,28 @@ const App: React.FC = () => {
     };
   }, []);
 
-// Updated click handler: prevents moves after game over
+// frontend/src/App.tsx (inside your component)
 function onColumnClick(col: number) {
   if (!socket || !gameId) return;
 
-  // block if the game has finished
+  // 1) Don’t allow any more moves if the game is over
   if (status.endsWith('wins!') || status === 'Draw game') return;
 
-  // only allow when it’s Red’s turn
+  // 2) Only on Red's turn
   if (currentPlayer !== 'Red') return;
 
   console.log('➡️ human dropDisc at', col);
-  // lock out further clicks until we get the next update
-  setCurrentPlayer('Yellow');
-  setStatus('Waiting for AI…');
 
-  // Tell the server to apply both your move and the AI’s
+  // 3) Immediately tell the user AI is thinking
+  setStatus('AI is thinking (Yellow)…');
+  // 4) Block further clicks until server responds
+  setCurrentPlayer('Yellow');
+
+  // 5) Fire the one event – server will apply your Red, then AI's Yellow,
+  //    and emit two back‑to‑back 'gameUpdate's.
   socket.emit('dropDisc', { gameId, playerId: 'Red', column: col });
 }
+
 
 
   return (
