@@ -1,4 +1,3 @@
-// frontend/src/components/Board.tsx
 import React, { useRef, useEffect } from 'react';
 
 export type CellValue = 'Empty' | 'Red' | 'Yellow';
@@ -8,6 +7,8 @@ interface BoardProps {
   board?: CellValue[][];
   /** Called with the column index when a slot is clicked */
   onDrop: (column: number) => void;
+  /** Optional list of [row, col] pairs to highlight the winning line */
+  winningLine?: [number, number][];
 }
 
 // Grid container style
@@ -48,13 +49,18 @@ const discStyle = (color: 'red' | 'yellow'): React.CSSProperties => ({
  * always reflecting the last passed-in board state,
  * even when `board` prop temporarily becomes undefined.
  */
-const Board: React.FC<BoardProps> = ({ board, onDrop }) => {
+const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
   // Persist the last known board in a ref
   const lastBoardRef = useRef<CellValue[][]>(board || []);
   useEffect(() => {
     if (board) lastBoardRef.current = board;
   }, [board]);
+
   const displayBoard = lastBoardRef.current;
+
+  // helper to check if a cell is in the winning line
+  const isWinningCell = (r: number, c: number) =>
+    winningLine.some(([wr, wc]) => wr === r && wc === c);
 
   return (
     <div
@@ -67,19 +73,29 @@ const Board: React.FC<BoardProps> = ({ board, onDrop }) => {
     >
       <div style={gridStyle}>
         {displayBoard.map((row, rowIndex) =>
-          row.map((cell, colIndex) => (
-            <div
-              key={`${rowIndex}-${colIndex}`}
-              style={cellStyle}
-              onClick={() => onDrop(colIndex)}
-            >
-              {cell !== 'Empty' && (
-                <div
-                  style={discStyle(cell === 'Red' ? 'red' : 'yellow')}
-                />
-              )}
-            </div>
-          ))
+          row.map((cell, colIndex) => {
+            const highlight = isWinningCell(rowIndex, colIndex);
+            return (
+              <div
+                key={`${rowIndex}-${colIndex}`}
+                style={{
+                  ...cellStyle,
+                  border: highlight ? '4px solid #06d6a0' : cellStyle.border,
+                  boxShadow: highlight
+                    ? '0 0 8px 4px rgba(6,214,160,0.7)'
+                    : undefined,
+                  cursor: displayBoard[rowIndex][colIndex] === 'Empty' ? 'pointer' : 'default',
+                }}
+                onClick={() => onDrop(colIndex)}
+              >
+                {cell !== 'Empty' && (
+                  <div
+                    style={discStyle(cell === 'Red' ? 'red' : 'yellow')}
+                  />
+                )}
+              </div>
+            );
+          })
         )}
       </div>
     </div>
