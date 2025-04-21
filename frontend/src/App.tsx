@@ -1,10 +1,9 @@
-// frontend/src/App.tsx
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import Board from './components/Board';
 
 // cell values
-type CellValue = 'Empty' | 'Red' | 'Yellow';
+export type CellValue = 'Empty' | 'Red' | 'Yellow';
 
 const SERVER_URL = 'http://localhost:3001/game';
 
@@ -26,15 +25,11 @@ const App: React.FC = () => {
     sock.on('connect', () => {
       console.log('🔗 connected, id=', sock.id);
       setStatus('Creating game…');
-      sock.emit(
-        'createGame',
-        { playerId: 'Red' },
-        (res: { gameId: string }) => {
-          console.log('➡️ createGame →', res.gameId);
-          setGameId(res.gameId);
-          setStatus('Your turn (Red)');
-        }
-      );
+      sock.emit('createGame', { playerId: 'Red' }, (res: { gameId: string }) => {
+        console.log('➡️ createGame →', res.gameId);
+        setGameId(res.gameId);
+        setStatus('Your turn (Red)');
+      });
     });
 
     sock.on('disconnect', () => {
@@ -42,10 +37,12 @@ const App: React.FC = () => {
       setStatus('Disconnected');
     });
 
+    // Show AI "thinking" indicator if emitted
     sock.on('aiThinking', () => {
       setStatus('AI is thinking (Yellow)…');
     });
 
+    // Single listener: handles both human & AI moves
     sock.on(
       'gameUpdate',
       (data: {
@@ -55,8 +52,8 @@ const App: React.FC = () => {
         winner?: CellValue;
         draw?: boolean;
       }) => {
-        const { board: newBoard, nextPlayer, winner, draw } = data;
         console.log('⬅️ gameUpdate', data);
+        const { board: newBoard, nextPlayer, winner, draw } = data;
         setBoard(newBoard);
 
         if (winner) {
@@ -78,18 +75,20 @@ const App: React.FC = () => {
     };
   }, []);
 
-  // ① Define your click‐handler inside the component
+  // Handler for when the human clicks a column
   function onColumnClick(col: number) {
     if (!socket || !gameId || currentPlayer !== 'Red') return;
     console.log('➡️ human dropDisc at', col);
+    // block further clicks until update arrives
+    setCurrentPlayer('Yellow');
     setStatus('Waiting for AI…');
+    // Emit a single event: server will process both moves
     socket.emit('dropDisc', { gameId, playerId: 'Red', column: col });
   }
 
   return (
     <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4">
       <h1 className="text-white text-2xl mb-4">Connect Four vs. AI</h1>
-      {/* ② Pass it into your Board */}
       <Board board={board} onDrop={onColumnClick} />
       <div className="mt-4 text-white">{status}</div>
     </div>

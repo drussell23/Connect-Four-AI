@@ -28,7 +28,7 @@ export class GameService {
     this.games.set(gameId, {
       board: emptyBoard,
       currentPlayer: playerId as CellValue,
-      players: [playerId],
+      players: [playerId as CellValue, 'Yellow' as CellValue],
     });
     return gameId;
   }
