@@ -75,16 +75,25 @@ const App: React.FC = () => {
     };
   }, []);
 
-  // Handler for when the human clicks a column
-  function onColumnClick(col: number) {
-    if (!socket || !gameId || currentPlayer !== 'Red') return;
-    console.log('➡️ human dropDisc at', col);
-    // block further clicks until update arrives
-    setCurrentPlayer('Yellow');
-    setStatus('Waiting for AI…');
-    // Emit a single event: server will process both moves
-    socket.emit('dropDisc', { gameId, playerId: 'Red', column: col });
-  }
+// Updated click handler: prevents moves after game over
+function onColumnClick(col: number) {
+  if (!socket || !gameId) return;
+
+  // block if the game has finished
+  if (status.endsWith('wins!') || status === 'Draw game') return;
+
+  // only allow when it’s Red’s turn
+  if (currentPlayer !== 'Red') return;
+
+  console.log('➡️ human dropDisc at', col);
+  // lock out further clicks until we get the next update
+  setCurrentPlayer('Yellow');
+  setStatus('Waiting for AI…');
+
+  // Tell the server to apply both your move and the AI’s
+  socket.emit('dropDisc', { gameId, playerId: 'Red', column: col });
+}
+
 
   return (
     <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4">
