@@ -9,8 +9,12 @@ import { join } from 'path';
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
+  console.log('🚀 bootstrap() start');
+
   // Initialize NestJS application
   const app = await NestFactory.create(AppModule);
+
+  console.log('✅ NestFactory.create complete');
 
   // Enable CORS for all origins
   app.enableCors({
@@ -45,3 +49,4 @@ async function bootstrap() {
   await app.listen(port);
   logger.log(`🚀 Server is running on http://localhost:${port}`);
 }
+bootstrap();
