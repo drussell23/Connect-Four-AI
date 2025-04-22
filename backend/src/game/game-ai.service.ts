@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { getBestAIMove, CellValue } from '../ai/aiEngine';
+import { getBestAIMove } from '../ai/aiEngine';
+import type { CellValue } from '../ai/types';
 
 /**
  * Service encapsulating AI logic for Connect Four using Minimax.
@@ -14,7 +15,6 @@ export class GameAIService {
    * @returns Index of the column (0-6) where the AI chooses to drop its disc.
    */
   getNextMove(board: CellValue[][], aiDisc: CellValue = 'Yellow'): number {
-    const bestColumn = getBestAIMove(board, aiDisc);
-    return bestColumn;
+    return getBestAIMove(board, aiDisc);
   }
 }

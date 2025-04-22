@@ -4,7 +4,7 @@ import { CellValue } from "./types";
  * Converts a 6x7 CellValue board into two bitboards (one for Red, one for Yellow).
  * Each bit position corresponds to row*7 + col (0-41).
  */
-export function boardToBitboards(board: CellValue[]): { red: bigint; yellow: bigint } {
+export function boardToBitboards(board: CellValue[][]): { red: bigint; yellow: bigint } {
     let red = 0n;
     let yellow = 0n;
     const COLS = BigInt(board[0].length);
