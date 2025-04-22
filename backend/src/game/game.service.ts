@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Server } from 'socket.io';
-import { getBestAIMove, CellValue } from './ai';
+import { getBestAIMove, CellValue } from '../ai/aiEngine';
 
 export interface GameState {
   board: CellValue[][];
@@ -115,7 +115,7 @@ export class GameService {
       else game.currentPlayer = game.players[0] as CellValue;
     }
   }
-  
+
   getBoard(gameId: string): CellValue[][] {
     const game = this.games.get(gameId);
     if (!game) {
