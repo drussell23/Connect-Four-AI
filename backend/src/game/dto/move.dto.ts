@@ -1,6 +1,6 @@
 import { IsArray, IsEnum } from "class-validator";
 import { Type } from 'class-transformer';
-import { CellValue } from "../../ai/types";
+import { CellValue } from "../../ai/connect4AI";
 
 /**
  * Possible players in the game.
