@@ -4,12 +4,74 @@ const ROWS = 6;
 const COLS = 7;
 const MAX_DEPTH = 5;  // tune for performance vs. strength
 
-// Simple evaluation: count 2‑in‑a‑rows, 3‑in‑a‑rows, etc.
-function evaluateBoard(board: CellValue[][], aiDisc: CellValue): number {
+// Score a single window of 4 cells. 
+function evaluateWindow(cells: CellValue[], aiDisc: CellValue): number {
     const humanDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
+    const aiCount = cells.filter(c => c === aiDisc).length;
+    const humanCount = cells.filter(c => c === humanDisc).length;
+
+    // If both have pieces here, this window is contested -> 0
+    if (aiCount > 0 && humanCount > 0) {
+        return 0;
+    }
+
+    // Weights - tweak these to tune your AI
+    const SCORES = {
+        4: 100, // Win.
+        3: 5,   // Strong.
+        2: 2,   // Weak.
+    };
+
+    if (aiCount > 0) {
+        return SCORES[aiCount as keyof typeof SCORES] || 0;
+    }
+
+    if (humanCount > 0) {
+        // Penalize opponent's threats a bit more heavily.
+        const oppScore = SCORES[humanCount as keyof typeof SCORES] || 0;
+        return -oppScore * 1.5;
+    }
+    return 0;
+}
+
+// Full board evaluation by scanning every 4-cell window.
+function evaluateBoard(board: CellValue[][], aiDisc: CellValue): number {
+    const numRows = board.length;      // <- Shadows global
+    const numCols = board[0].length;   // <- Shadows global
+    const WINDOW = 4;
     let score = 0;
-    // TODO: scan every window of 4 cells (horizontal, vertical, diag)
-    // add +X for aiDisc count, −X for humanDisc count
+
+    // Horizontal windows.
+    for (let r = 0; r < numRows; r++) {
+        for (let c = 0; c <= numCols - WINDOW; c++) {
+            const window = board[r].slice(c, c + WINDOW);
+            score += evaluateWindow(window, aiDisc);
+        }
+    }
+
+    // Vertical windows. 
+    for (let c = 0; c < numCols; c++) {
+        for (let r = 0; r <= numRows - WINDOW; r++) {
+            const window = [0, 1, 2, 3].map(i => board[r + i][c]);
+            score += evaluateWindow(window, aiDisc);
+        }
+    }
+
+    // Diagonal (down-right)
+    for (let r = 0; r <= numRows - WINDOW; r++) {
+        for (let c = 0; c <= numCols - WINDOW; c++) {
+            const window = [0, 1, 2, 3].map(i => board[r + i][c + i]);
+            score += evaluateWindow(window, aiDisc);
+        }
+    }
+
+    // Diagonal (down-left)
+    for (let r = 0; r <= numRows - WINDOW; r++) {
+        for (let c = WINDOW - 1; c < numCols; c++) {
+            const window = [0, 1, 2, 3].map(i => board[r + i][c - i]);
+            score += evaluateWindow(window, aiDisc);
+        }
+    }
     return score;
 }
 
