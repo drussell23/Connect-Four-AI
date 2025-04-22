@@ -28,7 +28,26 @@ const App: React.FC = () => {
     sock.on('connect', () => {
       console.log('🔗 connected, id=', sock.id);
       setStatus('Creating game…');
-      sock.emit('createGame', { playerId: 'Red' });
+      // sock.emit('createGame', { playerId: 'Red' });
+      sock.emit(
+        'createGame',
+        { playerId: 'Red' },
+        (res: { success: boolean; error?: string; gameId?: string; nextPlayer?: CellValue }) => {
+          if (!res.success) {
+            console.error('createGame failed:', res.error);
+            setStatus(res.error || 'Failed to create game');
+            return;
+          }
+          // Optionally, if you return gameId/nextPlayer in the ACK, set them here immediately:
+          if (res.gameId && res.nextPlayer) {
+            setGameId(res.gameId);
+            setCurrentPlayer(res.nextPlayer);
+            setStatus(
+              res.nextPlayer === 'Red' ? 'Your turn (Red)' : 'AI is thinking (Yellow)...'
+            );
+          }
+        }
+      );
     });
 
     sock.on('disconnect', () => {
@@ -145,6 +164,7 @@ const App: React.FC = () => {
       (res: { success: boolean; error?: string }) => {
         if (!res.success) {
           console.warn('dropDisc error:', res.error);
+          // Reset to your turn if it failed.
           setCurrentPlayer('Red');
           setStatus(res.error || 'Error occurred');
         }
