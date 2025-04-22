@@ -1,4 +1,4 @@
-import { GameService } from '../src/game/game.service';
+import { GameService } from '../../src/game/game.service';
 
 describe('GameService', () => {
     let service: GameService;
@@ -19,8 +19,8 @@ describe('GameService', () => {
         expect(state.board.flat().every(cell => cell === 'Empty')).toBe(true);
     });
 
-    it('should allow a second player to join', async() => {
-        const p1 = 'p1'; 
+    it('should allow a second player to join', async () => {
+        const p1 = 'p1';
         const p2 = 'p2';
         const gameId = await service.createGame(p1, 'c1');
         const result = await service.joinGame(gameId, p2, 'c2');

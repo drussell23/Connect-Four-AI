@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const testing_1 = require("@nestjs/testing");
-const game_gateway_1 = require("../src/game/game.gateway");
-const game_service_1 = require("../src/game/game.service");
+const game_gateway_1 = require("../../src/game/game.gateway");
+const game_service_1 = require("../../src/game/game.service");
 describe('GameGateway Unit Tests', () => {
     let gateway;
     let gameService;
