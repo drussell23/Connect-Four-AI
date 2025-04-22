@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const game_service_1 = require("../src/game/game.service");
+const game_service_1 = require("../../src/game/game.service");
 describe('GameService', () => {
     let service;
     beforeEach(() => {

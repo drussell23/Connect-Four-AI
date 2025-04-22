@@ -2,16 +2,11 @@
 import type { CellValue } from './types';
 import { minimax, Node } from './minimax';
 import { mcts } from './mcts';
-import { legalMoves, tryDrop } from './utils';
+import { legalMoves } from './utils';
 
-// Increase fallback minimax depth from 5 to 6 for a stronger play
-const MAX_DEPTH = 6;
+// Increase fallback minimax depth from 5 to 6 for stronger play
+const MAX_DEPTH = 7;
 
-/**
- * Chooses the best AI move via hybrid MCTS/minimax:
- * - Early in the game (empty cells > 60% of board): run MCTS
- * - Otherwise: α–β minimax with quiescence, TT, killer/history, bitboards
- */
 export function getBestAIMove(
   board: CellValue[][],
   aiDisc: CellValue,
@@ -19,28 +14,31 @@ export function getBestAIMove(
 ): number {
   const moves = legalMoves(board);
   const totalCells = board.length * board[0].length;
+  const emptyCells = board.reduce(
+    (sum, row) => sum + row.filter((c) => c === 'Empty').length,
+    0
+  );
 
-  // Count actual empty slots rather than legal moves
-  const emptyCells = board.reduce((sum, row) => sum + row.filter(c => c === 'Empty').length, 0);
+  // 1) Late‑game “few options left”: use minimax as soon as ≤5 moves remain
+  if (moves.length <= 5) {
+    const { column } = minimax(board, MAX_DEPTH, -Infinity, Infinity, true, aiDisc);
+    if (column !== null && moves.includes(column)) {
+      return column;
+    }
+    return moves[Math.floor(Math.random() * moves.length)];
+  }
 
-  // Early‑game: use MCTS when >60% of board is empty
+  // 2) Early‑game: MCTS when >60% of the board is still empty
   if (emptyCells > totalCells * 0.6) {
     return mcts(board, aiDisc, timeMs);
   }
 
-  // Late‑game: Minimax fallback
-  const result: Node = minimax(
-    board,
-    MAX_DEPTH,
-    -Infinity,
-    Infinity,
-    true,
-    aiDisc
-  );
-
-  // If minimax returns a valid column, use it; otherwise pick random
-  if (result.column !== null && moves.includes(result.column)) {
-    return result.column;
+  // 3) Mid‑game fallback to minimax
+  {
+    const { column } = minimax(board, MAX_DEPTH, -Infinity, Infinity, true, aiDisc);
+    if (column !== null && moves.includes(column)) {
+      return column;
+    }
+    return moves[Math.floor(Math.random() * moves.length)];
   }
-  return moves[Math.floor(Math.random() * moves.length)];
 }
