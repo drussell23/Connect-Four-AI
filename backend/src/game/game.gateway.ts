@@ -11,7 +11,7 @@ import {
 import { Logger, BadRequestException } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
-import type { CellValue } from '../ai/types';
+import type { CellValue } from '../ai/connect4AI';
 
 interface CreateGamePayload { playerId: string }
 interface JoinGamePayload   { gameId: string; playerId: string }
