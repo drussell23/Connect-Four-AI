@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Server } from 'socket.io';
-import { getBestAIMove, CellValue } from '../ai/aiEngine';
+import { getBestAIMove } from '../ai/aiEngine';
+import type { CellValue } from '../ai/types';
 
 export interface GameState {
   board: CellValue[][];
