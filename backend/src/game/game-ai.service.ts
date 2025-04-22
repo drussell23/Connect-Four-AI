@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { getBestAIMove, CellValue } from './ai';
+import { getBestAIMove, CellValue } from '../ai/aiEngine';
 
 /**
  * Service encapsulating AI logic for Connect Four using Minimax.
