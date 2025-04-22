@@ -472,7 +472,11 @@ export function mcts(
   return bestMove;
 }
 
-// 0c) Open‑three threat scanner
+// Search settings
+const ENGINE_MAX_DEPTH = 12;
+const THREAT_THRESHOLD = 1;
+
+// 0c) Hard block: first 3+gap you can drop into
 function findOpenThreeBlock(
   board: CellValue[][],
   opp: CellValue
@@ -480,17 +484,16 @@ function findOpenThreeBlock(
   const ROWS = board.length;
   const COLS = board[0].length;
   const WINDOW = 4;
-  const directions = [
-    { dr: 0, dc: 1 },   // horizontal
-    { dr: 1, dc: 0 },   // vertical
-    { dr: 1, dc: 1 },   // diagonal down‑right
-    { dr: 1, dc: -1 },  // diagonal down‑left
+  const dirs = [
+    { dr: 0, dc: 1 },   // horiz
+    { dr: 1, dc: 0 },   // vert
+    { dr: 1, dc: 1 },   // diag ↘
+    { dr: 1, dc: -1 },  // diag ↙
   ];
 
-  for (const { dr, dc } of directions) {
+  for (const { dr, dc } of dirs) {
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
-        // collect up to 4 cells along this direction
         const cells: CellValue[] = [];
         const coords: [number, number][] = [];
         for (let i = 0; i < WINDOW; i++) {
@@ -502,12 +505,15 @@ function findOpenThreeBlock(
         }
         if (cells.length < WINDOW) continue;
 
-        const oppCount = cells.filter(x => x === opp).length;
-        const emptyCount = cells.filter(x => x === 'Empty').length;
-        if (oppCount === 3 && emptyCount === 1) {
-          // return the column index of the empty slot
-          const gapIndex = cells.findIndex(x => x === 'Empty');
-          return coords[gapIndex][1];
+        const oppCnt = cells.filter(x => x === opp).length;
+        const empCnt = cells.filter(x => x === 'Empty').length;
+        if (oppCnt === 3 && empCnt === 1) {
+          const gapIdx = cells.findIndex(x => x === 'Empty');
+          const [gapRow, gapCol] = coords[gapIdx];
+          // gravity check: ensure a disc can land here
+          if (gapRow === ROWS - 1 || board[gapRow + 1][gapCol] !== 'Empty') {
+            return gapCol;
+          }
         }
       }
     }
@@ -516,10 +522,56 @@ function findOpenThreeBlock(
   return null;
 }
 
-/** Hybrid AI **/
-const ENGINE_MAX_DEPTH = 12;
-const THREAT_THRESHOLD = 1;
+// 1a) Count all 3+gap forks you’d hand over
+function countOpenThree(
+  board: CellValue[][],
+  opp: CellValue
+): number {
+  const ROWS = board.length;
+  const COLS = board[0].length;
+  const WINDOW = 4;
+  const dirs = [
+    { dr: 0, dc: 1 },   // horiz
+    { dr: 1, dc: 0 },   // vert
+    { dr: 1, dc: 1 },   // diag ↘
+    { dr: 1, dc: -1 },  // diag ↙
+  ];
+  let threats = 0;
+  const seen = new Set<string>();
 
+  for (const { dr, dc } of dirs) {
+    for (let r = 0; r <= ROWS - (dr ? WINDOW : 1); r++) {
+      for (let c = 0; c <= COLS - (dc ? WINDOW : 1); c++) {
+        const cells: CellValue[] = [];
+        const coords: [number, number][] = [];
+        for (let i = 0; i < WINDOW; i++) {
+          const rr = r + dr * i;
+          const cc = c + dc * i;
+          cells.push(board[rr][cc]);
+          coords.push([rr, cc]);
+        }
+        const oppCnt = cells.filter(x => x === opp).length;
+        const empCnt = cells.filter(x => x === 'Empty').length;
+        if (oppCnt === 3 && empCnt === 1) {
+          const gapIdx = cells.findIndex(x => x === 'Empty');
+          const [gapRow, gapCol] = coords[gapIdx];
+          // gravity check
+          if (gapRow === ROWS - 1 || board[gapRow + 1][gapCol] !== 'Empty') {
+            const key = `${gapRow},${gapCol}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              threats++;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return threats;
+}
+
+// Revised getBestAIMove integrating both strategies
 export function getBestAIMove(
   board: CellValue[][],
   aiDisc: CellValue,
@@ -535,56 +587,63 @@ export function getBestAIMove(
 
   // 0a) Immediate AI win
   for (const col of moves) {
-    const { board: next } = tryDrop(board, col, aiDisc);
-    if (bitboardCheckWin(getBits(next, aiDisc))) return col;
+    const { board: afterAI } = tryDrop(board, col, aiDisc);
+    if (bitboardCheckWin(getBits(afterAI, aiDisc))) {
+      return col;
+    }
   }
 
   // 0b) Immediate opponent win => block
   for (const col of moves) {
-    const { board: next } = tryDrop(board, col, oppDisc);
-    if (bitboardCheckWin(getBits(next, oppDisc))) return col;
+    const { board: afterOpp } = tryDrop(board, col, oppDisc);
+    if (bitboardCheckWin(getBits(afterOpp, oppDisc))) {
+      return col;
+    }
   }
 
-  // 0c) Block any “open‑three” threat
-  const blockCol = findOpenThreeBlock(board, oppDisc);
-  if (blockCol !== null) {
-    return blockCol;
+  // 0c) Hard block: first open‑three fork
+  const hardBlock = findOpenThreeBlock(board, oppDisc);
+  if (hardBlock !== null) {
+    return hardBlock;
   }
 
-  // 1) Threat‐count scan
+  // 1) Threat‑count scan: direct wins + all open‑three forks
   const threatCounts: Record<number, number> = {};
   for (const col of moves) {
-    const { board: afterAI } = tryDrop(board, col, aiDisc);
-    threatCounts[col] = legalMoves(afterAI)
-      .filter(reply => {
-        const { board: afterOpp } = tryDrop(afterAI, reply, oppDisc);
-        return bitboardCheckWin(getBits(afterOpp, oppDisc));
-      })
-      .length;
+    const { board: b1 } = tryDrop(board, col, aiDisc);
+
+    // A) direct winning replies
+    let cnt = legalMoves(b1).filter(reply => {
+      const { board: b2 } = tryDrop(b1, reply, oppDisc);
+      return bitboardCheckWin(getBits(b2, oppDisc));
+    }).length;
+
+    // B) all fork threats
+    cnt += countOpenThree(b1, oppDisc);
+
+    threatCounts[col] = cnt;
   }
 
-  // 2) Candidate filtering by THREAT_THRESHOLD
+  // 2) Filter by minimal threats
   let candidates = moves.filter(c => threatCounts[c] <= THREAT_THRESHOLD);
   if (candidates.length === 0) {
-    const minThreat = Math.min(...moves.map(c => threatCounts[c]));
-    candidates = moves.filter(c => threatCounts[c] === minThreat);
+    const minT = Math.min(...moves.map(c => threatCounts[c]));
+    candidates = moves.filter(c => threatCounts[c] === minT);
   }
 
-  // 3) Order by safety then centrality
-  candidates.sort((a, b) => {
-    const diff = threatCounts[a] - threatCounts[b];
-    if (diff !== 0) return diff;
-    return Math.abs(3 - a) - Math.abs(3 - b);
-  });
+  // 3) Sort by safety then center
+  candidates.sort((a, b) =>
+    threatCounts[a] - threatCounts[b] || Math.abs(3 - a) - Math.abs(3 - b)
+  );
 
   const isEarly = emptyCells > totalCells * 0.6;
   const isLate = candidates.length <= 5;
 
-  // 4) Late-game: iterative‑deepening minimax
+  // 4) Late‑game: iterative‑deepening minimax
   if (isLate) {
     let bestMove: number | null = null;
-    const maxDepth = Math.min(ENGINE_MAX_DEPTH, emptyCells);
-    for (let d = 4; d <= maxDepth; d += 2) {
+    const maxD = Math.min(ENGINE_MAX_DEPTH, emptyCells);
+    for (let d = 4; d <= maxD; d += 2) {
       const { column } = minimax(board, d, -Infinity, Infinity, true, aiDisc);
       if (column !== null && candidates.includes(column)) {
         bestMove = column;
@@ -599,10 +658,12 @@ export function getBestAIMove(
     return candidates.includes(col) ? col : candidates[0];
   }
 
-  // 6) Mid‑game fallback: full‑depth minimax
+  // 6) Mid‑game fallback: one full‑depth minimax
   {
     const depth = Math.min(ENGINE_MAX_DEPTH, emptyCells);
     const { column } = minimax(board, depth, -Infinity, Infinity, true, aiDisc);
-    return column !== null && candidates.includes(column) ? column : candidates[0];
+    return column !== null && candidates.includes(column)
+      ? column
+      : candidates[0];
   }
 }
