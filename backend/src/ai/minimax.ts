@@ -1,9 +1,9 @@
 // src/ai/minimax.ts
-import { CellValue } from "./types";
-import { transposition, EntryFlag, hashBoard } from "./transposition";
-import { quiesce } from "./quiescene";
-import { legalMoves, tryDrop } from "./utils";
-import { boardToBitboards, bitboardCheckWin } from "./bitboard";
+import { CellValue } from './types';
+import { transposition, EntryFlag, hashBoard } from './transposition';
+import { quiesce } from './quiescene';
+import { legalMoves, tryDrop } from './utils';
+import { boardToBitboards, bitboardCheckWin } from './bitboard';
 
 export interface Node {
     score: number;
@@ -40,7 +40,7 @@ export function minimax(
     maximizing: boolean,
     aiDisc: CellValue
 ): Node {
-    const humanDisc = aiDisc === "Red" ? "Yellow" : "Red";
+    const humanDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
     const alphaOrig = alpha;
     const betaOrig = beta;
 
@@ -51,8 +51,12 @@ export function minimax(
         if (entry.flag === EntryFlag.Exact) {
             return { score: entry.score, column: entry.column };
         }
-        if (entry.flag === EntryFlag.LowerBound) alpha = Math.max(alpha, entry.score);
-        if (entry.flag === EntryFlag.UpperBound) beta = Math.min(beta, entry.score);
+        if (entry.flag === EntryFlag.LowerBound) {
+            alpha = Math.max(alpha, entry.score);
+        }
+        if (entry.flag === EntryFlag.UpperBound) {
+            beta = Math.min(beta, entry.score);
+        }
         if (alpha >= beta) {
             return { score: entry.score, column: entry.column };
         }
@@ -68,6 +72,7 @@ export function minimax(
             !maximizing,
             aiDisc
         );
+        
         if (-nm.score >= beta) {
             return { score: beta, column: null };
         }
@@ -80,7 +85,7 @@ export function minimax(
 
     let best: Node = maximizing
         ? { score: -Infinity, column: null }
-        : { score: +Infinity, column: null };
+        : { score: Infinity, column: null };
 
     const cols = board[0].length;
     const moves = orderMoves(moves0, depth, cols);
@@ -89,10 +94,11 @@ export function minimax(
         const disc = maximizing ? aiDisc : humanDisc;
         const { board: nb } = tryDrop(board, col, disc);
 
-        // ←—— HERE: bitboard‐based win check
-        const { red: redBB, yellow: yellowBB } = boardToBitboards(nb);
-        const bb = disc === "Red" ? redBB : yellowBB;
+        // Win check via bitboards
+        const { red: rBB, yellow: yBB } = boardToBitboards(nb);
+        const bb = disc === 'Red' ? rBB : yBB;
         let node: Node;
+
         if (bitboardCheckWin(bb)) {
             node = { score: maximizing ? Infinity : -Infinity, column: col };
         } else {
@@ -100,31 +106,39 @@ export function minimax(
             node.column = col;
         }
 
-        // Update best & α/β
         if (maximizing) {
-            if (node.score > best.score) best = node;
+            if (node.score > best.score) 
+                best = node;
+
             alpha = Math.max(alpha, node.score);
+
             if (alpha >= beta) {
                 killerMoves[depth] = [...(killerMoves[depth] || []), col];
                 break;
             }
         } else {
-            if (node.score < best.score) best = node;
+            if (node.score < best.score) 
+                best = node;
+
             beta = Math.min(beta, node.score);
+
             if (beta <= alpha) {
                 killerMoves[depth] = [...(killerMoves[depth] || []), col];
                 break;
             }
         }
 
-        // History heuristic
         historyScores.set(col, (historyScores.get(col) || 0) + depth * depth);
     }
 
     // Store in transposition
     let flag = EntryFlag.Exact;
-    if (best.score <= alphaOrig) flag = EntryFlag.UpperBound;
-    else if (best.score >= betaOrig) flag = EntryFlag.LowerBound;
+    
+    if (best.score <= alphaOrig) 
+        flag = EntryFlag.UpperBound;
+    else if (best.score >= betaOrig) 
+        flag = EntryFlag.LowerBound;
+
     transposition.set(key, { score: best.score, depth, column: best.column, flag });
 
     return best;

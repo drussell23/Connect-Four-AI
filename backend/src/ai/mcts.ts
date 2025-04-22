@@ -149,8 +149,8 @@ export function mcts(
         // 2. Expansion
         if (node.visits > 0 && node.children.length === 0) expand(node);
 
-        // 3. Simulation (now biased)
-        const leaf = node.children.length > 0 ? node.children[0] : node;
+        // 3. Simulation (pick a random child for broader exploration)
+        const leaf = node.children.length > 0 ? node.children[Math.floor(Math.random() * node.children.length)] : node;
         const winner = playout(leaf.board, leaf.player === aiDisc ? aiDisc : leaf.player, aiDisc);
 
         // 4. Backpropagation
