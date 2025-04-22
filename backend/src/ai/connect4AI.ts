@@ -43,7 +43,7 @@ export function boardToBitboards(board: CellValue[][]): { red: bigint; yellow: b
 }
 
 /** Helper to pick the correct bitboard for a disc **/
-function getBits(board: CellValue[][], disc: CellValue): bigint {
+export function getBits(board: CellValue[][], disc: CellValue): bigint {
   const { red, yellow } = boardToBitboards(board);
   return disc === 'Red' ? red : yellow;
 }
