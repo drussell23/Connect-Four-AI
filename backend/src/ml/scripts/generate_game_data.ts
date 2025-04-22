@@ -1,7 +1,14 @@
 // backend/src/ml/scripts/generate_game_data.ts
 import * as fs from 'fs';
 import * as path from 'path';
-import { getBestAIMove, tryDrop, legalMoves, CellValue, bitboardCheckWin, getBits } from '../../ai/connect4AI';
+import {
+  getBestAIMove,
+  tryDrop,
+  legalMoves,
+  CellValue,
+  bitboardCheckWin,
+  getBits
+} from '../../ai/connect4AI';  // adjust the relative path as needed
 
 const RAW_DATA = path.resolve(__dirname, '../data/raw_games.json');
 

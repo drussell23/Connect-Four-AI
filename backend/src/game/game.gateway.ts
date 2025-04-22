@@ -22,7 +22,7 @@ export class GameGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() private server!: Server;
   private readonly logger = new Logger(GameGateway.name);
-  private readonly AI_THINK_DELAY_MS = 1000;
+  private readonly AI_THINK_DELAY_MS = 500;
 
   constructor(private readonly gameService: GameService) {}
 
