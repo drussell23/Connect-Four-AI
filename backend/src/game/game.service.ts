@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Server } from 'socket.io';
 import { getBestAIMove } from '../ai/connect4AI';
 import type { CellValue } from '../ai/connect4AI';
+import { getAIMoveViaAPI } from '../services/ml_inference';
 
 export interface GameState {
   board: CellValue[][];
@@ -23,8 +24,9 @@ export class GameService {
 
   async createGame(playerId: string, clientId: string): Promise<string> {
     const gameId = this.generateGameId();
-    const emptyBoard = Array.from({ length: GameService.ROWS }, () =>
-      Array(GameService.COLS).fill('Empty' as CellValue)
+    const emptyBoard = Array.from(
+      { length: GameService.ROWS },
+      () => Array(GameService.COLS).fill('Empty' as CellValue)
     );
     this.games.set(gameId, {
       board: emptyBoard,
@@ -44,7 +46,7 @@ export class GameService {
     if (game.players.includes(playerId)) return { error: 'Player already joined.' };
     if (game.players.length >= 2) return { error: 'Game is full.' };
 
-    game.players.push(playerId);
+    game.players.push(playerId as CellValue);
     return { board: game.board, currentPlayer: game.currentPlayer };
   }
 
@@ -66,6 +68,7 @@ export class GameService {
     if (game.currentPlayer !== playerId) return { success: false, error: 'Not your turn.' };
     if (column < 0 || column >= GameService.COLS) return { success: false, error: 'Column out of range.' };
 
+    // Place the disc
     let placedRow = -1;
     for (let r = GameService.ROWS - 1; r >= 0; r--) {
       if (game.board[r][column] === 'Empty') {
@@ -76,6 +79,7 @@ export class GameService {
     }
     if (placedRow === -1) return { success: false, error: 'Column is full.' };
 
+    // Check for win / draw
     const color = game.board[placedRow][column];
     const won = this.checkWin(game.board, placedRow, column, color);
 
@@ -122,19 +126,49 @@ export class GameService {
     if (!game) {
       throw new NotFoundException(`Game not found: ${gameId}`);
     }
-    return game.board.map(row => [...row])
+    // Return a deep copy
+    return game.board.map(row => [...row]);
   }
 
-  async getAIMove(gameId: string, aiDisc: CellValue): Promise<{ column: number }> {
+  /**
+   * Chooses the AI’s move—preferring ML and falling back to
+   * the original engine. Now takes both gameId and aiDisc.
+   */
+  async getAIMove(
+    gameId: string,
+    aiDisc: CellValue
+  ): Promise<{ column: number }> {
     const state = this.games.get(gameId);
     if (!state) throw new NotFoundException('Game not found');
-    return { column: getBestAIMove(state.board, aiDisc) };
+
+    const { board } = state;
+
+    // Build your 2×6×7 numeric layers exactly as before,
+    // but now use the passed-in aiDisc if you prefer:
+    const numeric = board.map(row =>
+      row.map(c => (c === 'Red' ? 1 : c === 'Yellow' ? -1 : 0))
+    );
+    const layers = [
+      numeric.map(r => r.map(v => (v === 1 ? 1 : 0))),
+      numeric.map(r => r.map(v => (v === -1 ? 1 : 0))),
+    ];
+
+    let column: number;
+    try {
+      column = await getAIMoveViaAPI(layers);
+    } catch {
+      column = getBestAIMove(board, aiDisc);
+    }
+
+    return { column };
   }
 
+  // Utility to generate a random gameId
   private generateGameId(): string {
     return Math.random().toString(36).substr(2, 9);
   }
 
+  // Check win in 4 directions
   private checkWin(
     board: CellValue[][],
     row: number,
@@ -142,16 +176,16 @@ export class GameService {
     color: CellValue
   ): boolean {
     const dirs = [
-      [0, 1],
-      [1, 0],
-      [1, 1],
-      [1, -1],
+      [0, 1],  // horizontal
+      [1, 0],  // vertical
+      [1, 1],  // diag ↘
+      [1, -1], // diag ↙
     ];
     for (const [dr, dc] of dirs) {
       let count = 1;
       for (const sign of [1, -1] as const) {
-        let r = row + dr * sign,
-          c = col + dc * sign;
+        let r = row + dr * sign;
+        let c = col + dc * sign;
         while (
           r >= 0 &&
           r < GameService.ROWS &&
