@@ -8,7 +8,7 @@ import {
   CellValue,
   bitboardCheckWin,
   getBits
-} from '../../ai/connect4AI';  // adjust the relative path as needed
+} from '../../ai/connect4AI';  // Adjust the relative path as needed
 
 const RAW_DATA = path.resolve(__dirname, '../data/raw_games.json');
 const DEFAULT_GAMES = 500;
