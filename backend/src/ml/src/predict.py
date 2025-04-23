@@ -1,16 +1,13 @@
-# pyright: reportMissingImports=false
-# pylint: disable=import-error, missing-module-docstring
-
-import os  # type: ignore
-import sys  # type: ignore
-import json  # type: ignore
-import argparse  # type: ignore
-import torch  # type: ignore
+import os 
+import sys 
+import json  
+import argparse  
+import torch  
 
 # Ensure local "src" folder is on path for policy_net import
 ML_ROOT = os.path.dirname(__file__)
 sys.path.append(os.path.join(ML_ROOT, "src"))
-from policy_net import Connect4PolicyNet  # type: ignore
+from policy_net import Connect4PolicyNet  
 
 
 def load_board_from_file(path: str) -> list[list[str]]:

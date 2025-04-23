@@ -1,16 +1,11 @@
-# pyright: reportMissingImports=false
-# pylint: disable=import-error, missing-module-docstring
+import sys, os  
+from fastapi import FastAPI  
+from pydantic import BaseModel 
+import torch 
 
-import os  # type: ignore
-import sys  # type: ignore
-from fastapi import FastAPI  # type: ignore
-from pydantic import BaseModel  # type: ignore
-import torch  # type: ignore
-
-# Ensure local "src" folder is on path for policy_net import
 ML_ROOT = os.path.dirname(__file__)
 sys.path.append(os.path.join(ML_ROOT, "src"))
-from policy_net import Connect4PolicyNet  # type: ignore
+from src.policy_net import Connect4PolicyNet
 
 # Paths
 def model_paths():

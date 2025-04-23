@@ -154,6 +154,7 @@ export class GameService {
     ];
 
     let column: number;
+    
     try {
       column = await getAIMoveViaAPI(layers);
     } catch {
