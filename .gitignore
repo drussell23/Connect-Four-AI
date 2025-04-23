@@ -18,8 +18,11 @@ tfjs-env/
 # Python cache files
 #  Bytecode caches created by Python
 __pycache__/
+# Compiled Python files
+*.pyc
+# Ignore the ml_service compiled bytecode
+ml_service.cpython-310.pyc
 
 # IDE and editor settings
 #  Personal configuration files
 .vscode/
-
