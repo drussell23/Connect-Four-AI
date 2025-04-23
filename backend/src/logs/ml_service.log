@@ -1,0 +1,3 @@
+2025-04-23 15:42:12,898 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net.onnx'}
+2025-04-23 15:42:12,898 INFO: Using device: cpu
+2025-04-23 15:42:12,929 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt
