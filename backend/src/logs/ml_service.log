@@ -1,3 +1,27 @@
 2025-04-23 15:42:12,898 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net.onnx'}
 2025-04-23 15:42:12,898 INFO: Using device: cpu
 2025-04-23 15:42:12,929 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt
+2025-04-23 16:33:51,458 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-23 16:33:51,468 INFO: Response status: 422
+2025-04-23 16:34:03,795 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-23 16:34:03,798 INFO: Response status: 422
+2025-04-23 16:38:35,023 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net.onnx'}
+2025-04-23 16:38:35,023 INFO: Using device: cpu
+2025-04-23 16:38:35,059 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt
+2025-04-23 16:38:42,226 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net.onnx'}
+2025-04-23 16:38:42,226 INFO: Using device: cpu
+2025-04-23 16:38:42,237 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt
+2025-04-23 16:38:49,407 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net.onnx'}
+2025-04-23 16:38:49,407 INFO: Using device: cpu
+2025-04-23 16:38:49,418 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt
+2025-04-23 16:39:01,973 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-23 16:39:01,978 INFO: Response status: 422
+2025-04-23 16:41:51,156 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net.onnx'}
+2025-04-23 16:41:51,156 INFO: Using device: cpu
+2025-04-23 16:41:51,172 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt
+2025-04-23 16:42:11,843 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-23 16:42:11,881 INFO: Predicted move: 3 with probs: [0.006285954732447863, 0.02189362235367298, 0.3670927584171295, 0.3798217177391052, 0.20334230363368988, 0.019701188430190086, 0.0018624518997967243]
+2025-04-23 16:42:11,882 INFO: Response status: 200
+2025-04-23 16:42:24,382 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-23 16:42:24,391 INFO: Predicted move: 5 with probs: [0.02613028883934021, 0.06621689349412918, 0.11879613250494003, 0.13848809897899628, 0.158287912607193, 0.2834891378879547, 0.2085915505886078]
+2025-04-23 16:42:24,393 INFO: Response status: 200
