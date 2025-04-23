@@ -1,17 +1,14 @@
-# pyright: reportMissingImports=false
-# pylint: disable=import-error, missing-module-docstring
-
-import os  # type: ignore
-import json  # type: ignore
-import random  # type: ignore
-import argparse  # type: ignore
-import logging  # type: ignore
-import torch  # type: ignore
-import torch.nn as nn  # type: ignore
-import torch.optim as optim  # type: ignore
-from torch.utils.data import TensorDataset, DataLoader, random_split  # type: ignore
-from torch.utils.tensorboard import SummaryWriter  # type: ignore
-from policy_net import Connect4PolicyNet  # type: ignore
+import os  
+import json  
+import random 
+import argparse  
+import logging 
+import torch  
+import torch.nn as nn  
+import torch.optim as optim  
+from torch.utils.data import TensorDataset, DataLoader, random_split 
+from torch.utils.tensorboard import SummaryWriter  
+from policy_net import Connect4PolicyNet 
 
 # Set random seeds for reproducibility
 SEED = 42
