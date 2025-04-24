@@ -752,3 +752,51 @@ Traceback (most recent call last):
   File "/Users/derekjrussell/miniforge3/lib/python3.10/site-packages/torch/serialization.py", line 252, in __init__
     super().__init__(open(name, mode))
 FileNotFoundError: [Errno 2] No such file or directory: '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt'
+2025-04-24 01:57:54,256 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net.onnx'}
+2025-04-24 01:57:54,256 INFO: Using device: cpu
+2025-04-24 01:57:54,278 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt
+2025-04-24 02:14:31,105 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-24 02:14:31,138 INFO: Predicted move: 3 with probs: [0.006260535214096308, 0.03023683652281761, 0.19628797471523285, 0.44530805945396423, 0.2561464309692383, 0.05122704431414604, 0.014533162117004395]
+2025-04-24 02:14:31,138 INFO: Response status: 200
+2025-04-24 02:14:55,842 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-24 02:14:55,848 INFO: Predicted move: 3 with probs: [0.006260535214096308, 0.03023683652281761, 0.19628797471523285, 0.44530805945396423, 0.2561464309692383, 0.05122704431414604, 0.014533162117004395]
+2025-04-24 02:14:55,848 INFO: Response status: 200
+2025-04-24 02:18:35,647 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-24 02:18:35,663 INFO: Predicted move: 3 with probs: [0.006260535214096308, 0.03023683652281761, 0.19628797471523285, 0.44530805945396423, 0.2561464309692383, 0.05122704431414604, 0.014533162117004395]
+2025-04-24 02:18:35,664 INFO: Response status: 200
+2025-04-24 02:22:24,402 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-24 02:22:24,412 INFO: Predicted move: 3 with probs: [0.006260535214096308, 0.03023683652281761, 0.19628797471523285, 0.44530805945396423, 0.2561464309692383, 0.05122704431414604, 0.014533162117004395]
+2025-04-24 02:22:24,413 INFO: Response status: 200
+2025-04-24 02:24:07,145 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net.onnx'}
+2025-04-24 02:24:07,145 INFO: Using device: cpu
+2025-04-24 02:24:07,165 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt
+2025-04-24 02:31:48,624 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net.onnx'}
+2025-04-24 02:31:48,625 INFO: Using device: cpu
+2025-04-24 02:31:48,645 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt
+2025-04-24 02:31:54,889 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net.onnx'}
+2025-04-24 02:31:54,889 INFO: Using device: cpu
+2025-04-24 02:31:54,896 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt
+2025-04-24 02:33:13,675 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-24 02:33:13,718 INFO: Predicted move: 3 with probs: [0.0034953923895955086, 0.026883170008659363, 0.17079992592334747, 0.46243542432785034, 0.27917516231536865, 0.04538682848215103, 0.011824238114058971]
+2025-04-24 02:33:13,718 INFO: Response status: 200
+2025-04-24 02:38:42,308 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-24 02:38:42,320 INFO: Predicted move: 3 with probs: [0.006260535214096308, 0.03023683652281761, 0.19628797471523285, 0.44530805945396423, 0.2561464309692383, 0.05122704431414604, 0.014533162117004395]
+2025-04-24 02:38:42,321 INFO: Response status: 200
+2025-04-24 02:41:01,637 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-24 02:41:01,644 INFO: Predicted move: 3 with probs: [0.006260535214096308, 0.03023683652281761, 0.19628797471523285, 0.44530805945396423, 0.2561464309692383, 0.05122704431414604, 0.014533162117004395]
+2025-04-24 02:41:01,645 INFO: Response status: 200
+2025-04-24 02:41:03,779 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-24 02:41:03,785 INFO: Predicted move: 2 with probs: [0.0759061649441719, 0.20997342467308044, 0.34362107515335083, 0.07893379032611847, 0.03572327271103859, 0.19581900537014008, 0.06002329662442207]
+2025-04-24 02:41:03,786 INFO: Response status: 200
+2025-04-24 02:41:05,840 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-24 02:41:05,846 INFO: Predicted move: 2 with probs: [0.11680376529693604, 0.19746153056621552, 0.24911965429782867, 0.06541852653026581, 0.03841695189476013, 0.20629262924194336, 0.12648695707321167]
+2025-04-24 02:41:05,847 INFO: Response status: 200
+2025-04-24 02:41:55,399 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-24 02:41:55,411 INFO: Predicted move: 3 with probs: [0.006260535214096308, 0.03023683652281761, 0.19628797471523285, 0.44530805945396423, 0.2561464309692383, 0.05122704431414604, 0.014533162117004395]
+2025-04-24 02:41:55,412 INFO: Response status: 200
+2025-04-24 02:41:57,147 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-24 02:41:57,155 INFO: Predicted move: 2 with probs: [0.0759061649441719, 0.20997342467308044, 0.34362107515335083, 0.07893379032611847, 0.03572327271103859, 0.19581900537014008, 0.06002329662442207]
+2025-04-24 02:41:57,156 INFO: Response status: 200
+2025-04-24 02:42:00,689 INFO: Incoming request: POST http://localhost:8000/predict
+2025-04-24 02:42:00,693 INFO: Predicted move: 2 with probs: [0.11680376529693604, 0.19746153056621552, 0.24911965429782867, 0.06541852653026581, 0.03841695189476013, 0.20629262924194336, 0.12648695707321167]
+2025-04-24 02:42:00,693 INFO: Response status: 200
