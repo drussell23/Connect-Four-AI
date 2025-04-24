@@ -1366,3 +1366,4 @@
 2025-04-23 15:41:52,251 INFO: Epoch 50/50 complete: Train Loss 0.7002, Val Loss 2.1418, Val Acc 0.4230
 2025-04-23 15:41:52,251 INFO: Epoch 50: no improvement (best val_loss 1.5548)
 2025-04-23 15:41:52,253 INFO: Training complete. Best model saved to ../models/best_policy_net.pt.
+2025-04-24 00:30:06,801 INFO: Using device: cpu
