@@ -13,9 +13,12 @@ import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import type { CellValue } from '../ai/connect4AI';
 
+// Import the ML inference client for AI moves
+import { MLInferenceClient } from '../ai/MLInferenceClient';
+
 interface CreateGamePayload { playerId: string }
-interface JoinGamePayload   { gameId: string; playerId: string }
-interface DropDiscPayload   { gameId: string; playerId: string; column: number }
+interface JoinGamePayload { gameId: string; playerId: string }
+interface DropDiscPayload { gameId: string; playerId: string; column: number }
 
 @WebSocketGateway({ namespace: '/game', cors: { origin: '*' } })
 export class GameGateway
@@ -24,7 +27,15 @@ export class GameGateway
   private readonly logger = new Logger(GameGateway.name);
   private readonly AI_THINK_DELAY_MS = 500;
 
-  constructor(private readonly gameService: GameService) {}
+  // Initialize ML client to call the prediction service
+  private readonly mlClient = new MLInferenceClient({
+    baseUrl: 'http://localhost:8000',
+    timeoutMs: 5000,
+    maxRetries: 3,
+    retryDelayMs: 200,
+  });
+
+  constructor(private readonly gameService: GameService) { }
 
   afterInit(server: Server) {
     this.logger.log('WebSocket server initialized');
@@ -125,15 +136,15 @@ export class GameGateway
         return;
       }
 
-      // AI move sequence
+      // AI move sequence via MLInferenceClient
       this.server.to(gameId).emit('aiThinking');
-      const aiDisc: CellValue = 'Yellow';
-      this.logger.log(`[${gameId}] Computing AI move (${aiDisc})`);
-      const { column: aiColumn } = await this.gameService.getAIMove(gameId, aiDisc);
-      const aiRes = await this.gameService.dropDisc(gameId, aiDisc, aiColumn);
+      this.logger.log(`[${gameId}] Querying ML API for AI move`);
+      const aiResult = await this.mlClient.predict({ board: res.board });
+      const aiColumn: number = aiResult.move;
+      const aiRes = await this.gameService.dropDisc(gameId, 'Yellow', aiColumn as number);
       this.server.to(gameId).emit('aiMove', {
         board: aiRes.board,
-        lastMove: { column: aiColumn, playerId: aiDisc },
+        lastMove: { column: aiColumn, playerId: 'Yellow' as CellValue },
         winner: aiRes.winner,
         draw: aiRes.draw,
         nextPlayer: aiRes.nextPlayer,
