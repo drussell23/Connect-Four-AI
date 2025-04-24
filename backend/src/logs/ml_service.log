@@ -85,3 +85,27 @@
 2025-04-23 17:00:05,845 INFO: Incoming request: POST http://localhost:8000/predict
 2025-04-23 17:00:05,848 INFO: Predicted move: 3 with probs: [0.031802788376808167, 0.0500359944999218, 0.11256536096334457, 0.30752912163734436, 0.2829958200454712, 0.20897336304187775, 0.006097560748457909]
 2025-04-23 17:00:05,849 INFO: Response status: 200
+2025-04-23 21:40:09,249 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net.onnx'}
+2025-04-23 21:40:09,249 INFO: Using device: cpu
+2025-04-23 21:40:09,282 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt
+2025-04-23 21:40:21,145 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net.onnx'}
+2025-04-23 21:40:21,145 INFO: Using device: cpu
+2025-04-23 21:40:21,161 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt
+2025-04-23 21:40:46,247 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net.onnx'}
+2025-04-23 21:40:46,247 INFO: Using device: cpu
+2025-04-23 21:40:46,261 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt
+2025-04-23 21:42:19,930 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net.onnx'}
+2025-04-23 21:42:19,930 INFO: Using device: cpu
+2025-04-23 21:42:19,944 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt
+2025-04-23 21:43:27,066 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net.onnx'}
+2025-04-23 21:43:27,067 INFO: Using device: cpu
+2025-04-23 21:43:27,094 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt
+2025-04-23 21:53:40,250 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net.onnx'}
+2025-04-23 21:53:40,251 INFO: Using device: cpu
+2025-04-23 21:53:40,278 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt
+2025-04-23 22:00:38,944 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net.onnx'}
+2025-04-23 22:00:38,945 INFO: Using device: cpu
+2025-04-23 22:00:38,963 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt
+2025-04-24 00:33:41,381 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/policy_net.onnx'}
+2025-04-24 00:33:41,382 INFO: Using device: cpu
+2025-04-24 00:33:41,412 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/models/best_policy_net.pt

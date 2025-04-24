@@ -11,7 +11,7 @@ import {
 } from '../../ai/connect4AI';  // Adjust the relative path as needed
 
 const RAW_DATA = path.resolve(__dirname, '../data/raw_games.json');
-const DEFAULT_GAMES = 500;
+const DEFAULT_GAMES = 30;
 
 type Example = {
   board: CellValue[][];
