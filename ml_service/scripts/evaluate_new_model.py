@@ -12,6 +12,8 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 
+# Determine device once
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ----------------------------------------------------------------------------
 # Setup logging
@@ -55,7 +57,6 @@ def check_win(board, disc):
         for c in range(COLS):
             if board[r][c] != disc:
                 continue
-            # check directions
             for dr, dc in [(0, 1), (1, 0), (1, 1), (1, -1)]:
                 count = 1
                 rr, cc = r + dr, c + dc
@@ -68,24 +69,28 @@ def check_win(board, disc):
     return False
 
 
+# ----------------------------------------------------------------------------
+# Model move selection
+# ----------------------------------------------------------------------------
 def get_model_move(model, board, ai_disc):
     # prepare tensor [1,2,6,7]
     mapping = {"Empty": 0.0, "Red": 1.0, "Yellow": -1.0}
     numeric = [[mapping[cell] for cell in row] for row in board]
     red_mask = [[1.0 if v == 1.0 else 0.0 for v in row] for row in numeric]
     yellow_mask = [[1.0 if v == -1.0 else 0.0 for v in row] for row in numeric]
-    tensor = torch.tensor(
-        [red_mask, yellow_mask], dtype=torch.float32, device=model.device
-    ).unsqueeze(0)
+    tensor = torch.tensor([red_mask, yellow_mask], dtype=torch.float32).to(device)
+    tensor = tensor.unsqueeze(0)  # add batch dimension
     with torch.no_grad():
         logits = model(tensor)
         probs = torch.softmax(logits, dim=1)[0].cpu()
-        # choose highest-prob legal move
         legal = legal_moves(board)
         best = max(legal, key=lambda c: probs[c].item())
     return int(best)
 
 
+# ----------------------------------------------------------------------------
+# Game simulation
+# ----------------------------------------------------------------------------
 def simulate_game(model_red, model_yellow):
     board = make_empty_board()
     current = "Red"
@@ -109,6 +114,9 @@ def simulate_game(model_red, model_yellow):
         current = "Yellow" if current == "Red" else "Red"
 
 
+# ----------------------------------------------------------------------------
+# Main evaluation
+# ----------------------------------------------------------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Evaluate a new model vs the previous by self-play."
@@ -121,8 +129,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", "-o", help="Output JSON report path")
     args = parser.parse_args()
 
-    # load models
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Load models onto device
     new_model = Connect4PolicyNet().to(device)
     old_model = Connect4PolicyNet().to(device)
     for model, path in [(new_model, args.new), (old_model, args.old)]:
@@ -133,7 +140,6 @@ if __name__ == "__main__":
 
     results = {"new_wins": 0, "old_wins": 0, "draws": 0}
     for i in range(args.games):
-        # alternate start: even index new starts
         if i % 2 == 0:
             res = simulate_game(new_model, old_model)
             if res == 1:
@@ -143,7 +149,6 @@ if __name__ == "__main__":
             else:
                 results["draws"] += 1
         else:
-            # swap roles
             res = simulate_game(old_model, new_model)
             if res == 1:
                 results["old_wins"] += 1
@@ -157,7 +162,7 @@ if __name__ == "__main__":
     results["new_win_rate"] = round(results["new_wins"] / total, 4)
     results["timestamp"] = datetime.utcnow().isoformat() + "Z"
 
-    # write report
+    # Write report
     report_path = (
         Path(args.output) if args.output else (base_dir / "data" / "eval_report.json")
     )
