@@ -18,7 +18,7 @@ ROOT="$(dirname "$SCRIPT_DIR")"
 # Default settings
 MODE="both"
 SERVE=false
-INTERVAL=5  # minutes between continuous cycles
+INTERVAL=1  # minutes between continuous cycles
 
 # parse arguments
 while [[ $# -gt 0 ]]; do
