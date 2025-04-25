@@ -1,6 +1,11 @@
-// backend/src/ml/scripts/generate_game_data.ts
-import * as fs from 'fs';
+#!/usr/bin/env ts-node
+import { promises as fs } from 'fs';
 import * as path from 'path';
+import { Command } from 'commander';
+
+// Use require for cli-progress to avoid module interop issues.
+const cliProgress = require('cli-progress');
+
 import {
   getBestAIMove,
   tryDrop,
@@ -8,11 +13,49 @@ import {
   CellValue,
   bitboardCheckWin,
   getBits
-} from '../../ai/connect4AI';  // Adjust the relative path as needed
+} from '../../ai/connect4AI';
 
-const RAW_DATA = path.resolve(__dirname, '../data/raw_games.json');
-const DEFAULT_GAMES = 1000;
+// ----------------------------------------------------------------------------
+// generate_game_data.ts
+// Enhanced self-play data generation for Connect Four
+// Features:
+//  - CLI args (games count, output path, verbosity)
+//  - Colored, leveled logs
+//  - Progress bar
+//  - Error handling
+//  - Summary statistics
+// ----------------------------------------------------------------------------
 
+// CLI setup
+const program = new Command();
+program
+  .option('-n, --games <number>', 'number of games to generate', '1000')
+  .option('-o, --output <path>', 'output JSON file', path.resolve(__dirname, '../data/raw_games.json'))
+  .option('-v, --verbose', 'enable verbose logging')
+  .parse(process.argv);
+
+const { games, output, verbose } = program.opts() as {
+  games: string;
+  output: string;
+  verbose: boolean;
+};
+const N_GAMES = parseInt(games, 10);
+
+// Logging utilities
+enum Level { INFO = 'INFO', WARN = 'WARN', ERROR = 'ERROR', DEBUG = 'DEBUG' }
+const levelColor: Record<Level, string> = {
+  [Level.INFO]: '\x1b[32m',
+  [Level.WARN]: '\x1b[33m',
+  [Level.ERROR]: '\x1b[31m',
+  [Level.DEBUG]: '\x1b[34m',
+};
+function log(level: Level, msg: string) {
+  if (!verbose && level === Level.DEBUG) return;
+  const ts = new Date().toISOString();
+  console.log(`${levelColor[level]}[${ts}] [${level}] ${msg}\x1b[0m`);
+}
+
+// Data types
 type Example = {
   board: CellValue[][];
   move: number;
@@ -20,76 +63,88 @@ type Example = {
   outcome: 'win' | 'loss' | 'draw';
 };
 
+// Play one game to completion
 function playOneGame(): Example[] {
   let board = Array.from({ length: 6 }, () => Array(7).fill('Empty') as CellValue[]);
   let current: CellValue = 'Red';
-  const log: Example[] = [];
+  const logEntries: Example[] = [];
 
   while (true) {
     const move = getBestAIMove(board, current);
-    log.push({ board: structuredClone(board), move, player: current, outcome: 'draw' });
-    const { board: next } = tryDrop(board, move, current);
-    board = next;
+    log(Level.DEBUG, `Player ${current} selects column ${move}`);
+    logEntries.push({ board: structuredClone(board), move, player: current, outcome: 'draw' });
 
-    const win = bitboardCheckWin(getBits(board, current));
+    const { board: nextBoard } = tryDrop(board, move, current);
+    board = nextBoard;
+
+    const isWin = bitboardCheckWin(getBits(board, current));
     const movesLeft = legalMoves(board).length;
-    if (win || movesLeft === 0) {
-      const result: 'win' | 'loss' | 'draw' = win ? 'win' : 'draw';
-      return log.map((ex, idx) => ({
+    if (isWin || movesLeft === 0) {
+      const finalOutcome: Example['outcome'] = isWin ? 'win' : 'draw';
+      const winner = isWin ? current : 'None';
+      log(Level.INFO, `Game end: ${winner} ${finalOutcome}`);
+
+      // annotate outcome only on final entry
+      return logEntries.map((ex, idx) => ({
         ...ex,
-        outcome: idx === log.length - 1 ? result : 'draw'
+        outcome: idx === logEntries.length - 1 ? finalOutcome : 'draw'
       }));
     }
 
+    // switch players
     current = current === 'Red' ? 'Yellow' : 'Red';
   }
 }
 
-function generate(nGames = DEFAULT_GAMES) {
-  const all: Example[] = [];
+async function main() {
+  try {
+    const runner = new cliProgress.SingleBar({
+      format: 'Progress |{bar}| {percentage}% || {value}/{total} games',
+      hideCursor: true
+    });
+    runner.start(N_GAMES, 0);
 
-  let redWins = 0;
-  let yellowWins = 0;
-  let draws = 0;
+    const allExamples: Example[] = [];
+    let redWins = 0, yellowWins = 0, draws = 0;
+    let totalMoves = 0;
+    const t0 = Date.now();
 
-  console.log(`=== Starting generation of ${nGames} self-play games ===`);
-  console.log(`Raw output path: ${RAW_DATA}\n`);
+    for (let i = 0; i < N_GAMES; i++) {
+      const start = Date.now();
+      const gameData = playOneGame();
+      allExamples.push(...gameData);
+      const last = gameData[gameData.length - 1];
 
-  for (let i = 0; i < nGames; i++) {
-    const gameIndex = i + 1;
-    console.log(`--- Game ${gameIndex} of ${nGames} started ---`);
-    const startTime = Date.now();
+      // stats
+      if (last.outcome === 'win') {
+        last.player === 'Red' ? redWins++ : yellowWins++;
+      } else if (last.outcome === 'draw') {
+        draws++;
+      }
+      totalMoves += gameData.length;
 
-    // Play one full game and collect examples
-    const gameExamples = playOneGame();
-    all.push(...gameExamples);
-
-    // End-of-game logging
-    const durationSec = ((Date.now() - startTime) / 1000).toFixed(2);
-    const moves = gameExamples.length;
-    const last = gameExamples[moves - 1];
-    const winner = last.outcome === 'draw' ? 'None (draw)' : last.player;
-
-    // Update stats
-    if (last.outcome === 'win') {
-      last.player === 'Red' ? redWins++ : yellowWins++;
-    } else if (last.outcome === 'draw') {
-      draws++;
+      // update progress
+      runner.increment();
+      if (verbose && i % 100 === 0) {
+        log(Level.DEBUG, `Completed ${i + 1} games in ${(Date.now() - start)/1000}s`);
+      }
     }
 
-    console.log(`Result: ${winner} wins outcome=${last.outcome}`);
-    console.log(`Moves played: ${moves}, Duration: ${durationSec}s`);
-    console.log(`Cumulative stats -> Red: ${redWins}, Yellow: ${yellowWins}, Draws: ${draws}`);
+    runner.stop();
+    const duration = (Date.now() - t0) / 1000;
 
-    // Compute and display progress
-    const percent = ((gameIndex) / nGames) * 100;
-    console.log(`Progress: ${gameIndex}/${nGames} games completed (${percent.toFixed(1)}%)\n`);
+    // write output
+    await fs.writeFile(output, JSON.stringify(allExamples, null, 2));
+
+    // summary
+    log(Level.INFO, `Generated ${N_GAMES} games in ${duration.toFixed(2)}s`);
+    log(Level.INFO, `Red wins: ${redWins}, Yellow wins: ${yellowWins}, Draws: ${draws}`);
+    log(Level.INFO, `Avg moves per game: ${(totalMoves/N_GAMES).toFixed(1)}`);
+  } catch (err) {
+    log(Level.ERROR, `Unhandled error: ${(err as Error).message}`);
+    process.exit(1);
   }
-
-  console.log(`Writing ${all.length} examples to ${RAW_DATA}...`);
-  fs.writeFileSync(RAW_DATA, JSON.stringify(all, null, 2));
-
-  console.log(`=== Generation complete: ${all.length} examples written ===`);
 }
 
-generate();
+// execute
+main();
