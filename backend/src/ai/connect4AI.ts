@@ -3,6 +3,77 @@
 /** Valid values for each cell in the Connect 4 grid **/
 export type CellValue = 'Empty' | 'Red' | 'Yellow';
 
+/** Rich move info for ordering and pruning. **/
+export interface Move {
+  col: number;
+  row: number;
+  isWinning: boolean;
+  isBlocking: boolean;
+  priority: number;
+}
+
+/**
+ * Compute the row index where a disc would land if dropped in the given column.
+ * Returns null if the column is already full.
+ */
+function getDropRow(board: CellValue[][], col: number): number | null {
+  for (let r = board.length - 1; r >= 0; r--) {
+    if (board[r][col] === 'Empty') {
+      return r;
+    }
+  }
+  return null;
+}
+
+/**
+ * Returns moves sorted by priority:
+ * 1000 = immediate win, 900 = immediate block, 800–0 = center bias.
+ */
+export function orderedMoves(
+  board: CellValue[][],
+  currentPlayer: CellValue
+): Move[] {
+  const COLS = board[0].length;
+  const center = Math.floor(COLS / 2);
+  const opponent: CellValue = currentPlayer === 'Red' ? 'Yellow' : 'Red';
+
+  // 1) collect all non‐full columns + rows
+  const candidates: { col: number; row: number }[] = [];
+  for (let col = 0; col < COLS; col++) {
+    const row = getDropRow(board, col);
+    if (row !== null) candidates.push({ col, row });
+  }
+
+  // 2) detect opponent win‐in‐one
+  const threat = new Set<number>();
+  for (const { col, row } of candidates) {
+    const sim = board.map(r => [...r] as CellValue[]);
+    sim[row][col] = opponent;
+    if (bitboardCheckWin(getBits(sim, opponent))) threat.add(col);
+  }
+
+  // 3) annotate with win/block/center‐bias
+  const moves: Move[] = candidates.map(({ col, row }) => {
+    // win?
+    const winBoard = board.map(r => [...r] as CellValue[]);
+    winBoard[row][col] = currentPlayer;
+    const isWinning = bitboardCheckWin(getBits(winBoard, currentPlayer));
+
+    // block?
+    const isBlocking = threat.has(col);
+
+    // priority
+    let priority = 800 - Math.abs(col - center);
+    if (isBlocking) priority = 900;
+    if (isWinning) priority = 1000;
+
+    return { col, row, isWinning, isBlocking, priority };
+  });
+
+  // 4) highest first
+  return moves.sort((a, b) => b.priority - a.priority);
+}
+
 /** Returns an array of column indices (0–6) that are not full. **/
 export function legalMoves(board: CellValue[][]): number[] {
   const cols = board[0].length;
@@ -209,8 +280,11 @@ export function storeEntry(
 
 /** Minimax with α–β, null‐move pruning, history, transposition **/
 interface Node { score: number; column: number | null; }
-const NULL_MOVE_REDUCTION = 0;
+// Number of piles to reduce for null-move pruning.
+const NULL_MOVE_REDUCTION = 2;
+// History table for move ordering bonus.
 const historyTable: number[][] = Array.from({ length: 7 }, () => []);
+
 export function minimax(
   board: CellValue[][],
   depth: number,
@@ -219,9 +293,12 @@ export function minimax(
   maximizingPlayer: boolean,
   aiDisc: CellValue
 ): Node {
+
+  // 1) Transposition lookup.
   clearTable();
   const key = hashBoard(board);
   const entry = getEntry(key);
+
   if (entry && entry.depth >= depth) {
     if (entry.flag === EntryFlag.Exact)
       return { score: entry.score, column: entry.column };
@@ -232,96 +309,104 @@ export function minimax(
     if (alpha >= beta)
       return { score: entry.score, column: entry.column };
   }
-  const moves = legalMoves(board);
-  if (moves.length === 0)
+
+  // 2) Generate our priority-ordered moves.
+  const richMoves = orderedMoves(board, aiDisc); // Move[]
+
+  // 3) No moves => terminal.
+  if (richMoves.length === 0) {
     return {
       column: null,
       score: maximizingPlayer ? -Infinity : Infinity
     };
-  const current = maximizingPlayer
-    ? aiDisc
-    : aiDisc === 'Red'
-      ? 'Yellow'
-      : 'Red';
-  const other = maximizingPlayer
-    ? aiDisc === 'Red'
-      ? 'Yellow'
-      : 'Red'
-    : aiDisc;
-  // immediate win
-  for (const col of moves) {
-    const { board: b1 } = tryDrop(board, col, current);
-    if (bitboardCheckWin(getBits(b1, current)))
-      return { column: col, score: maximizingPlayer ? Infinity : -Infinity };
   }
-  // immediate block
-  for (const col of moves) {
-    const { board: b2 } = tryDrop(board, col, other);
-    if (bitboardCheckWin(getBits(b2, other)))
-      return { column: col, score: maximizingPlayer ? -Infinity : Infinity };
-  }
-  if (depth === 0)
-    return { column: moves[0], score: evaluateBoard(board, aiDisc) };
-  // null-move pruning
-  if (maximizingPlayer && depth > NULL_MOVE_REDUCTION) {
-    const col0 = moves[0];
-    const { board: nb } = tryDrop(board, col0, current);
-    const nm = minimax(
-      nb,
-      depth - 1 - NULL_MOVE_REDUCTION,
-      -beta,
-      -beta + 1,
-      false,
-      aiDisc
-    );
-    if (-nm.score >= beta)
+
+  // 4) Determine whose turn it is.
+  const current = maximizingPlayer ? aiDisc : aiDisc === 'Red' ? 'Yellow' : 'Red';
+  // const other = maximizingPlayer ? (aiDisc === 'Red' ? 'Yellow' : 'Red') : aiDisc;
+
+  // 5) Null-move pruning.
+  if (maximizingPlayer && depth > NULL_MOVE_REDUCTION + 1) {
+    // Pick our best guess move.
+    const { col: skipCol } = richMoves[0];
+
+    // Simulate making that move.
+    const { board: nb } = tryDrop(board, skipCol, current);
+
+    // Search one ply less minus reduction.
+    const nullNode = minimax(nb, depth - 1 - NULL_MOVE_REDUCTION, -beta, -beta + 1, !maximizingPlayer, aiDisc);
+
+    // Fail-high cutoff?
+    if (-nullNode.score >= beta) {
       return { column: null, score: beta };
+    }
   }
-  // move ordering
-  const ordered = moves
-    .map((col) => ({ col, key: historyTable[col][depth] || 0 }))
-    .sort((a, b) => b.key - a.key)
-    .map((x) => x.col);
+
+  // 6) Main α–β loop using richMoves
   let best: Node = {
     column: null,
     score: maximizingPlayer ? -Infinity : Infinity
   };
+
   const alphaOrig = alpha;
   const betaOrig = beta;
-  for (const col of ordered) {
-    const { board: nb } = tryDrop(board, col, current);
-    const child = minimax(
-      nb,
-      depth - 1,
-      -beta,
-      -alpha,
-      !maximizingPlayer,
-      aiDisc
-    );
+
+  for (const move of richMoves) {
+    const { col, isWinning, isBlocking, priority } = move;
+
+    // a) Immediate win. 
+    if (isWinning) {
+      best = { column: col, score: maximizingPlayer ? Infinity : -Infinity };
+      break;
+    }
+
+    // b) Immediate block.
+    if (isBlocking) {
+      best = { column: col, score: maximizingPlayer ? -Infinity : Infinity };
+      break;
+    }
+
+    // c) Otherwise recurse.
+    const { board: next } = tryDrop(board, col, current);
+    const child = minimax(next, depth - 1, -beta, -alpha, !maximizingPlayer, aiDisc);
     const sc = -child.score;
-    if (
-      (maximizingPlayer && sc > best.score) ||
-      (!maximizingPlayer && sc < best.score)
-    ) {
+
+    // d) Update best and alpha/beta (α/β).
+    if ((maximizingPlayer && sc > best.score) || (!maximizingPlayer && sc < best.score)) {
       best = { column: col, score: sc };
     }
-    if (maximizingPlayer) alpha = Math.max(alpha, sc);
-    else beta = Math.min(beta, sc);
+
+    if (maximizingPlayer) {
+      alpha = Math.max(alpha, sc);
+    } else {
+      beta = Math.min(beta, sc);
+    }
+
+    // e) History heuristic can use priority (optional: boost history count by priority).
+    historyTable[col][depth] = (historyTable[col][depth] || 0) + priority;
+
+    // f) Alpha-beta cutoff.
     if (alpha >= beta) {
-      historyTable[col][depth] =
-        (historyTable[col][depth] || 0) + depth * depth;
       break;
     }
   }
+
+  // 7) Store in transposition table.
   let flag = EntryFlag.Exact;
-  if (best.score <= alphaOrig) flag = EntryFlag.UpperBound;
-  else if (best.score >= betaOrig) flag = EntryFlag.LowerBound;
+
+  if (best.score <= alphaOrig) {
+    flag = EntryFlag.UpperBound;
+  } else if (best.score >= betaOrig) {
+    flag = EntryFlag.LowerBound;
+  }
+
   storeEntry(key, {
     score: best.score,
     depth,
     column: best.column,
     flag
   });
+
   return best;
 }
 
@@ -424,18 +509,23 @@ export function mcts(
   aiDisc: CellValue,
   timeMs: number
 ): number {
-  const moves = legalMoves(board);
-  // immediate win
-  for (const col of moves) {
+  // Pick candidate columns by priortiy.
+  const cols = orderedMoves(board, aiDisc).map(m => m.col);
+
+  // Immediate win.
+  for (const col of cols) {
     const res = tryDrop(board, col, aiDisc);
     if (bitboardCheckWin(getBits(res.board, aiDisc))) return col;
   }
-  // immediate block
+
+  // Immediate block.
   const opp = aiDisc === 'Red' ? 'Yellow' : 'Red';
-  for (const col of moves) {
+  for (const col of cols) {
     const res = tryDrop(board, col, opp);
     if (bitboardCheckWin(getBits(res.board, opp))) return col;
   }
+
+  // Set up the root node. 
   const root: MCTSNode = {
     board: cloneBoard(board),
     player: opp,
@@ -445,9 +535,12 @@ export function mcts(
     children: [],
     move: null,
   };
+
   const MAX_NODES = 10000;
   let nodeCount = 1;
   const endTime = Date.now() + Math.max(timeMs, 500);
+
+  // Rollout loop.
   while (Date.now() < endTime) {
     let node = select(root);
     if (node.visits > 0 && node.children.length === 0 && nodeCount < MAX_NODES) {
@@ -461,8 +554,10 @@ export function mcts(
     const winner = playout(leaf.board, leaf.player, aiDisc);
     backpropagate(leaf, winner, aiDisc);
   }
-  let bestMove = moves[0];
+
+  let bestMove = cols[0];
   let bestVisits = -1;
+
   for (const child of root.children) {
     if (child.visits > bestVisits && child.move !== null) {
       bestVisits = child.visits;
