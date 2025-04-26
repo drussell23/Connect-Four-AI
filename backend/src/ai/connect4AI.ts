@@ -16,7 +16,7 @@ export interface Move {
  * Compute the row index where a disc would land if dropped in the given column.
  * Returns null if the column is already full.
  */
-function getDropRow(board: CellValue[][], col: number): number | null {
+export function getDropRow(board: CellValue[][], col: number): number | null {
   for (let r = board.length - 1; r >= 0; r--) {
     if (board[r][col] === 'Empty') {
       return r;
@@ -142,24 +142,77 @@ const OPEN_THREE_BONUS = { bothEnds: 4, oneEnd: 2 };
 const CENTER_COLUMN_BONUS = 3;
 const TOP_ROW_PENALTY_FACTOR = 0.8;
 
+/** Static board evaluation for one 4-cell window, with logging & safety. **/
 export function evaluateWindow(
   cells: CellValue[],
   aiDisc: CellValue
 ): number {
-  const humanDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
-  const aiCount = cells.filter((c) => c === aiDisc).length;
-  const humanCount = cells.filter((c) => c === humanDisc).length;
-  const emptyCount = cells.filter((c) => c === 'Empty').length;
-  if ((aiCount > 0 && humanCount > 0) || (aiCount === 0 && humanCount === 0)) return 0;
-  if (aiCount > 0) {
-    let score = BASE_SCORES[aiCount] || 0;
+  try {
+    const humanDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
+    const aiCount = cells.filter(c => c === aiDisc).length;
+    const humanCount = cells.filter(c => c === humanDisc).length;
+    const emptyCount = cells.filter(c => c === 'Empty').length;
+
+    console.debug(`[evaluateWindow] cells=${JSON.stringify(cells)} aiCount=${aiCount} humanCount=${humanCount} emptyCount=${emptyCount}`);
+
+    // 1) Immediate four-in-a-row
+    if (aiCount === 4) {
+      console.info(`[evaluateWindow] found AI connect-4! Window=${cells}`);
+      return 1e6;
+    }
+    if (humanCount === 4) {
+      console.info(`[evaluateWindow] found human connect-4! Window=${cells}`);
+      return -1e6;
+    }
+
+    let score = 0;
+
+    // 2) Open-three pattern (3 + 1 empty)
     if (aiCount === 3 && emptyCount === 1) {
       const ends = (cells[0] === 'Empty' ? 1 : 0) + (cells[3] === 'Empty' ? 1 : 0);
-      score += ends === 2 ? OPEN_THREE_BONUS.bothEnds : OPEN_THREE_BONUS.oneEnd;
+      const bonus = ends === 2 ? OPEN_THREE_BONUS.bothEnds * 20 : OPEN_THREE_BONUS.oneEnd * 10;
+      console.debug(`[evaluateWindow] AI open-three (${ends === 2 ? 'bothEnds' : 'oneEnd'}) => +${bonus}`);
+      score += BASE_SCORES[3] + bonus;
     }
+
+    if (humanCount === 3 && emptyCount === 1) {
+      const ends = (cells[0] === 'Empty' ? 1 : 0) + (cells[3] === 'Empty' ? 1 : 0);
+      const penalty = ends === 2 ? OPEN_THREE_BONUS.bothEnds * 25 : OPEN_THREE_BONUS.oneEnd * 15;
+      console.debug(`[evaluateWindow] Human open-three (${ends === 2 ? 'bothEnds' : 'oneEnd'}) => -${penalty}`);
+      score -= BASE_SCORES[3] * 1.5 + penalty;
+    }
+
+    // 3) Two-in-a-row with two empties: building threats
+    if (aiCount === 2 && emptyCount === 2) {
+      const add = BASE_SCORES[2] * 1.2;
+      console.debug(`[evaluateWindow] AI two-in-a-row => +${add}`);
+      score += add;
+    }
+
+    if (humanCount === 2 && emptyCount === 2) {
+      const sub = BASE_SCORES[2] * 1.8;
+      console.debug(`[evaluateWindow] Human two-in-a-row => -${sub}`);
+      score -= sub;
+    }
+
+    // 4) Center‐cell bonus/penalty within this window
+    const centerIdx = Math.floor(cells.length / 2);
+    if (cells[centerIdx] === aiDisc) {
+      console.debug(`[evaluateWindow] center bonus +${CENTER_COLUMN_BONUS}`);
+      score += CENTER_COLUMN_BONUS;
+    }
+    if (cells[centerIdx] === humanDisc) {
+      console.debug(`[evaluateWindow] center penalty -${CENTER_COLUMN_BONUS}`);
+      score -= CENTER_COLUMN_BONUS;
+    }
+
+    console.debug(`[evaluateWindow] final score=${score} for window=${JSON.stringify(cells)}`);
     return score;
-  } else {
-    return -(BASE_SCORES[humanCount] || 0) * 1.5;
+
+  } catch (err) {
+    console.error('[evaluateWindow] error evaluating window', cells, err);
+    // fail safe: no bias
+    return 0;
   }
 }
 
@@ -171,7 +224,8 @@ export function evaluateBoard(
   const cols = board[0].length;
   const humanDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
   let score = 0;
-  // immediate open-three penalty
+
+  // Immediate open-three penalty.
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c <= cols - WINDOW; c++) {
       const w = board[r].slice(c, c + WINDOW);
@@ -183,19 +237,22 @@ export function evaluateBoard(
       }
     }
   }
-  // horizontal, vertical, diags
+
+  // Horizontal, Vertical, Diagonal.
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c <= cols - WINDOW; c++) {
       score += evaluateWindow(board[r].slice(c, c + WINDOW), aiDisc) *
         (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
     }
   }
+
   for (let c = 0; c < cols; c++) {
     for (let r = 0; r <= rows - WINDOW; r++) {
       const w = [0, 1, 2, 3].map((i) => board[r + i][c]);
       score += evaluateWindow(w, aiDisc) * (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
     }
   }
+
   for (let r = 0; r <= rows - WINDOW; r++) {
     for (let c = 0; c <= cols - WINDOW; c++) {
       const dr = [0, 1, 2, 3].map((i) => board[r + i][c + i]);
@@ -206,7 +263,9 @@ export function evaluateBoard(
       score += evaluateWindow(dl, aiDisc) * (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
     }
   }
+
   const center = Math.floor(cols / 2);
+
   for (let r = 0; r < rows; r++) {
     score += board[r][center] === aiDisc
       ? CENTER_COLUMN_BONUS
@@ -225,9 +284,11 @@ export interface TranspositionEntry {
   column: number | null;
   flag: EntryFlag;
 }
+
 const MAX_ENTRIES = 1_000_000;
 const transposition = new Map<bigint, TranspositionEntry>();
-function rand64(): bigint {
+
+export function rand64(): bigint {
   const buf = require('crypto').randomBytes(8);
   let n = 0n;
   buf.forEach((b: number) => {
@@ -235,9 +296,10 @@ function rand64(): bigint {
   });
   return n;
 }
+
 const ZOBRIST_TABLE: bigint[][][] = Array.from({ length: 6 }, () =>
-  Array.from({ length: 7 }, () => [rand64(), rand64(), rand64()])
-);
+  Array.from({ length: 7 }, () => [rand64(), rand64(), rand64()]));
+
 export function hashBoard(board: CellValue[][]): bigint {
   let h = 0n;
   for (let r = 0; r < 6; r++) {
@@ -248,14 +310,17 @@ export function hashBoard(board: CellValue[][]): bigint {
   }
   return h;
 }
+
 export function clearTable(): void {
   transposition.clear();
 }
+
 export function getEntry(
   hash: bigint
 ): TranspositionEntry | undefined {
   return transposition.get(hash);
 }
+
 export function storeEntry(
   hash: bigint,
   entry: TranspositionEntry
@@ -268,21 +333,21 @@ export function storeEntry(
   ) {
     if (transposition.size > MAX_ENTRIES) {
       let toEvict = Math.floor(MAX_ENTRIES * 0.1);
+
       for (const key of transposition.keys()) {
         transposition.delete(key);
         toEvict--;
-        if (toEvict <= 0) break;
+        if (toEvict <= 0)
+          break;
       }
     }
     transposition.set(hash, entry);
   }
 }
 
-/** Minimax with α–β, null‐move pruning, history, transposition **/
+/** Minimax with α–β, null-move pruning, history, transposition, and advanced logging **/
 interface Node { score: number; column: number | null; }
-// Number of piles to reduce for null-move pruning.
 const NULL_MOVE_REDUCTION = 2;
-// History table for move ordering bonus.
 const historyTable: number[][] = Array.from({ length: 7 }, () => []);
 
 export function minimax(
@@ -293,121 +358,132 @@ export function minimax(
   maximizingPlayer: boolean,
   aiDisc: CellValue
 ): Node {
+  try {
+    // 1) Transposition lookup
+    const key = hashBoard(board);
+    clearTable();
+    const entry = getEntry(key);
+    if (entry && entry.depth >= depth) {
+      console.debug(`[minimax] Transposition hit at depth=${depth}, score=${entry.score}`);
+      if (entry.flag === EntryFlag.Exact) return { score: entry.score, column: entry.column };
+      if (entry.flag === EntryFlag.LowerBound) alpha = Math.max(alpha, entry.score);
+      if (entry.flag === EntryFlag.UpperBound) beta = Math.min(beta, entry.score);
+      if (alpha >= beta) return { score: entry.score, column: entry.column };
+    }
 
-  // 1) Transposition lookup.
-  clearTable();
-  const key = hashBoard(board);
-  const entry = getEntry(key);
+    // 2) Generate ordered moves
+    const richMoves = orderedMoves(board, aiDisc);
+    if (richMoves.length === 0) {
+      console.debug(`[minimax] Terminal node (no moves) at depth=${depth}`);
+      return { column: null, score: maximizingPlayer ? -Infinity : Infinity };
+    }
 
-  if (entry && entry.depth >= depth) {
-    if (entry.flag === EntryFlag.Exact)
-      return { score: entry.score, column: entry.column };
-    if (entry.flag === EntryFlag.LowerBound)
-      alpha = Math.max(alpha, entry.score);
-    if (entry.flag === EntryFlag.UpperBound)
-      beta = Math.min(beta, entry.score);
-    if (alpha >= beta)
-      return { score: entry.score, column: entry.column };
+    // 3) Whose turn?
+    const current = maximizingPlayer ? aiDisc : (aiDisc === 'Red' ? 'Yellow' : 'Red');
+    const otherPlayer = maximizingPlayer ? (aiDisc === 'Red' ? 'Yellow' : 'Red') : aiDisc;
+
+    // 4) Immediate win/block short-circuits
+    for (const move of richMoves) {
+      const { col, isWinning, isBlocking } = move;
+      if (isWinning) {
+        console.info(`[minimax] Immediate win at col=${col} depth=${depth}`);
+        return { column: col, score: maximizingPlayer ? Infinity : -Infinity };
+      }
+      if (isBlocking) {
+        console.info(`[minimax] Immediate block at col=${col} depth=${depth}`);
+        return { column: col, score: maximizingPlayer ? -Infinity : Infinity };
+      }
+    }
+
+    // 5) Null-move pruning
+    if (maximizingPlayer && depth > NULL_MOVE_REDUCTION + 1) {
+      const { col: skipCol } = richMoves[0];
+      console.debug(`[minimax] Null-move attempt skipping col=${skipCol} at depth=${depth}`);
+      const { board: nb } = tryDrop(board, skipCol, current);
+      const nullNode = minimax(
+        nb,
+        depth - 1 - NULL_MOVE_REDUCTION,
+        -beta,
+        -beta + 1,
+        !maximizingPlayer,
+        aiDisc
+      );
+      if (-nullNode.score >= beta) {
+        console.info(`[minimax] Null-move cutoff at depth=${depth} with skipCol=${skipCol}`);
+        return { column: null, score: beta };
+      }
+    }
+
+    // 6) Main α–β loop
+    let best: Node = { column: null, score: maximizingPlayer ? -Infinity : Infinity };
+    const alphaOrig = alpha, betaOrig = beta;
+
+    for (const move of richMoves) {
+      const { col, isWinning, isBlocking, priority } = move;
+      console.debug(
+        `[minimax] Considering col=${col} (win=${isWinning}, block=${isBlocking}, prio=${priority}) ` +
+        `at depth=${depth}`
+      );
+
+      // Recurse
+      const { board: next } = tryDrop(board, col, current);
+      const child = minimax(
+        next,
+        depth - 1,
+        -beta,
+        -alpha,
+        !maximizingPlayer,
+        aiDisc
+      );
+      const sc = -child.score;
+
+      // Beefed-up future threat logging for shallow depths
+      if (depth <= 3) {
+        const oppThreats = orderedMoves(next, otherPlayer)
+          .slice(0, 2)
+          .map(t =>
+            `col=${t.col}` +
+            (t.isWinning ? ` (win)` : t.isBlocking ? ` (block)` : ``) +
+            ` [prio=${t.priority}]`
+          );
+        console.info(
+          `[minimax] After our move col=${col}, opp top threats: ` +
+          oppThreats.join('  |  ')
+        );
+      }
+
+      // Update best & α/β
+      if ((maximizingPlayer && sc > best.score) || (!maximizingPlayer && sc < best.score)) {
+        console.debug(`[minimax] New best at col=${col} score=${sc} (was ${best.score})`);
+        best = { column: col, score: sc };
+      }
+      alpha = maximizingPlayer ? Math.max(alpha, sc) : alpha;
+      beta = !maximizingPlayer ? Math.min(beta, sc) : beta;
+
+      // History heuristic
+      historyTable[col][depth] = (historyTable[col][depth] || 0) + priority;
+
+      // Cutoff
+      if (alpha >= beta) {
+        console.info(
+          `[minimax] Alpha-beta cutoff at col=${col}, depth=${depth}, ` +
+          `alpha=${alpha}, beta=${beta}`
+        );
+        break;
+      }
+    }
+
+    // 7) Transposition store
+    let flag = EntryFlag.Exact;
+    if (best.score <= alphaOrig) flag = EntryFlag.UpperBound;
+    else if (best.score >= betaOrig) flag = EntryFlag.LowerBound;
+    storeEntry(key, { score: best.score, depth, column: best.column, flag });
+
+    return best;
+  } catch (err) {
+    console.error('[minimax] Unexpected error:', err);
+    return { column: null, score: maximizingPlayer ? -Infinity : Infinity };
   }
-
-  // 2) Generate our priority-ordered moves.
-  const richMoves = orderedMoves(board, aiDisc); // Move[]
-
-  // 3) No moves => terminal.
-  if (richMoves.length === 0) {
-    return {
-      column: null,
-      score: maximizingPlayer ? -Infinity : Infinity
-    };
-  }
-
-  // 4) Determine whose turn it is.
-  const current = maximizingPlayer ? aiDisc : aiDisc === 'Red' ? 'Yellow' : 'Red';
-  // const other = maximizingPlayer ? (aiDisc === 'Red' ? 'Yellow' : 'Red') : aiDisc;
-
-  // 5) Null-move pruning.
-  if (maximizingPlayer && depth > NULL_MOVE_REDUCTION + 1) {
-    // Pick our best guess move.
-    const { col: skipCol } = richMoves[0];
-
-    // Simulate making that move.
-    const { board: nb } = tryDrop(board, skipCol, current);
-
-    // Search one ply less minus reduction.
-    const nullNode = minimax(nb, depth - 1 - NULL_MOVE_REDUCTION, -beta, -beta + 1, !maximizingPlayer, aiDisc);
-
-    // Fail-high cutoff?
-    if (-nullNode.score >= beta) {
-      return { column: null, score: beta };
-    }
-  }
-
-  // 6) Main α–β loop using richMoves
-  let best: Node = {
-    column: null,
-    score: maximizingPlayer ? -Infinity : Infinity
-  };
-
-  const alphaOrig = alpha;
-  const betaOrig = beta;
-
-  for (const move of richMoves) {
-    const { col, isWinning, isBlocking, priority } = move;
-
-    // a) Immediate win. 
-    if (isWinning) {
-      best = { column: col, score: maximizingPlayer ? Infinity : -Infinity };
-      break;
-    }
-
-    // b) Immediate block.
-    if (isBlocking) {
-      best = { column: col, score: maximizingPlayer ? -Infinity : Infinity };
-      break;
-    }
-
-    // c) Otherwise recurse.
-    const { board: next } = tryDrop(board, col, current);
-    const child = minimax(next, depth - 1, -beta, -alpha, !maximizingPlayer, aiDisc);
-    const sc = -child.score;
-
-    // d) Update best and alpha/beta (α/β).
-    if ((maximizingPlayer && sc > best.score) || (!maximizingPlayer && sc < best.score)) {
-      best = { column: col, score: sc };
-    }
-
-    if (maximizingPlayer) {
-      alpha = Math.max(alpha, sc);
-    } else {
-      beta = Math.min(beta, sc);
-    }
-
-    // e) History heuristic can use priority (optional: boost history count by priority).
-    historyTable[col][depth] = (historyTable[col][depth] || 0) + priority;
-
-    // f) Alpha-beta cutoff.
-    if (alpha >= beta) {
-      break;
-    }
-  }
-
-  // 7) Store in transposition table.
-  let flag = EntryFlag.Exact;
-
-  if (best.score <= alphaOrig) {
-    flag = EntryFlag.UpperBound;
-  } else if (best.score >= betaOrig) {
-    flag = EntryFlag.LowerBound;
-  }
-
-  storeEntry(key, {
-    score: best.score,
-    depth,
-    column: best.column,
-    flag
-  });
-
-  return best;
 }
 
 /** Monte Carlo Tree Search **/
@@ -420,14 +496,17 @@ export interface MCTSNode {
   children: MCTSNode[];
   move: number | null;
 }
+
 export function cloneBoard(board: CellValue[][]): CellValue[][] {
   return board.map((r) => [...r]);
 }
+
 export function softmax(scores: number[], temperature = 1): number[] {
   const exps = scores.map((s) => Math.exp(s / temperature));
   const sum = exps.reduce((a, b) => a + b, 0);
   return exps.map((e) => e / sum);
 }
+
 export function chooseWeighted(
   moves: number[],
   weights: number[]
@@ -440,10 +519,11 @@ export function chooseWeighted(
   }
   return moves[moves.length - 1];
 }
+
 export function playout(
   startBoard: CellValue[][],
   startingPlayer: CellValue,
-  aiDisc: CellValue
+  _aiDisc: CellValue
 ): CellValue {
   let board = cloneBoard(startBoard);
   let current = startingPlayer;
@@ -461,7 +541,8 @@ export function playout(
     current = current === 'Red' ? 'Yellow' : 'Red';
   }
 }
-function select(node: MCTSNode): MCTSNode {
+
+export function select(node: MCTSNode): MCTSNode {
   let cur = node;
   while (cur.children.length) {
     cur = cur.children.reduce((best, child) => {
@@ -476,6 +557,7 @@ function select(node: MCTSNode): MCTSNode {
   }
   return cur;
 }
+
 export function expand(node: MCTSNode): void {
   const moves = legalMoves(node.board);
   const next = node.player === 'Red' ? 'Yellow' : 'Red';
@@ -492,6 +574,7 @@ export function expand(node: MCTSNode): void {
     });
   });
 }
+
 export function backpropagate(
   node: MCTSNode,
   winner: CellValue,
@@ -504,6 +587,7 @@ export function backpropagate(
     cur = cur.parent;
   }
 }
+
 export function mcts(
   board: CellValue[][],
   aiDisc: CellValue,
@@ -571,99 +655,233 @@ export function mcts(
 const ENGINE_MAX_DEPTH = 12;
 const THREAT_THRESHOLD = 1;
 
-// 0c) Hard block: first 3+gap you can drop into
-function findOpenThreeBlock(
+/**
+ * Detect all single‐move forks (3 in a row + 1 gap) for the opponent,
+ * score them by direction and center‐distance, then block the highest‐scoring one.
+ *
+ * @param board 6×7 grid of CellValue
+ * @param opp   Opponent’s disc ('Red' or 'Yellow')
+ * @returns Column index to block, or null if no fork found
+ */
+export function findOpenThreeBlock(
   board: CellValue[][],
   opp: CellValue
 ): number | null {
-  const ROWS = board.length;
-  const COLS = board[0].length;
-  const WINDOW = 4;
-  const dirs = [
-    { dr: 0, dc: 1 },   // horiz
-    { dr: 1, dc: 0 },   // vert
-    { dr: 1, dc: 1 },   // diag ↘
-    { dr: 1, dc: -1 },  // diag ↙
-  ];
+  try {
+    const ROWS = board.length;
+    const COLS = board[0].length;
+    const WINDOW = 4;
+    const center = Math.floor(COLS / 2);
 
-  for (const { dr, dc } of dirs) {
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        const cells: CellValue[] = [];
-        const coords: [number, number][] = [];
-        for (let i = 0; i < WINDOW; i++) {
-          const rr = r + dr * i;
-          const cc = c + dc * i;
-          if (rr < 0 || rr >= ROWS || cc < 0 || cc >= COLS) break;
-          cells.push(board[rr][cc]);
-          coords.push([rr, cc]);
-        }
-        if (cells.length < WINDOW) continue;
+    // Directional weights: adjust these to prioritize certain threat angles
+    const DIR_WEIGHTS: Record<string, number> = {
+      horiz: 5,
+      vert: 3,
+      diagDR: 4,  // down-right
+      diagDL: 4   // down-left
+    };
 
-        const oppCnt = cells.filter(x => x === opp).length;
-        const empCnt = cells.filter(x => x === 'Empty').length;
-        if (oppCnt === 3 && empCnt === 1) {
-          const gapIdx = cells.findIndex(x => x === 'Empty');
-          const [gapRow, gapCol] = coords[gapIdx];
-          // gravity check: ensure a disc can land here
-          if (gapRow === ROWS - 1 || board[gapRow + 1][gapCol] !== 'Empty') {
-            return gapCol;
+    // Map a (dr,dc) pair to one of our direction keys.
+    const dirKey = (dr: number, dc: number): string => {
+      if (dr === 0 && dc === 1) return 'horiz';
+      if (dr === 1 && dc === 0) return 'vert';
+      if (dr === 1 && dc === 1) return 'diagDR';
+      if (dr === 1 && dc === -1) return 'diagDL';
+      return 'horiz';
+    };
+
+    // We'll track the best priority for each column
+    const threatScores = new Map<number, number>();
+
+    const dirs = [
+      { dr: 0, dc: 1 },
+      { dr: 1, dc: 0 },
+      { dr: 1, dc: 1 },
+      { dr: 1, dc: -1 },
+    ];
+
+    for (const { dr, dc } of dirs) {
+      const key = dirKey(dr, dc);
+      const angleWeight = DIR_WEIGHTS[key] || 1;
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          // Gather up to WINDOW cells in this direction.
+          const cells: CellValue[] = [];
+          const coords: [number, number][] = [];
+          for (let i = 0; i < WINDOW; i++) {
+            const rr = r + dr * i;
+            const cc = c + dc * i;
+            if (rr < 0 || rr >= ROWS || cc < 0 || cc >= COLS) break;
+            cells.push(board[rr][cc]);
+            coords.push([rr, cc]);
           }
-        }
-      }
-    }
-  }
+          if (cells.length < WINDOW) continue;
 
-  return null;
-}
+          const oppCnt = cells.filter(x => x === opp).length;
+          const empCnt = cells.filter(x => x === 'Empty').length;
+          if (oppCnt === 3 && empCnt === 1) {
+            const gapIdx = cells.findIndex(x => x === 'Empty');
+            const [gapRow, gapCol] = coords[gapIdx];
 
-// 1a) Count all 3+gap forks you’d hand over
-function countOpenThree(
-  board: CellValue[][],
-  opp: CellValue
-): number {
-  const ROWS = board.length;
-  const COLS = board[0].length;
-  const WINDOW = 4;
-  const dirs = [
-    { dr: 0, dc: 1 },   // horiz
-    { dr: 1, dc: 0 },   // vert
-    { dr: 1, dc: 1 },   // diag ↘
-    { dr: 1, dc: -1 },  // diag ↙
-  ];
-  let threats = 0;
-  const seen = new Set<string>();
+            // Gravity check: disc must be able to land here.
+            if (gapRow === ROWS - 1 || board[gapRow + 1][gapCol] !== 'Empty') {
 
-  for (const { dr, dc } of dirs) {
-    for (let r = 0; r <= ROWS - (dr ? WINDOW : 1); r++) {
-      for (let c = 0; c <= COLS - (dc ? WINDOW : 1); c++) {
-        const cells: CellValue[] = [];
-        const coords: [number, number][] = [];
-        for (let i = 0; i < WINDOW; i++) {
-          const rr = r + dr * i;
-          const cc = c + dc * i;
-          cells.push(board[rr][cc]);
-          coords.push([rr, cc]);
-        }
-        const oppCnt = cells.filter(x => x === opp).length;
-        const empCnt = cells.filter(x => x === 'Empty').length;
-        if (oppCnt === 3 && empCnt === 1) {
-          const gapIdx = cells.findIndex(x => x === 'Empty');
-          const [gapRow, gapCol] = coords[gapIdx];
-          // gravity check
-          if (gapRow === ROWS - 1 || board[gapRow + 1][gapCol] !== 'Empty') {
-            const key = `${gapRow},${gapCol}`;
-            if (!seen.has(key)) {
-              seen.add(key);
-              threats++;
+              // Compute a combined priority: angleWeight * 100  minus distance from center.
+              const dist = Math.abs(gapCol - center);
+              const priority = angleWeight * 100 - dist;
+
+              console.info(
+                `[findOpenThreeBlock] fork at dir=${key} ` +
+                `window origin=(${r},${c}), gap=[${gapRow},${gapCol}] ` +
+                `=> score=${priority}`
+              );
+
+              // Keep the highest score per column.
+              const prev = threatScores.get(gapCol) ?? -Infinity;
+              threatScores.set(gapCol, Math.max(prev, priority));
             }
           }
         }
       }
     }
-  }
 
-  return threats;
+    if (threatScores.size === 0) {
+      console.debug('[findOpenThreeBlock] no forks found');
+      return null;
+    }
+
+    // Pick the column with the maximum threatScore.
+    let bestCol: number | null = null;
+    let bestScore = -Infinity;
+    for (const [col, score] of threatScores.entries()) {
+      if (score > bestScore) {
+        bestScore = score;
+        bestCol = col;
+      }
+    }
+
+    console.info(
+      `[findOpenThreeBlock] blocking column=${bestCol} with score=${bestScore}`
+    );
+    return bestCol;
+
+  } catch (err) {
+    console.error('[findOpenThreeBlock] unexpected error', err);
+    return null;
+  }
+}
+
+/**
+ * Count all “3-in-a-row + 1 gap” fork threats the opponent will have
+ * if you don’t block—logging each threat and deduplicating by gap+dir.
+ *
+ * @param board 6×7 grid of CellValue
+ * @param opp   Opponent’s disc ('Red' or 'Yellow')
+ * @returns Number of simultaneous open-three threats
+ */
+// 1a) Count all 3+gap forks you’d hand over
+export function countOpenThree(
+  board: CellValue[][],
+  opp: CellValue
+): number {
+  try {
+    const ROWS = board.length;
+    const COLS = board[0].length;
+    const WINDOW = 4;
+
+    // Helper to key a threat by its gap cell + direction.
+    const dirKey = (dr: number, dc: number): string => {
+      if (dr === 0 && dc === 1) {
+        return 'horiz';
+      }
+
+      if (dr === 1 && dc === 0) {
+        return 'vert';
+      }
+
+      if (dr === 1 && dc === 1) {
+        return 'diagDR';
+      }
+
+      if (dr === 1 && dc === -1) {
+        return 'diagDL';
+      }
+
+      return `d${dr}c${dc}`;
+    };
+
+    const seen = new Set<string>();
+    let threatCount = 0;
+
+    const dirs = [
+      { dr: 0, dc: 1 },
+      { dr: 1, dc: 0 },
+      { dr: 1, dc: 1 },
+      { dr: 1, dc: -1 },
+    ];
+
+    for (const { dr, dc } of dirs) {
+      const key = dirKey(dr, dc);
+
+      // Slide a WINDOW x 1 window across the board in this direction.
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cells: CellValue[] = [];
+          const coords: [number, number][] = [];
+
+          for (let i = 0; i < WINDOW; i++) {
+            const rr = r + dr * i;
+            const cc = c + dc * i;
+
+            if (rr < 0 || rr >= ROWS || cc < 0 || cc >= COLS)
+              break;
+
+            cells.push(board[rr][cc]);
+            coords.push([rr, cc]);
+          }
+
+          if (cells.length < WINDOW)
+            continue;
+
+          const oppCnt = cells.filter(x => x === opp).length;
+          const empCnt = cells.filter(x => x === 'Empty').length;
+
+          if (oppCnt === 3 && empCnt === 1) {
+            const gapIdx = cells.findIndex(x => x === 'Empty');
+            const [gapRow, gapCol] = coords[gapIdx];
+
+            // Gravity check: can a disc actually drop here?
+            if (gapRow === ROWS - 1 || board[gapRow + 1][gapCol] !== 'Empty') {
+              // Unique key per gap + direction.
+              const threatKey = `${gapRow}, ${gapCol}, ${key}`;
+
+              if (!seen.has(threatKey)) {
+                seen.add(threatKey);
+                threatCount++;
+
+                console.info(
+                  `[countOpenThree] #${threatCount}: dir=${key}, ` +
+                  `gap at (${gapRow}, ${gapCol}), ` +
+                  `window origin=(${r},${c})`
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+
+    console.info(
+      `[countOpenThree] Total distinct 3 + gap threats detected: ${threatCount}`
+    );
+
+    return threatCount;
+
+  } catch (err) {
+    console.error('[countOpenThree] Unexpected error:', err);
+    return 0;
+  }
 }
 
 // Revised getBestAIMove integrating both strategies
