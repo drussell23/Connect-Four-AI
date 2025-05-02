@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
 import { getBestAIMove } from '../ai/connect4AI';
 import type { CellValue } from '../ai/connect4AI';
@@ -15,6 +15,7 @@ export class GameService {
   private static readonly ROWS = 6;
   private static readonly COLS = 7;
 
+  private readonly logger = new Logger(GameService.name);
   private server: Server;
   private games = new Map<string, GameState>();
 
@@ -22,7 +23,7 @@ export class GameService {
     this.server = server;
   }
 
-  async createGame(playerId: string, clientId: string): Promise<string> {
+  async createGame(playerId: string, _clientId: string): Promise<string> {
     const gameId = this.generateGameId();
     const emptyBoard = Array.from(
       { length: GameService.ROWS },
@@ -131,20 +132,33 @@ export class GameService {
   }
 
   /**
-   * Chooses the AI’s move—preferring ML and falling back to
-   * the original engine. Now takes both gameId and aiDisc.
+   * Chooses the AI’s move—always running your
+   * local engine first, then accepting ML API only if it agrees.
    */
   async getAIMove(
     gameId: string,
     aiDisc: CellValue
   ): Promise<{ column: number }> {
     const state = this.games.get(gameId);
-    if (!state) throw new NotFoundException('Game not found');
+    if (!state) {
+      this.logger.error(`getAIMove: Game not found (${gameId})`);
+      throw new NotFoundException('Game not found');
+    }
 
     const { board } = state;
 
-    // Build your 2×6×7 numeric layers exactly as before,
-    // but now use the passed-in aiDisc if you prefer:
+    // 1) Local engine
+    const t0 = performance.now();
+    const fallbackCol = getBestAIMove(board, aiDisc);
+    const t1 = performance.now();
+    this.logger.debug(
+      `Local AI (${aiDisc}) chose column ${fallbackCol} in ` +
+      `${(t1 - t0).toFixed(1)}ms`
+    );
+
+    let column = fallbackCol;
+
+    // 2) Prepare input for ML API
     const numeric = board.map(row =>
       row.map(c => (c === 'Red' ? 1 : c === 'Yellow' ? -1 : 0))
     );
@@ -153,12 +167,25 @@ export class GameService {
       numeric.map(r => r.map(v => (v === -1 ? 1 : 0))),
     ];
 
-    let column: number;
-    
+    // 3) Try ML API as “second opinion”
     try {
-      column = await getAIMoveViaAPI(layers);
-    } catch {
-      column = getBestAIMove(board, aiDisc);
+      const mlCol = await getAIMoveViaAPI(layers);
+      this.logger.debug(`ML API suggested column ${mlCol}`);
+
+      if (mlCol === fallbackCol) {
+        this.logger.debug(`ML API agrees; using column ${mlCol}`);
+        column = mlCol;
+      } else {
+        this.logger.warn(
+          `ML API suggestion ${mlCol} disagrees with fallback ` +
+          `${fallbackCol}; ignoring ML and keeping fallback.`
+        );
+      }
+    } catch (err: any) {
+      this.logger.error(
+        `ML API error (falling back to ${fallbackCol}): ` +
+        `${err?.message ?? err}`
+      );
     }
 
     return { column };
