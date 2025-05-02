@@ -72,10 +72,150 @@ include CMakeFiles/connect4.dir/flags.make
 CMakeFiles/connect4.dir/codegen:
 .PHONY : CMakeFiles/connect4.dir/codegen
 
+CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.o: CMakeFiles/connect4.dir/flags.make
+CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/heuristic/HeuristicAI.cpp
+CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.o"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/heuristic/HeuristicAI.cpp
+
+CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.i"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/heuristic/HeuristicAI.cpp > CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.i
+
+CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.s"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/heuristic/HeuristicAI.cpp -o CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.s
+
+CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.o: CMakeFiles/connect4.dir/flags.make
+CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/mcts/MCTS.cpp
+CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.o"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/mcts/MCTS.cpp
+
+CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.i"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/mcts/MCTS.cpp > CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.i
+
+CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.s"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/mcts/MCTS.cpp -o CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.s
+
+CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.o: CMakeFiles/connect4.dir/flags.make
+CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/minimax/MinimaxAI.cpp
+CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.o"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/minimax/MinimaxAI.cpp
+
+CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.i"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/minimax/MinimaxAI.cpp > CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.i
+
+CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.s"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/minimax/MinimaxAI.cpp -o CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.s
+
+CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.o: CMakeFiles/connect4.dir/flags.make
+CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/ml/DataLoader.cpp
+CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.o"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/ml/DataLoader.cpp
+
+CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.i"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/ml/DataLoader.cpp > CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.i
+
+CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.s"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/ml/DataLoader.cpp -o CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.s
+
+CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.o: CMakeFiles/connect4.dir/flags.make
+CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/ml/NeuralNetAI.cpp
+CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.o"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/ml/NeuralNetAI.cpp
+
+CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.i"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/ml/NeuralNetAI.cpp > CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.i
+
+CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.s"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/ml/NeuralNetAI.cpp -o CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.s
+
+CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.o: CMakeFiles/connect4.dir/flags.make
+CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/ml/Trainer.cpp
+CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.o"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/ml/Trainer.cpp
+
+CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.i"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/ml/Trainer.cpp > CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.i
+
+CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.s"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/ml/Trainer.cpp -o CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.s
+
+CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.o: CMakeFiles/connect4.dir/flags.make
+CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/qlearning/QLearningAI.cpp
+CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.o"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/qlearning/QLearningAI.cpp
+
+CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.i"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/qlearning/QLearningAI.cpp > CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.i
+
+CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.s"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/qlearning/QLearningAI.cpp -o CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.s
+
+CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.o: CMakeFiles/connect4.dir/flags.make
+CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/random/RandomAI.cpp
+CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.o"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/random/RandomAI.cpp
+
+CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.i"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/random/RandomAI.cpp > CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.i
+
+CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.s"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/ai/random/RandomAI.cpp -o CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.s
+
+CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.o: CMakeFiles/connect4.dir/flags.make
+CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/core/Board.cpp
+CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.o"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/core/Board.cpp
+
+CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.i"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/core/Board.cpp > CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.i
+
+CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.s"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/core/Board.cpp -o CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.s
+
+CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.o: CMakeFiles/connect4.dir/flags.make
+CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/core/Game.cpp
+CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.o"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/core/Game.cpp
+
+CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.i"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/core/Game.cpp > CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.i
+
+CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.s"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/core/Game.cpp -o CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.s
+
 CMakeFiles/connect4.dir/src/cpp/main.cpp.o: CMakeFiles/connect4.dir/flags.make
 CMakeFiles/connect4.dir/src/cpp/main.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/main.cpp
 CMakeFiles/connect4.dir/src/cpp/main.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/connect4.dir/src/cpp/main.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/connect4.dir/src/cpp/main.cpp.o"
 	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/main.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/main.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/main.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/main.cpp
 
 CMakeFiles/connect4.dir/src/cpp/main.cpp.i: cmake_force
@@ -86,33 +226,101 @@ CMakeFiles/connect4.dir/src/cpp/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/main.cpp.s"
 	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/main.cpp -o CMakeFiles/connect4.dir/src/cpp/main.cpp.s
 
-CMakeFiles/connect4.dir/src/cpp/Game.cpp.o: CMakeFiles/connect4.dir/flags.make
-CMakeFiles/connect4.dir/src/cpp/Game.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/Game.cpp
-CMakeFiles/connect4.dir/src/cpp/Game.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/connect4.dir/src/cpp/Game.cpp.o"
-	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/Game.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/Game.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/Game.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/Game.cpp
+CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.o: CMakeFiles/connect4.dir/flags.make
+CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/players/HumanPlayer.cpp
+CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.o"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/players/HumanPlayer.cpp
 
-CMakeFiles/connect4.dir/src/cpp/Game.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/Game.cpp.i"
-	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/Game.cpp > CMakeFiles/connect4.dir/src/cpp/Game.cpp.i
+CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.i"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/players/HumanPlayer.cpp > CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.i
 
-CMakeFiles/connect4.dir/src/cpp/Game.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/Game.cpp.s"
-	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/Game.cpp -o CMakeFiles/connect4.dir/src/cpp/Game.cpp.s
+CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.s"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/players/HumanPlayer.cpp -o CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.s
+
+CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.o: CMakeFiles/connect4.dir/flags.make
+CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/players/Player.cpp
+CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.o"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/players/Player.cpp
+
+CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.i"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/players/Player.cpp > CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.i
+
+CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.s"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/players/Player.cpp -o CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.s
+
+CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.o: CMakeFiles/connect4.dir/flags.make
+CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/util/Logger.cpp
+CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.o"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/util/Logger.cpp
+
+CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.i"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/util/Logger.cpp > CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.i
+
+CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.s"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/util/Logger.cpp -o CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.s
+
+CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.o: CMakeFiles/connect4.dir/flags.make
+CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.o: /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/util/Utils.cpp
+CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.o: CMakeFiles/connect4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.o"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.o -MF CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.o.d -o CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.o -c /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/util/Utils.cpp
+
+CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.i"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/util/Utils.cpp > CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.i
+
+CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.s"
+	/opt/homebrew/bin/aarch64-apple-darwin24-g++-14 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp/util/Utils.cpp -o CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.s
 
 # Object files for target connect4
 connect4_OBJECTS = \
+"CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.o" \
+"CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.o" \
+"CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.o" \
+"CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.o" \
+"CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.o" \
+"CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.o" \
+"CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.o" \
+"CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.o" \
+"CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.o" \
+"CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.o" \
 "CMakeFiles/connect4.dir/src/cpp/main.cpp.o" \
-"CMakeFiles/connect4.dir/src/cpp/Game.cpp.o"
+"CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.o" \
+"CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.o" \
+"CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.o" \
+"CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.o"
 
 # External object files for target connect4
 connect4_EXTERNAL_OBJECTS =
 
+connect4: CMakeFiles/connect4.dir/src/cpp/ai/heuristic/HeuristicAI.cpp.o
+connect4: CMakeFiles/connect4.dir/src/cpp/ai/mcts/MCTS.cpp.o
+connect4: CMakeFiles/connect4.dir/src/cpp/ai/minimax/MinimaxAI.cpp.o
+connect4: CMakeFiles/connect4.dir/src/cpp/ai/ml/DataLoader.cpp.o
+connect4: CMakeFiles/connect4.dir/src/cpp/ai/ml/NeuralNetAI.cpp.o
+connect4: CMakeFiles/connect4.dir/src/cpp/ai/ml/Trainer.cpp.o
+connect4: CMakeFiles/connect4.dir/src/cpp/ai/qlearning/QLearningAI.cpp.o
+connect4: CMakeFiles/connect4.dir/src/cpp/ai/random/RandomAI.cpp.o
+connect4: CMakeFiles/connect4.dir/src/cpp/core/Board.cpp.o
+connect4: CMakeFiles/connect4.dir/src/cpp/core/Game.cpp.o
 connect4: CMakeFiles/connect4.dir/src/cpp/main.cpp.o
-connect4: CMakeFiles/connect4.dir/src/cpp/Game.cpp.o
+connect4: CMakeFiles/connect4.dir/src/cpp/players/HumanPlayer.cpp.o
+connect4: CMakeFiles/connect4.dir/src/cpp/players/Player.cpp.o
+connect4: CMakeFiles/connect4.dir/src/cpp/util/Logger.cpp.o
+connect4: CMakeFiles/connect4.dir/src/cpp/util/Utils.cpp.o
 connect4: CMakeFiles/connect4.dir/build.make
 connect4: CMakeFiles/connect4.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable connect4"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/derekjrussell/Documents/repos/ConnectFourGame/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Linking CXX executable connect4"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/connect4.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
