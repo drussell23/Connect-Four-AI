@@ -1,4 +1,22 @@
 // src/ai/connect4AI.ts
+import { performance } from "perf_hooks";
+import { quiesce } from "./quiescence";
+
+// 1) A 6 × 7 heatmap: central & lower cells matter most
+const CELL_WEIGHTS: number[][] = [
+  [3, 4, 5, 7, 5, 4, 3],
+  [4, 6, 8, 10, 8, 6, 4],
+  [5, 8, 11, 13, 11, 8, 5],
+  [5, 8, 11, 13, 11, 8, 5],
+  [4, 6, 8, 10, 8, 6, 4],
+  [3, 4, 5, 7, 5, 4, 3],
+];
+
+// 2) Weight for opponent's connection potential (so we subtract it).
+const OPP_CONN_POT_WEIGHT = 0.8;
+
+// 3) Two-step fork penalty per threat.
+const TWO_STEP_FORK_WEIGHT = 4000;
 
 /** Valid values for each cell in the Connect 4 grid **/
 export type CellValue = 'Empty' | 'Red' | 'Yellow';
@@ -9,7 +27,8 @@ export interface Move {
   row: number;
   isWinning: boolean;
   isBlocking: boolean;
-  priority: number;
+  futureThreats: number;
+  score: number;
 }
 
 /**
@@ -26,8 +45,12 @@ export function getDropRow(board: CellValue[][], col: number): number | null {
 }
 
 /**
- * Returns moves sorted by priority:
- * 1000 = immediate win, 900 = immediate block, 800–0 = center bias.
+ * Returns moves sorted by a composite strategic score:
+ * 1) Immediate win
+ * 2) Immediate block
+ * 3) Static board evaluation after move
+ * 4) Penalty for handing off opponent forks
+ * 5) Center‐column bias
  */
 export function orderedMoves(
   board: CellValue[][],
@@ -37,41 +60,45 @@ export function orderedMoves(
   const center = Math.floor(COLS / 2);
   const opponent: CellValue = currentPlayer === 'Red' ? 'Yellow' : 'Red';
 
-  // 1) collect all non‐full columns + rows
-  const candidates: { col: number; row: number }[] = [];
-  for (let col = 0; col < COLS; col++) {
-    const row = getDropRow(board, col);
-    if (row !== null) candidates.push({ col, row });
-  }
+  // 1) Gather all legal moves
+  const cols = legalMoves(board);
 
-  // 2) detect opponent win‐in‐one
-  const threat = new Set<number>();
-  for (const { col, row } of candidates) {
-    const sim = board.map(r => [...r] as CellValue[]);
-    sim[row][col] = opponent;
-    if (bitboardCheckWin(getBits(sim, opponent))) threat.add(col);
-  }
+  const moves: Move[] = cols.map(col => {
+    const row = getDropRow(board, col)!;
+    // simulate drop
+    const { board: afterUs } = tryDrop(board, col, currentPlayer);
+    const { board: afterOppSim } = tryDrop(board, col, opponent);
 
-  // 3) annotate with win/block/center‐bias
-  const moves: Move[] = candidates.map(({ col, row }) => {
-    // win?
-    const winBoard = board.map(r => [...r] as CellValue[]);
-    winBoard[row][col] = currentPlayer;
-    const isWinning = bitboardCheckWin(getBits(winBoard, currentPlayer));
+    // 2) Tactical flags
+    const isWinning = bitboardCheckWin(getBits(afterUs, currentPlayer));
+    const isBlocking = bitboardCheckWin(getBits(afterOppSim, opponent));
 
-    // block?
-    const isBlocking = threat.has(col);
+    // 3) Positional score
+    const posScore = evaluateBoard(afterUs, currentPlayer);
 
-    // priority
-    let priority = 800 - Math.abs(col - center);
-    if (isBlocking) priority = 900;
-    if (isWinning) priority = 1000;
+    // 4) Future threat penalty
+    //   count how many forks the opponent will have after *our* move
+    const futureThreats = countOpenThree(afterUs, opponent);
 
-    return { col, row, isWinning, isBlocking, priority };
+    // 5) Center bias
+    const centerBonus = Math.max(0, 5 - Math.abs(col - center));
+
+    // Composite:
+    //  - Immediate win: +1e6
+    //  - Immediate block: +1e5
+    //  - Then positional minus big penalty per futureThreat
+    const score =
+      (isWinning ? 1e6 : 0) +
+      (isBlocking ? 1e5 : 0) +
+      posScore -
+      futureThreats * 1e4 +
+      centerBonus * 100;
+
+    return { col, row, score, isWinning, isBlocking, futureThreats };
   });
 
-  // 4) highest first
-  return moves.sort((a, b) => b.priority - a.priority);
+  // 6) Sort by descending composite score
+  return moves.sort((a, b) => b.score - a.score);
 }
 
 /** Returns an array of column indices (0–6) that are not full. **/
@@ -216,6 +243,111 @@ export function evaluateWindow(
   }
 }
 
+const DOUBLE_FORK_PENALTY = 1e7;
+const SINGLE_FORK_PENALTY = 1e6;
+
+/**
+ * For every 4-cell “window” in all directions:
+ *   - if there are 0 opponent discs, add (myCount²) * WEIGHT
+ */
+function evaluateConnectionPotential(
+  board: CellValue[][],
+  aiDisc: CellValue
+): number {
+  const humanDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
+  let total = 0;
+
+  const addWindow = (cells: CellValue[]) => {
+    const myCount = cells.filter(c => c === aiDisc).length;
+    const oppCount = cells.filter(c => c === humanDisc).length;
+
+    if (oppCount === 0 && myCount > 0) {
+      total += (myCount * myCount) * 10;
+    }
+  };
+
+  const R = board.length, C = board[0].length, W = 4;
+
+  // Horizontal 
+  for (let r = 0; r < R; r++) {
+    for (let c = 0; c <= C - W; c++) {
+      addWindow(board[r].slice(c, c + W));
+    }
+  }
+
+  // Vertical 
+  for (let c = 0; c < C; c++) {
+    for (let r = 0; r <= R - W; r++) {
+      addWindow([0, 1, 2, 3].map(i => board[r + i][c]));
+    }
+  }
+
+  // Diagonals ↘
+  for (let r = 0; r <= R - W; r++) {
+    for (let c = 0; c <= C - W; c++) {
+      addWindow([0, 1, 2, 3].map(i => board[r + i][c + i]));
+    }
+  }
+
+  // Diagonals ↙
+  for (let r = 0; r <= R - W; r++) {
+    for (let c = W - 1; c < C; c++) {
+      addWindow([0, 1, 2, 3].map(i => board[r + i][c - i]));
+    }
+  }
+
+  return total;
+}
+
+/**
+ * Count how many forced‐forks you can set up in two moves:
+ * for each legal drop, assume opponent blocks your best threat,
+ * then see if you can still create ≥1 open-three. 
+ */
+function countTwoStepForks(
+  board: CellValue[][],
+  aiDisc: CellValue,
+  timeMs = 0  // or ignore timing here
+): number {
+  const opp = aiDisc === 'Red' ? 'Yellow' : 'Red';
+  let forks = 0;
+  for (const col of legalMoves(board)) {
+    // 1) I drop
+    const { board: b1 } = tryDrop(board, col, aiDisc);
+    // 2) Opponent counters my strongest immediate fork
+    const block = findOpenThreeBlock(b1, aiDisc);
+    const b2 = block !== null
+      ? tryDrop(b1, block, opp).board
+      : b1;
+    // 3) Now do I have any open-three?
+    if (countOpenThree(b2, aiDisc) > 0) {
+      forks++;
+    }
+  }
+  return forks;
+}
+
+/** New helper: Raw cell-control score. */
+function evaluateCellControl(
+  board: CellValue[][],
+  aiDisc: CellValue
+): number {
+  const rows = board.length;
+  const cols = board[0].length;
+  const humanDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
+  let s = 0;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (board[r][c] === aiDisc)
+        s += CELL_WEIGHTS[r][c];
+      else if (board[r][c] === humanDisc)
+        s -= CELL_WEIGHTS[r][c];
+    }
+  }
+  return s;
+}
+
 export function evaluateBoard(
   board: CellValue[][],
   aiDisc: CellValue
@@ -223,58 +355,132 @@ export function evaluateBoard(
   const rows = board.length;
   const cols = board[0].length;
   const humanDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
+
+  // ── 1) Double‐fork doom
+  const humanForks = countOpenThree(board, humanDisc);
+  if (humanForks >= 2) {
+    return -DOUBLE_FORK_PENALTY;
+  }
+  // ── 2) Single‐fork penalty
+  if (humanForks === 1) {
+    return -SINGLE_FORK_PENALTY;
+  }
+
+  // ── 3) Positional scan (windows) ─────────────────────────
   let score = 0;
 
-  // Immediate open-three penalty.
+  // Horizontal
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c <= cols - WINDOW; c++) {
       const w = board[r].slice(c, c + WINDOW);
-      if (
-        w.filter((x) => x === humanDisc).length === 3 &&
-        w.filter((x) => x === 'Empty').length === 1
-      ) {
-        return -1e6;
-      }
-    }
-  }
-
-  // Horizontal, Vertical, Diagonal.
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c <= cols - WINDOW; c++) {
-      score += evaluateWindow(board[r].slice(c, c + WINDOW), aiDisc) *
+      score +=
+        evaluateWindow(w, aiDisc) *
         (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
     }
   }
 
+  // Vertical
   for (let c = 0; c < cols; c++) {
     for (let r = 0; r <= rows - WINDOW; r++) {
-      const w = [0, 1, 2, 3].map((i) => board[r + i][c]);
-      score += evaluateWindow(w, aiDisc) * (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
+      const w = [0, 1, 2, 3].map(i => board[r + i][c]);
+      score +=
+        evaluateWindow(w, aiDisc) *
+        (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
     }
   }
 
+  // Diagonals
   for (let r = 0; r <= rows - WINDOW; r++) {
     for (let c = 0; c <= cols - WINDOW; c++) {
-      const dr = [0, 1, 2, 3].map((i) => board[r + i][c + i]);
-      score += evaluateWindow(dr, aiDisc) * (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
-      const dl = [0, 1, 2, 3].map(
-        (i) => board[r + i][c + WINDOW - 1 - i]
-      );
-      score += evaluateWindow(dl, aiDisc) * (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
+      const dr = [0, 1, 2, 3].map(i => board[r + i][c + i]);
+      score +=
+        evaluateWindow(dr, aiDisc) *
+        (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
+      const dl = [0, 1, 2, 3].map(i => board[r + i][c + WINDOW - 1 - i]);
+      score +=
+        evaluateWindow(dl, aiDisc) *
+        (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
     }
   }
 
+  // Center bonus/penalty
   const center = Math.floor(cols / 2);
-
   for (let r = 0; r < rows; r++) {
-    score += board[r][center] === aiDisc
-      ? CENTER_COLUMN_BONUS
-      : board[r][center] === humanDisc
-        ? -CENTER_COLUMN_BONUS
-        : 0;
+    if (board[r][center] === aiDisc) score += CENTER_COLUMN_BONUS;
+    else if (board[r][center] === humanDisc)
+      score -= CENTER_COLUMN_BONUS;
   }
+
+  // 1) Fork doom & single-fork (as before)
+  if (humanForks >= 2)
+    return -DOUBLE_FORK_PENALTY;
+  else if (humanForks === 1)
+    return -SINGLE_FORK_PENALTY;
+
+  // 2) Windows + center → repositioned into evaluatePosition()
+  score = evaluatePosition(board, aiDisc);
+
+  // 3) Cell‐control: fine granularity per cell
+  score += evaluateCellControl(board, aiDisc);
+
+  // 4) Connection potential (2–3 discs builds)
+  score += evaluateConnectionPotential(board, aiDisc);
+  // subtract opponent’s potential, but a bit less sharply
+  score -= evaluateConnectionPotential(board, humanDisc) * OPP_CONN_POT_WEIGHT;
+
+  // 5) Two‐step forks: smoother penalty per forced fork
+  const twoStep = countTwoStepForks(board, aiDisc);
+  score -= twoStep * TWO_STEP_FORK_WEIGHT;
+
   return score;
 }
+
+/** Sum up all horizontal, vertical, diagonal windows and center‐column bonuses. */
+function evaluatePosition(
+  board: CellValue[][],
+  aiDisc: CellValue
+): number {
+  const rows = board.length;
+  const cols = board[0].length;
+  const humanDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
+  let s = 0;
+
+  // 1) Horizontal windows
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c <= cols - WINDOW; c++) {
+      const w = board[r].slice(c, c + WINDOW);
+      s += evaluateWindow(w, aiDisc) * (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
+    }
+  }
+
+  // 2) Vertical windows
+  for (let c = 0; c < cols; c++) {
+    for (let r = 0; r <= rows - WINDOW; r++) {
+      const w = [0, 1, 2, 3].map(i => board[r + i][c]);
+      s += evaluateWindow(w, aiDisc) * (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
+    }
+  }
+
+  // 3) Diagonal ↘ and ↙ windows
+  for (let r = 0; r <= rows - WINDOW; r++) {
+    for (let c = 0; c <= cols - WINDOW; c++) {
+      const dr = [0, 1, 2, 3].map(i => board[r + i][c + i]);
+      s += evaluateWindow(dr, aiDisc) * (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
+      const dl = [0, 1, 2, 3].map(i => board[r + i][c + WINDOW - 1 - i]);
+      s += evaluateWindow(dl, aiDisc) * (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
+    }
+  }
+
+  // 4) Center‐column bonus/penalty
+  const centerCol = Math.floor(cols / 2);
+  for (let r = 0; r < rows; r++) {
+    if (board[r][centerCol] === aiDisc) s += CENTER_COLUMN_BONUS;
+    else if (board[r][centerCol] === humanDisc) s -= CENTER_COLUMN_BONUS;
+  }
+
+  return s;
+}
+
 
 /** Transposition table with Zobrist hashing **/
 export enum EntryFlag { Exact, LowerBound, UpperBound }
@@ -346,9 +552,12 @@ export function storeEntry(
 }
 
 /** Minimax with α–β, null-move pruning, history, transposition, and advanced logging **/
-interface Node { score: number; column: number | null; }
+interface Node {
+  score: number;
+  column: number | null;
+}
+
 const NULL_MOVE_REDUCTION = 2;
-const historyTable: number[][] = Array.from({ length: 7 }, () => []);
 
 export function minimax(
   board: CellValue[][],
@@ -358,132 +567,108 @@ export function minimax(
   maximizingPlayer: boolean,
   aiDisc: CellValue
 ): Node {
-  try {
-    // 1) Transposition lookup
-    const key = hashBoard(board);
-    clearTable();
-    const entry = getEntry(key);
-    if (entry && entry.depth >= depth) {
-      console.debug(`[minimax] Transposition hit at depth=${depth}, score=${entry.score}`);
-      if (entry.flag === EntryFlag.Exact) return { score: entry.score, column: entry.column };
-      if (entry.flag === EntryFlag.LowerBound) alpha = Math.max(alpha, entry.score);
-      if (entry.flag === EntryFlag.UpperBound) beta = Math.min(beta, entry.score);
-      if (alpha >= beta) return { score: entry.score, column: entry.column };
+  const oppDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
+  const key = hashBoard(board);
+  const entry = getEntry(key);
+
+  // ─── Transposition lookup ───────────────────────────────
+  if (entry && entry.depth >= depth) {
+    if (entry.flag === EntryFlag.Exact) {
+      return { score: entry.score, column: entry.column };
     }
-
-    // 2) Generate ordered moves
-    const richMoves = orderedMoves(board, aiDisc);
-    if (richMoves.length === 0) {
-      console.debug(`[minimax] Terminal node (no moves) at depth=${depth}`);
-      return { column: null, score: maximizingPlayer ? -Infinity : Infinity };
+    if (entry.flag === EntryFlag.LowerBound) {
+      alpha = Math.max(alpha, entry.score);
+    } else if (entry.flag === EntryFlag.UpperBound) {
+      beta = Math.min(beta, entry.score);
     }
-
-    // 3) Whose turn?
-    const current = maximizingPlayer ? aiDisc : (aiDisc === 'Red' ? 'Yellow' : 'Red');
-    const otherPlayer = maximizingPlayer ? (aiDisc === 'Red' ? 'Yellow' : 'Red') : aiDisc;
-
-    // 4) Immediate win/block short-circuits
-    for (const move of richMoves) {
-      const { col, isWinning, isBlocking } = move;
-      if (isWinning) {
-        console.info(`[minimax] Immediate win at col=${col} depth=${depth}`);
-        return { column: col, score: maximizingPlayer ? Infinity : -Infinity };
-      }
-      if (isBlocking) {
-        console.info(`[minimax] Immediate block at col=${col} depth=${depth}`);
-        return { column: col, score: maximizingPlayer ? -Infinity : Infinity };
-      }
+    if (alpha >= beta) {
+      return { score: entry.score, column: entry.column };
     }
-
-    // 5) Null-move pruning
-    if (maximizingPlayer && depth > NULL_MOVE_REDUCTION + 1) {
-      const { col: skipCol } = richMoves[0];
-      console.debug(`[minimax] Null-move attempt skipping col=${skipCol} at depth=${depth}`);
-      const { board: nb } = tryDrop(board, skipCol, current);
-      const nullNode = minimax(
-        nb,
-        depth - 1 - NULL_MOVE_REDUCTION,
-        -beta,
-        -beta + 1,
-        !maximizingPlayer,
-        aiDisc
-      );
-      if (-nullNode.score >= beta) {
-        console.info(`[minimax] Null-move cutoff at depth=${depth} with skipCol=${skipCol}`);
-        return { column: null, score: beta };
-      }
-    }
-
-    // 6) Main α–β loop
-    let best: Node = { column: null, score: maximizingPlayer ? -Infinity : Infinity };
-    const alphaOrig = alpha, betaOrig = beta;
-
-    for (const move of richMoves) {
-      const { col, isWinning, isBlocking, priority } = move;
-      console.debug(
-        `[minimax] Considering col=${col} (win=${isWinning}, block=${isBlocking}, prio=${priority}) ` +
-        `at depth=${depth}`
-      );
-
-      // Recurse
-      const { board: next } = tryDrop(board, col, current);
-      const child = minimax(
-        next,
-        depth - 1,
-        -beta,
-        -alpha,
-        !maximizingPlayer,
-        aiDisc
-      );
-      const sc = -child.score;
-
-      // Beefed-up future threat logging for shallow depths
-      if (depth <= 3) {
-        const oppThreats = orderedMoves(next, otherPlayer)
-          .slice(0, 2)
-          .map(t =>
-            `col=${t.col}` +
-            (t.isWinning ? ` (win)` : t.isBlocking ? ` (block)` : ``) +
-            ` [prio=${t.priority}]`
-          );
-        console.info(
-          `[minimax] After our move col=${col}, opp top threats: ` +
-          oppThreats.join('  |  ')
-        );
-      }
-
-      // Update best & α/β
-      if ((maximizingPlayer && sc > best.score) || (!maximizingPlayer && sc < best.score)) {
-        console.debug(`[minimax] New best at col=${col} score=${sc} (was ${best.score})`);
-        best = { column: col, score: sc };
-      }
-      alpha = maximizingPlayer ? Math.max(alpha, sc) : alpha;
-      beta = !maximizingPlayer ? Math.min(beta, sc) : beta;
-
-      // History heuristic
-      historyTable[col][depth] = (historyTable[col][depth] || 0) + priority;
-
-      // Cutoff
-      if (alpha >= beta) {
-        console.info(
-          `[minimax] Alpha-beta cutoff at col=${col}, depth=${depth}, ` +
-          `alpha=${alpha}, beta=${beta}`
-        );
-        break;
-      }
-    }
-
-    // 7) Transposition store
-    let flag = EntryFlag.Exact;
-    if (best.score <= alphaOrig) flag = EntryFlag.UpperBound;
-    else if (best.score >= betaOrig) flag = EntryFlag.LowerBound;
-    storeEntry(key, { score: best.score, depth, column: best.column, flag });
-
-    return best;
-  } catch (err) {
-    console.error('[minimax] Unexpected error:', err);
-    return { column: null, score: maximizingPlayer ? -Infinity : Infinity };
   }
+
+  // ─── Quiescence at depth 0 ──────────────────────────────
+  if (depth <= 0) {
+    return quiesce(board, alpha, beta, aiDisc);
+  }
+
+  // ─── Guarded Null‐Move Pruning ───────────────────────────
+  // only if we have depth left AND opponent has no immediate win/fork double‐threat
+  if (
+    depth > NULL_MOVE_REDUCTION + 1 &&
+    !hasImmediateWin(board, oppDisc) &&
+    countOpenThree(board, oppDisc) <= 1
+  ) {
+    const R = NULL_MOVE_REDUCTION;
+    const { score: nullScore } = minimax(
+      board,
+      depth - R - 1,
+      -beta,
+      -beta + 1,
+      !maximizingPlayer,
+      aiDisc
+    );
+    if (-nullScore >= beta) {
+      return { score: beta, column: null };
+    }
+  }
+
+  // ─── Main α–β Search ────────────────────────────────────
+  let best: Node = { score: -Infinity, column: null };
+  const alphaOrig = alpha;
+  const moves = legalMoves(board);
+
+  for (const col of moves) {
+    const { board: next } = tryDrop(
+      board,
+      col,
+      maximizingPlayer ? aiDisc : oppDisc
+    );
+
+    const node = minimax(
+      next,
+      depth - 1,
+      -beta,
+      -alpha,
+      !maximizingPlayer,
+      aiDisc
+    );
+    const score = -node.score;
+
+    if (score > best.score) {
+      best = { score, column: col };
+    }
+
+    alpha = Math.max(alpha, score);
+    if (alpha >= beta) {
+      break;
+    }
+  }
+
+  // ─── Store in Transposition Table ───────────────────────
+  let flag: EntryFlag;
+  if (best.score <= alphaOrig) {
+    flag = EntryFlag.UpperBound;
+  } else if (best.score >= beta) {
+    flag = EntryFlag.LowerBound;
+  } else {
+    flag = EntryFlag.Exact;
+  }
+  storeEntry(key, { score: best.score, depth, flag, column: best.column });
+
+  return best;
+}
+
+/**
+ * True if `disc` can win immediately on the next move.
+ */
+function hasImmediateWin(board: CellValue[][], disc: CellValue): boolean {
+  for (const col of legalMoves(board)) {
+    const { board: after } = tryDrop(board, col, disc);
+    if (bitboardCheckWin(getBits(after, disc))) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /** Monte Carlo Tree Search **/
@@ -589,30 +774,16 @@ export function backpropagate(
 }
 
 export function mcts(
-  board: CellValue[][],
+  rootBoard: CellValue[][],
   aiDisc: CellValue,
   timeMs: number
 ): number {
-  // Pick candidate columns by priortiy.
-  const cols = orderedMoves(board, aiDisc).map(m => m.col);
+  const opponent: CellValue = aiDisc === 'Red' ? 'Yellow' : 'Red';
 
-  // Immediate win.
-  for (const col of cols) {
-    const res = tryDrop(board, col, aiDisc);
-    if (bitboardCheckWin(getBits(res.board, aiDisc))) return col;
-  }
-
-  // Immediate block.
-  const opp = aiDisc === 'Red' ? 'Yellow' : 'Red';
-  for (const col of cols) {
-    const res = tryDrop(board, col, opp);
-    if (bitboardCheckWin(getBits(res.board, opp))) return col;
-  }
-
-  // Set up the root node. 
+  // 1) Create root node (AI just played before this, so it's opponent's turn)
   const root: MCTSNode = {
-    board: cloneBoard(board),
-    player: opp,
+    board: cloneBoard(rootBoard),
+    player: opponent,
     visits: 0,
     wins: 0,
     parent: null,
@@ -620,36 +791,87 @@ export function mcts(
     move: null,
   };
 
-  const MAX_NODES = 10000;
-  let nodeCount = 1;
-  const endTime = Date.now() + Math.max(timeMs, 500);
+  const endTime = Date.now() + timeMs;
 
-  // Rollout loop.
   while (Date.now() < endTime) {
-    let node = select(root);
-    if (node.visits > 0 && node.children.length === 0 && nodeCount < MAX_NODES) {
-      expand(node);
-      nodeCount += node.children.length;
+    // ─── Selection ───────────────────────────────────────────
+    let node = root;
+    while (node.children.length > 0) {
+      node = node.children.reduce((best, child) => {
+        // UCT = w_i/n_i + c * sqrt(ln(N)/n_i)
+        const C = Math.SQRT2;
+        const uctChild =
+          child.wins / (child.visits + 1e-9) +
+          C * Math.sqrt(Math.log(node.visits + 1) / (child.visits + 1e-9));
+        const uctBest =
+          best.wins / (best.visits + 1e-9) +
+          C * Math.sqrt(Math.log(node.visits + 1) / (best.visits + 1e-9));
+        return uctChild > uctBest ? child : best;
+      });
     }
-    const leaf =
-      node.children.length > 0
-        ? node.children[Math.floor(Math.random() * node.children.length)]
-        : node;
-    const winner = playout(leaf.board, leaf.player, aiDisc);
-    backpropagate(leaf, winner, aiDisc);
+
+    // ─── Expansion ───────────────────────────────────────────
+    // If we've visited once and no children yet, expand all legal moves
+    if (node.visits > 0) {
+      const nextPlayer = node.player === 'Red' ? 'Yellow' : 'Red';
+      for (const col of legalMoves(node.board)) {
+        const { board: nextBoard } = tryDrop(node.board, col, nextPlayer);
+        node.children.push({
+          board: nextBoard,
+          player: nextPlayer,
+          visits: 0,
+          wins: 0,
+          parent: node,
+          children: [],
+          move: col,
+        });
+      }
+      // pick one child to simulate
+      if (node.children.length > 0) {
+        node = node.children[0];
+      }
+    }
+
+    // ─── Simulation (Playout) ─────────────────────────────────
+    let simBoard = cloneBoard(node.board);
+    let simPlayer = node.player;
+    let winner: CellValue | 'draw' = 'draw';
+
+    while (true) {
+      const moves = legalMoves(simBoard);
+      if (moves.length === 0) break;             // draw
+      const col = moves[Math.floor(Math.random() * moves.length)];
+      const { board: nb } = tryDrop(simBoard, col, simPlayer);
+      simBoard = nb;
+      if (bitboardCheckWin(getBits(simBoard, simPlayer))) {
+        winner = simPlayer;
+        break;
+      }
+      simPlayer = simPlayer === 'Red' ? 'Yellow' : 'Red';
+    }
+
+    // ─── Backpropagation ──────────────────────────────────────
+    let cur: MCTSNode | null = node;
+    while (cur) {
+      cur.visits++;
+      if (winner === aiDisc) {
+        cur.wins++;
+      }
+      cur = cur.parent;
+    }
   }
 
-  let bestMove = cols[0];
-  let bestVisits = -1;
-
-  for (const child of root.children) {
-    if (child.visits > bestVisits && child.move !== null) {
-      bestVisits = child.visits;
-      bestMove = child.move;
-    }
+  // ─── Choose best move: child of root with highest visits ───
+  if (root.children.length === 0) {
+    // fallback: pick any legal move
+    return legalMoves(rootBoard)[0];
   }
-  return bestMove;
+  const bestChild = root.children.reduce((best, c) =>
+    c.visits > best.visits ? c : best
+  );
+  return bestChild.move!;
 }
+
 
 // Search settings
 const ENGINE_MAX_DEPTH = 12;
@@ -657,324 +879,292 @@ const THREAT_THRESHOLD = 1;
 
 /**
  * Detect all single‐move forks (3 in a row + 1 gap) for the opponent,
- * score them by direction and center‐distance, then block the highest‐scoring one.
- *
- * @param board 6×7 grid of CellValue
- * @param opp   Opponent’s disc ('Red' or 'Yellow')
- * @returns Column index to block, or null if no fork found
+ * score them by direction and center‐distance, then return the best column to block.
  */
 export function findOpenThreeBlock(
   board: CellValue[][],
   opp: CellValue
 ): number | null {
-  try {
-    const ROWS = board.length;
-    const COLS = board[0].length;
-    const WINDOW = 4;
-    const center = Math.floor(COLS / 2);
+  const ROWS = board.length;
+  const COLS = board[0].length;
+  const WINDOW = 4;
+  const center = Math.floor(COLS / 2);
 
-    // Directional weights: adjust these to prioritize certain threat angles
-    const DIR_WEIGHTS: Record<string, number> = {
-      horiz: 5,
-      vert: 3,
-      diagDR: 4,  // down-right
-      diagDL: 4   // down-left
-    };
+  // weights for each direction
+  const DIR_WEIGHTS: Record<string, number> = {
+    horiz: 5,
+    vert: 3,
+    diagDR: 4,
+    diagDL: 4,
+  };
 
-    // Map a (dr,dc) pair to one of our direction keys.
-    const dirKey = (dr: number, dc: number): string => {
-      if (dr === 0 && dc === 1) return 'horiz';
-      if (dr === 1 && dc === 0) return 'vert';
-      if (dr === 1 && dc === 1) return 'diagDR';
-      if (dr === 1 && dc === -1) return 'diagDL';
-      return 'horiz';
-    };
+  // directions with keys
+  const dirs = [
+    { dr: 0, dc: 1, key: 'horiz' },
+    { dr: 1, dc: 0, key: 'vert' },
+    { dr: 1, dc: 1, key: 'diagDR' },
+    { dr: 1, dc: -1, key: 'diagDL' },
+  ];
 
-    // We'll track the best priority for each column
-    const threatScores = new Map<number, number>();
+  const threatScores = new Map<number, number>();
 
-    const dirs = [
-      { dr: 0, dc: 1 },
-      { dr: 1, dc: 0 },
-      { dr: 1, dc: 1 },
-      { dr: 1, dc: -1 },
-    ];
+  for (const { dr, dc, key } of dirs) {
+    const weight = DIR_WEIGHTS[key] ?? 1;
 
-    for (const { dr, dc } of dirs) {
-      const key = dirKey(dr, dc);
-      const angleWeight = DIR_WEIGHTS[key] || 1;
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        // gather WINDOW cells and coords
+        const cells: CellValue[] = [];
+        const coords: [number, number][] = [];
+        for (let i = 0; i < WINDOW; i++) {
+          const rr = r + dr * i;
+          const cc = c + dc * i;
+          if (rr < 0 || rr >= ROWS || cc < 0 || cc >= COLS) break;
+          cells.push(board[rr][cc]);
+          coords.push([rr, cc]);
+        }
+        if (cells.length < WINDOW) continue;
 
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-          // Gather up to WINDOW cells in this direction.
-          const cells: CellValue[] = [];
-          const coords: [number, number][] = [];
-          for (let i = 0; i < WINDOW; i++) {
-            const rr = r + dr * i;
-            const cc = c + dc * i;
-            if (rr < 0 || rr >= ROWS || cc < 0 || cc >= COLS) break;
-            cells.push(board[rr][cc]);
-            coords.push([rr, cc]);
-          }
-          if (cells.length < WINDOW) continue;
+        // check for 3 opponent + 1 empty
+        const oppCnt = cells.filter(x => x === opp).length;
+        const empCnt = cells.filter(x => x === 'Empty').length;
+        if (oppCnt === 3 && empCnt === 1) {
+          const gapIdx = cells.findIndex(x => x === 'Empty');
+          const [gapRow, gapCol] = coords[gapIdx];
 
-          const oppCnt = cells.filter(x => x === opp).length;
-          const empCnt = cells.filter(x => x === 'Empty').length;
-          if (oppCnt === 3 && empCnt === 1) {
-            const gapIdx = cells.findIndex(x => x === 'Empty');
-            const [gapRow, gapCol] = coords[gapIdx];
-
-            // Gravity check: disc must be able to land here.
-            if (gapRow === ROWS - 1 || board[gapRow + 1][gapCol] !== 'Empty') {
-
-              // Compute a combined priority: angleWeight * 100  minus distance from center.
-              const dist = Math.abs(gapCol - center);
-              const priority = angleWeight * 100 - dist;
-
-              console.info(
-                `[findOpenThreeBlock] fork at dir=${key} ` +
-                `window origin=(${r},${c}), gap=[${gapRow},${gapCol}] ` +
-                `=> score=${priority}`
-              );
-
-              // Keep the highest score per column.
-              const prev = threatScores.get(gapCol) ?? -Infinity;
-              threatScores.set(gapCol, Math.max(prev, priority));
-            }
+          // strict gravity check
+          if (getDropRow(board, gapCol) === gapRow) {
+            // priority = direction weight * 100 − distance from center
+            const dist = Math.abs(gapCol - center);
+            const score = weight * 100 - dist;
+            const prev = threatScores.get(gapCol) ?? -Infinity;
+            threatScores.set(gapCol, Math.max(prev, score));
           }
         }
       }
     }
-
-    if (threatScores.size === 0) {
-      console.debug('[findOpenThreeBlock] no forks found');
-      return null;
-    }
-
-    // Pick the column with the maximum threatScore.
-    let bestCol: number | null = null;
-    let bestScore = -Infinity;
-    for (const [col, score] of threatScores.entries()) {
-      if (score > bestScore) {
-        bestScore = score;
-        bestCol = col;
-      }
-    }
-
-    console.info(
-      `[findOpenThreeBlock] blocking column=${bestCol} with score=${bestScore}`
-    );
-    return bestCol;
-
-  } catch (err) {
-    console.error('[findOpenThreeBlock] unexpected error', err);
-    return null;
   }
+
+  if (threatScores.size === 0) return null;
+
+  // choose the column with highest score
+  let bestCol: number | null = null;
+  let bestScore = -Infinity;
+  for (const [col, score] of threatScores) {
+    if (score > bestScore) {
+      bestScore = score;
+      bestCol = col;
+    }
+  }
+
+  return bestCol;
 }
 
-/**
+/** 
  * Count all “3-in-a-row + 1 gap” fork threats the opponent will have
- * if you don’t block—logging each threat and deduplicating by gap+dir.
- *
- * @param board 6×7 grid of CellValue
- * @param opp   Opponent’s disc ('Red' or 'Yellow')
- * @returns Number of simultaneous open-three threats
+ * if you don’t block. Stops early once ≥2 are found.
  */
-// 1a) Count all 3+gap forks you’d hand over
 export function countOpenThree(
   board: CellValue[][],
   opp: CellValue
 ): number {
-  try {
-    const ROWS = board.length;
-    const COLS = board[0].length;
-    const WINDOW = 4;
+  const ROWS = board.length;
+  const COLS = board[0].length;
+  const WINDOW = 4;
 
-    // Helper to key a threat by its gap cell + direction.
-    const dirKey = (dr: number, dc: number): string => {
-      if (dr === 0 && dc === 1) {
-        return 'horiz';
-      }
+  // directions with a string key for dedup
+  const dirs = [
+    { dr: 0, dc: 1, key: 'horiz' },
+    { dr: 1, dc: 0, key: 'vert' },
+    { dr: 1, dc: 1, key: 'diagDR' },
+    { dr: 1, dc: -1, key: 'diagDL' },
+  ];
 
-      if (dr === 1 && dc === 0) {
-        return 'vert';
-      }
+  const seen = new Set<string>();
+  let threatCount = 0;
 
-      if (dr === 1 && dc === 1) {
-        return 'diagDR';
-      }
+  for (const { dr, dc, key } of dirs) {
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        // gather up to WINDOW cells along this direction
+        const cells: CellValue[] = [];
+        const coords: [number, number][] = [];
 
-      if (dr === 1 && dc === -1) {
-        return 'diagDL';
-      }
+        for (let i = 0; i < WINDOW; i++) {
+          const rr = r + dr * i;
+          const cc = c + dc * i;
+          if (rr < 0 || rr >= ROWS || cc < 0 || cc >= COLS)
+            break;
+          cells.push(board[rr][cc]);
+          coords.push([rr, cc]);
+        }
 
-      return `d${dr}c${dc}`;
-    };
+        if (cells.length < WINDOW) continue;
 
-    const seen = new Set<string>();
-    let threatCount = 0;
+        // exactly 3 opponent discs + 1 empty?
+        const oppCnt = cells.filter(x => x === opp).length;
+        const empCnt = cells.filter(x => x === 'Empty').length;
 
-    const dirs = [
-      { dr: 0, dc: 1 },
-      { dr: 1, dc: 0 },
-      { dr: 1, dc: 1 },
-      { dr: 1, dc: -1 },
-    ];
+        if (oppCnt === 3 && empCnt === 1) {
+          const gapIdx = cells.findIndex(x => x === 'Empty');
+          const [gapRow, gapCol] = coords[gapIdx];
 
-    for (const { dr, dc } of dirs) {
-      const key = dirKey(dr, dc);
+          // strict gravity check
+          if (getDropRow(board, gapCol) === gapRow) {
+            const threatKey = `${gapRow},${gapCol},${key}`;
+            if (!seen.has(threatKey)) {
+              seen.add(threatKey);
+              threatCount++;
 
-      // Slide a WINDOW x 1 window across the board in this direction.
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-          const cells: CellValue[] = [];
-          const coords: [number, number][] = [];
-
-          for (let i = 0; i < WINDOW; i++) {
-            const rr = r + dr * i;
-            const cc = c + dc * i;
-
-            if (rr < 0 || rr >= ROWS || cc < 0 || cc >= COLS)
-              break;
-
-            cells.push(board[rr][cc]);
-            coords.push([rr, cc]);
-          }
-
-          if (cells.length < WINDOW)
-            continue;
-
-          const oppCnt = cells.filter(x => x === opp).length;
-          const empCnt = cells.filter(x => x === 'Empty').length;
-
-          if (oppCnt === 3 && empCnt === 1) {
-            const gapIdx = cells.findIndex(x => x === 'Empty');
-            const [gapRow, gapCol] = coords[gapIdx];
-
-            // Gravity check: can a disc actually drop here?
-            if (gapRow === ROWS - 1 || board[gapRow + 1][gapCol] !== 'Empty') {
-              // Unique key per gap + direction.
-              const threatKey = `${gapRow}, ${gapCol}, ${key}`;
-
-              if (!seen.has(threatKey)) {
-                seen.add(threatKey);
-                threatCount++;
-
-                console.info(
-                  `[countOpenThree] #${threatCount}: dir=${key}, ` +
-                  `gap at (${gapRow}, ${gapCol}), ` +
-                  `window origin=(${r},${c})`
-                );
-              }
+              if (threatCount >= 2)
+                return threatCount;
             }
           }
         }
       }
     }
-
-    console.info(
-      `[countOpenThree] Total distinct 3 + gap threats detected: ${threatCount}`
-    );
-
-    return threatCount;
-
-  } catch (err) {
-    console.error('[countOpenThree] Unexpected error:', err);
-    return 0;
   }
+
+  return threatCount;
 }
 
-// Revised getBestAIMove integrating both strategies
+/** Returns a winning a column for `disc`, or `null` if none. **/
+function findImmediateWin(
+  board: CellValue[][],
+  disc: CellValue,
+  moves: number[]): number | null {
+  for (const col of moves) {
+    const { board: after } = tryDrop(board, col, disc);
+
+    if (bitboardCheckWin(getBits(after, disc))) {
+      return col;
+    }
+  }
+  return null;
+}
+
+/** Builds a map of "threat counts" for each possible move. **/
+function computeThreatCounts(
+  board: CellValue[][],
+  aiDisc: CellValue,
+  oppDisc: CellValue,
+  moves: number[]
+): Record<number, number> {
+  const counts: Record<number, number> = {};
+
+  for (const col of moves) {
+    // 1) Simulate AI drop.
+    const { board: b1 } = tryDrop(board, col, aiDisc);
+
+    // A) Count direct replies where opponent wins. 
+    const replyWins = legalMoves(b1).filter(reply => {
+      const { board: b2 } = tryDrop(b1, reply, oppDisc);
+    }).length;
+
+    // B) Count opponent forks.
+    const forks = countOpenThree(b1, oppDisc);
+    counts[col] = replyWins + forks;
+  }
+  return counts;
+}
+
+/** Chooses the safest, then most central, columns. */
+function selectCandidates(
+  moves: number[],
+  threatCounts: Record<number, number>
+): number[] {
+  // Filter by threshold.
+  let cands = moves.filter(c => threatCounts[c] <= THREAT_THRESHOLD);
+
+  // If none, pick the minimal-threat ones. 
+  if (cands.length === 0) {
+    const minCount = Math.min(...moves.map(c => threatCounts[c]));
+    cands = moves.filter(c => threatCounts[c] === minCount);
+  }
+
+  // Sort by (1) fewest threats, then (2) closeness to center. 
+  return cands.sort((a, b) => {
+    const diff = threatCounts[a] - threatCounts[b];
+
+    if (diff !== 0)
+      return diff;
+
+    return Math.abs(3 - a) - Math.abs(3 - b);
+  });
+}
+
+/**
+ * Top‐level AI entry point.
+ */
 export function getBestAIMove(
   board: CellValue[][],
   aiDisc: CellValue,
   timeMs = 200
 ): number {
+  clearTable();  // ── reset TT once per move ──
+
   const moves = legalMoves(board);
   const totalCells = board.length * board[0].length;
-  const emptyCells = board.reduce(
-    (sum, row) => sum + row.filter(c => c === 'Empty').length,
-    0
-  );
+  const emptyCells = board.flat().filter(c => c === 'Empty').length;
   const oppDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
 
-  // 0a) Immediate AI win
-  for (const col of moves) {
-    const { board: afterAI } = tryDrop(board, col, aiDisc);
-    if (bitboardCheckWin(getBits(afterAI, aiDisc))) {
-      return col;
-    }
-  }
+  // ── 1) Immediate win or block ─────────────────────────────
+  const winCol = findImmediateWin(board, aiDisc, moves);
+  if (winCol !== null) return winCol;
 
-  // 0b) Immediate opponent win => block
-  for (const col of moves) {
-    const { board: afterOpp } = tryDrop(board, col, oppDisc);
-    if (bitboardCheckWin(getBits(afterOpp, oppDisc))) {
-      return col;
-    }
-  }
+  const blockCol = findImmediateWin(board, oppDisc, moves);
+  if (blockCol !== null) return blockCol;
 
-  // 0c) Hard block: first open‑three fork
-  const hardBlock = findOpenThreeBlock(board, oppDisc);
-  if (hardBlock !== null) {
-    return hardBlock;
-  }
+  // ── 2) Hard-block any open-three forks ────────────────────
+  const forkCol = findOpenThreeBlock(board, oppDisc);
+  if (forkCol !== null) return forkCol;
 
-  // 1) Threat‑count scan: direct wins + all open‑three forks
-  const threatCounts: Record<number, number> = {};
-  for (const col of moves) {
-    const { board: b1 } = tryDrop(board, col, aiDisc);
+  // ── 3) Threat scanning & candidate selection ───────────────
+  const threatCounts = computeThreatCounts(board, aiDisc, oppDisc, moves);
+  let candidates = selectCandidates(moves, threatCounts);
 
-    // A) direct winning replies
-    let cnt = legalMoves(b1).filter(reply => {
-      const { board: b2 } = tryDrop(b1, reply, oppDisc);
-      return bitboardCheckWin(getBits(b2, oppDisc));
-    }).length;
-
-    // B) all fork threats
-    cnt += countOpenThree(b1, oppDisc);
-
-    threatCounts[col] = cnt;
-  }
-
-  // 2) Filter by minimal threats
-  let candidates = moves.filter(c => threatCounts[c] <= THREAT_THRESHOLD);
-  if (candidates.length === 0) {
-    const minT = Math.min(...moves.map(c => threatCounts[c]));
-    candidates = moves.filter(c => threatCounts[c] === minT);
-  }
-
-  // 3) Sort by safety then center
-  candidates.sort((a, b) =>
-    threatCounts[a] - threatCounts[b] || Math.abs(3 - a) - Math.abs(3 - b)
-  );
-
+  // ── 4) Decide phase ───────────────────────────────────────
   const isEarly = emptyCells > totalCells * 0.6;
   const isLate = candidates.length <= 5;
 
-  // 4) Late‑game: iterative‑deepening minimax
+  console.debug(
+    `[getBestAIMove] empty=${emptyCells}, total=${totalCells}, ` +
+    `isEarly=${isEarly}, isLate=${isLate}`
+  );
+
+  // ── 5) Late game: iterative deepening minimax ─────────────
   if (isLate) {
-    let bestMove: number | null = null;
-    const maxD = Math.min(ENGINE_MAX_DEPTH, emptyCells);
-    for (let d = 4; d <= maxD; d += 2) {
-      const { column } = minimax(board, d, -Infinity, Infinity, true, aiDisc);
+    const startTime = performance.now();
+    const maxDepth = Math.min(ENGINE_MAX_DEPTH, emptyCells);
+
+    let bestMove: number = candidates[0];
+    for (let depth = 4; depth <= maxDepth; depth += 2) {
+      if (performance.now() - startTime >= timeMs) break;
+
+      const { column } = minimax(
+        board, depth, -Infinity, Infinity, true, aiDisc
+      );
+      if (performance.now() - startTime >= timeMs) break;
+
       if (column !== null && candidates.includes(column)) {
         bestMove = column;
       }
     }
-    return bestMove !== null ? bestMove : candidates[0];
+    return bestMove;
   }
 
-  // 5) Early‑game: MCTS
+  // ── 6) Early game: MCTS ────────────────────────────────────
   if (isEarly) {
     const col = mcts(board, aiDisc, timeMs);
     return candidates.includes(col) ? col : candidates[0];
   }
 
-  // 6) Mid‑game fallback: one full‑depth minimax
+  // ── 7) Mid game fallback: one full‐depth minimax ────────────
   {
     const depth = Math.min(ENGINE_MAX_DEPTH, emptyCells);
-    const { column } = minimax(board, depth, -Infinity, Infinity, true, aiDisc);
+    const { column } = minimax(
+      board, depth, -Infinity, Infinity, true, aiDisc
+    );
     return column !== null && candidates.includes(column)
       ? column
       : candidates[0];
