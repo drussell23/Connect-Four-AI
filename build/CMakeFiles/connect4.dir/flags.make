@@ -4,7 +4,7 @@
 # compile CXX with /opt/homebrew/bin/aarch64-apple-darwin24-g++-14
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp -I/Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/include
+CXX_INCLUDES = -I/Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/include -I/Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp
 
 CXX_FLAGSarm64 = -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk
 
