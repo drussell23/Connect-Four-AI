@@ -1173,18 +1173,28 @@ export function getBestAIMove(
     }
   }
 
-  // ── 3) Block ANY open-three (all directions) ─────────────────
-  const blockCol = blockAnyOpenThree(board, aiDisc);
+  // ── 3) Block any vertical-3 (floating or bottom) ─────────────────
+  const vertCol = blockVerticalThreeIfAny(board, aiDisc);
 
-  if (blockCol !== null) {
-    console.debug(' ⚠️ Block bottom-vertical three at col', blockCol);
+  if (vertCol !== null) {
+    console.debug(' ⚠️ Aggressive vertical-3 block at col', vertCol);
     console.groupEnd();
-    return blockCol;
+    return vertCol;
   }
 
-  // ── 4) Immediate 3-in-a-row (open-three) block ───────────────
+  // ── 4) Block any “3+1” in any direction, ignoring gravity ─────────────────
+  const floatCol = blockFloatingOpenThree(board, aiDisc);
+
+  if (floatCol !== null) {
+    console.debug(' ⚠️ Aggressive open-three block at col', floatCol);
+    console.groupEnd();
+    return floatCol;
+  }
+
+  // ── 5) Immediate 3-in-a-row (open-three) block ───────────────
   // If opponent already has any “3 + empty” window, block it now:
   const humanThrees = countOpenThree(board, oppDisc);
+
   if (humanThrees > 0) {
     // find the column that kills that open-three
     for (const col of moves) {
@@ -1197,7 +1207,7 @@ export function getBestAIMove(
     }
   }
 
-  // ── 5) Prune any suicide moves (they’d let opp win next) ──────
+  // ── 6) Prune any suicide moves (they’d let opp win next) ──────
   const safeMoves = moves.filter(col => {
     const { board: b2 } = tryDrop(board, col, aiDisc);
     const opponentCanWin = legalMoves(b2).some(oppCol => {
@@ -1213,18 +1223,18 @@ export function getBestAIMove(
   const movesToSearch = safeMoves.length ? safeMoves : moves;
   console.debug(' Moves to search:', movesToSearch);
 
-  // ── 6) Threat scan & candidate selection ─────────────────────
+  // ── 7) Threat scan & candidate selection ─────────────────────
   const threatCounts = computeThreatCounts(board, aiDisc, oppDisc, movesToSearch);
   console.debug(' Threat counts:', threatCounts);
   let candidates = selectCandidates(movesToSearch, threatCounts);
   console.debug(' Candidates:', candidates);
 
-  // ── 7) Choose search strategy ────────────────────────────────
+  // ── 8) Choose search strategy ────────────────────────────────
   const isEarly = emptyCells > totalCells * 0.6;
   const isLate = candidates.length <= 5;
   console.debug(` isEarly=${isEarly}, isLate=${isLate}`);
 
-  // ── 8) Late game: iterative‐deepening minimax ────────────────
+  // ── 9) Late game: iterative‐deepening minimax ────────────────
   if (isLate) {
     const start = performance.now();
     const maxDepth = Math.min(ENGINE_MAX_DEPTH, emptyCells);
@@ -1248,7 +1258,7 @@ export function getBestAIMove(
     return best;
   }
 
-  // ── 9) Early game: MCTS ───────────────────────────────────────
+  // ── 10) Early game: MCTS ───────────────────────────────────────
   if (isEarly) {
     console.group(' Early6‐game MCTS');
     const t0 = performance.now();
@@ -1261,7 +1271,7 @@ export function getBestAIMove(
     return pick;
   }
 
-  // ── 10) Mid‐game fallback: full‐depth minimax ────────────────
+  // ── 11) Mid‐game fallback: full‐depth minimax ────────────────
   console.group(' Mid‐game fallback minimax');
   const depth = Math.min(ENGINE_MAX_DEPTH, emptyCells);
   const { column, score } = minimax(board, depth, -Infinity, Infinity, true, aiDisc);
@@ -1285,133 +1295,187 @@ export function blockVerticalThreeIfAny(
   board: CellValue[][],
   aiDisc: CellValue
 ): number | null {
-  console.group('[AI] blockVerticalThreeIfAny (beefed) start');
+  console.group('[AI] blockVerticalThreeIfAny (ultimate) start');
+  const startTime = performance.now();
+
   try {
     const rows = board.length;
     const cols = board[0].length;
-    const oppDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
+    const oppDisc: CellValue = aiDisc === 'Red' ? 'Yellow' : 'Red';
     console.debug(' Opponent disc:', oppDisc);
 
-    // Helper: next available row in column c (or -1 if full)
+    // Performance and threat counters
+    let totalWindows = 0;
+    let threatWindows = 0;
+
+    const threatDetails: {
+      col: number; rowRange: [number, number];
+      oppCount: number; emptyCount: number
+    }[] = [];
+
+    // Helper: find next empty row in column c
     const nextEmptyRow = (c: number): number => {
       for (let r = rows - 1; r >= 0; r--) {
-        if (board[r][c] === 'Empty') return r;
+        if (board[r][c] === 'Empty') {
+          return r;
+        }
       }
       return -1;
     };
 
+    // Scan every column
     for (let c = 0; c < cols; c++) {
-      console.debug(` Scanning column ${c}`);
+      console.group(`Scanning column ${c}`);
       const dropRow = nextEmptyRow(c);
-      console.debug('  → Next empty (drop) row:', dropRow);
+      console.debug(`  Next empty row: ${dropRow}`);
 
-      // slide a 4-cell window down this column
+      // Slide a window of 4 cells vertically
       for (let r0 = 0; r0 <= rows - 4; r0++) {
-        const windowVals = [0,1,2,3].map(i => board[r0 + i][c]);
-        const oppCount = windowVals.filter(x => x === oppDisc).length;
-        const emptyCount = windowVals.filter(x => x === 'Empty').length;
+        totalWindows++;
+        const values = [0, 1, 2, 3].map(i => board[r0 + i][c]);
+        const oppCount = values.filter(v => v === oppDisc).length;
+        const emptyCount = values.filter(v => v === 'Empty').length;
+        const rowRange: [number, number] = [r0, r0 + 3];
 
         console.debug(
-          `   Window rows ${r0}–${r0+3}: ` +
-          `vals=[${windowVals.join(',')}] opp=${oppCount} empty=${emptyCount}`
+          `  Window ${rowRange[0]}→${rowRange[1]}: vals=[${values.join(',')}], ` +
+          `oppCount=${oppCount}, emptyCount=${emptyCount}`
         );
 
-        if (oppCount >= 3 && emptyCount >= 1) {
-          console.debug(
-            `   ⚠️ Detected vertical threat (3+ discs) in col ${c},` +
-            ` window rows ${r0}–${r0+3}`
+        // Record any potential threat or chance
+        if (oppCount >= 2 && emptyCount >= 1) {
+          threatWindows++;
+          threatDetails.push({ col: c, rowRange, oppCount, emptyCount });
+          console.warn(
+            `   Threat detected: oppCount=${oppCount}, emptyCount=${emptyCount}`
           );
-          if (dropRow >= 0) {
-            console.debug(`   ✅ Blocking by dropping at (row=${dropRow}, col=${c})`);
-            console.groupEnd();
-            return c;
-          } else {
-            console.warn(`   ❌ Cannot drop in col ${c} (column is full)`);
-          }
         }
       }
+      console.debug(`  Completed ${rows - 3} windows in column ${c}`);
+      console.groupEnd();
     }
 
-    console.debug(' No vertical-3 threats found');
+    // Summarize scanning
+    const elapsed = (performance.now() - startTime).toFixed(2);
+    console.info(
+      ` Scanned ${totalWindows} windows, found ${threatWindows} potential threats in ${elapsed}ms`
+    );
+
+    if (threatDetails.length === 0) {
+      console.groupEnd();
+      return null;
+    }
+
+    // Choose the highest-priority threat: highest oppCount, then lowest emptyCount
+    threatDetails.sort((a, b) => {
+      if (b.oppCount !== a.oppCount) return b.oppCount - a.oppCount;
+      return a.emptyCount - b.emptyCount;
+    });
+    const top = threatDetails[0];
+
+    console.info(
+      ` Blocking top threat in col=${top.col}, rows ${top.rowRange[0]}–${top.rowRange[1]}, ` +
+      `oppCount=${top.oppCount}, emptyCount=${top.emptyCount}`
+    );
+
     console.groupEnd();
-    return null;
-  } catch (err: any) {
-    console.error('[AI] blockVerticalThreeIfAny ERROR:', err);
+    return top.col;
+  } catch (error: any) {
+    console.error('[AI] blockVerticalThreeIfAny ERROR:', error);
     console.groupEnd();
+
     return null;
   }
 }
 
 /**
-* Scan all 4-cell windows in all directions for 3 opponent discs + 1 empty,
-* and block if the empty is the next legal drop. Falls back to vertical-three helper.
-*/
-export function blockAnyOpenThree(
- board: CellValue[][],
- aiDisc: CellValue
+ * Ultimate “floating” open-three blocker:
+ *   • Scans every 4-cell window in all directions
+ *   • Records all windows with ≥2 opponent discs and ≥1 empty
+ *   • Prioritizes by highest oppCount, lowest emptyCount, window centrality
+ *   • Ignores gravity; blocks at the window's empty cell column
+ */
+export function blockFloatingOpenThree(
+  board: CellValue[][],
+  aiDisc: CellValue
 ): number | null {
- console.group('[AI] blockAnyOpenThree start');
- try {
-   // 1) First, bullet-proof vertical-three
-   const vert = blockVerticalThreeIfAny(board, aiDisc);
+  console.group('[AI] blockFloatingOpenThree (ultimate) start');
+  const t0 = performance.now();
+  try {
+    const rows = board.length;
+    const cols = board[0].length;
+    const oppDisc: CellValue = aiDisc === 'Red' ? 'Yellow' : 'Red';
+    console.debug(' Opponent disc:', oppDisc);
 
-   if (vert !== null) {
-     console.debug(' ⚠️ Using vertical-three block at col', vert);
-     console.groupEnd();
-     return vert;
-   }
+    interface Threat { col: number; oppCount: number; emptyCount: number; coords: [number, number][] }
+    const threats: Threat[] = [];
 
-   const rows = board.length;
-   const cols = board[0].length;
-   const oppDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
-   console.debug(' Board size:', rows, 'x', cols);
-   console.debug(' Opponent disc:', oppDisc);
+    const dirs: [number, number][] = [[0, 1], [1, 0], [1, 1], [1, -1]];
+    let total = 0;
 
-   const nextEmpty = (c: number): number => {
-     for (let r = rows - 1; r >= 0; r--) if (board[r][c] === 'Empty') return r;
-     return -1;
-   };
-   const dirs: [number, number][] = [[0,1],[1,0],[1,1],[1,-1]];
+    for (const [dr, dc] of dirs) {
+      console.group(` Scanning dr=${dr}, dc=${dc}`);
+      for (let r0 = 0; r0 < rows; r0++) {
+        for (let c0 = 0; c0 < cols; c0++) {
+          const coords: [number, number][] = [];
+          for (let i = 0; i < 4; i++) coords.push([r0 + dr * i, c0 + dc * i]);
+          if (!coords.every(([r, c]) => r >= 0 && r < rows && c >= 0 && c < cols)) continue;
 
-   for (const [dr, dc] of dirs) {
-     console.debug(` Scanning direction dr=${dr},dc=${dc}`);
-     for (let r0 = 0; r0 < rows; r0++) {
-       for (let c0 = 0; c0 < cols; c0++) {
-         const coords: [number, number][] = [];
-         for (let i = 0; i < 4; i++) coords.push([r0+dr*i, c0+dc*i]);
-         if (!coords.every(([r,c])=>r>=0&&r<rows&&c>=0&&c<cols)) continue;
+          total++;
+          const vals = coords.map(([r, c]) => board[r][c]);
+          const oppCount = vals.filter(v => v === oppDisc).length;
+          const emptyIndices = vals.map((v, i) => v === 'Empty' ? i : -1).filter(i => i >= 0);
 
-         const vals = coords.map(([r,c])=>board[r][c]);
-         const oppCount = vals.filter(x=>x===oppDisc).length;
-         const emptyCount = vals.filter(x=>x==='Empty').length;
-         console.debug(
-           `  Window @ [${coords.map(([r,c])=>r+','+c).join('|')}] `+
-           `vals=[${vals.join(',')}] opp=${oppCount} empty=${emptyCount}`
-         );
+          console.debug(
+            `  Window@[${coords.map(c => c.join(',')).join('|')}] ` +
+            `vals=[${vals.join(',')}], opp=${oppCount}, empty=${emptyIndices.length}`
+          );
 
-         if (oppCount===3 && emptyCount===1) {
-           const idx = vals.findIndex(x=>'Empty'===x);
-           const [er,ec] = coords[idx];
-           const landing = nextEmpty(ec);
-           console.debug(`   Threat at (${er},${ec}), drop->row=${landing}`);
-           if (landing===er) {
-             console.debug('   ✅ Blocking at col', ec);
-             console.groupEnd();
-             return ec;
-           }
-           console.debug(`   ⚠️ Skip block at col=${ec}; drop->${landing}`);
-         }
-       }
-     }
-   }
+          if (oppCount >= 2 && emptyIndices.length >= 1) {
+            emptyIndices.forEach(idx => {
+              const [er, ec] = coords[idx];
+              console.warn(
+                `   Threat opp=${oppCount} at (${er},${ec}) in window` +
+                `${coords.map(c => c.join(',')).join('|')}`
+              );
+              threats.push({ col: ec, oppCount, emptyCount: emptyIndices.length, coords });
+            });
+          }
+        }
+      }
+      console.debug(`  Completed scanning direction dr=${dr},dc=${dc}`);
+      console.groupEnd();
+    }
 
-   console.debug(' No open-three threats found');
-   console.groupEnd();
-   return null;
- } catch (err: any) {
-   console.error('[AI] blockAnyOpenThree ERROR:', err);
-   console.groupEnd();
-   return null;
- }
+    const t1 = performance.now();
+    console.info(` Scanned ${total} windows in ${(t1 - t0).toFixed(2)}ms, found ${threats.length} threats`);
+
+    if (threats.length === 0) {
+      console.groupEnd();
+      return null;
+    }
+
+    // Prioritize: highest oppCount, then lowest emptyCount, then centered window
+    threats.sort((a, b) => {
+      if (b.oppCount !== a.oppCount) return b.oppCount - a.oppCount;
+      if (a.emptyCount !== b.emptyCount) return a.emptyCount - b.emptyCount;
+      // center closeness can be added, e.g. average column distance to board center
+      return 0;
+    });
+
+    const top = threats[0];
+    
+    console.info(
+      ` 🚨 Blocking top floating threat at col=${top.col}, ` +
+      `opp=${top.oppCount}, emptySlots=${top.emptyCount}, window=` +
+      `${top.coords.map(c => c.join(',')).join('|')}`
+    );
+
+    console.groupEnd();
+    return top.col;
+  } catch (err: any) {
+    console.error('[AI] blockFloatingOpenThree ERROR:', err);
+    console.groupEnd();
+    return null;
+  }
 }
-
