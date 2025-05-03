@@ -348,6 +348,9 @@ function evaluateCellControl(
   return s;
 }
 
+// You may want to bump this to match your DOUBLE_FORK_PENALTY scale:
+const IMMEDIATE_THREAT_PENALTY = 1_000_000;
+
 export function evaluateBoard(
   board: CellValue[][],
   aiDisc: CellValue
@@ -356,20 +359,70 @@ export function evaluateBoard(
   const cols = board[0].length;
   const humanDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
 
-  // ── 1) Double‐fork doom
+  // ── 1) Double-fork doom
   const humanForks = countOpenThree(board, humanDisc);
   if (humanForks >= 2) {
     return -DOUBLE_FORK_PENALTY;
   }
-  // ── 2) Single‐fork penalty
+  // ── 2) Single-fork penalty
   if (humanForks === 1) {
     return -SINGLE_FORK_PENALTY;
   }
 
-  // ── 3) Positional scan (windows) ─────────────────────────
+  // ── 3) Immediate open-three threat (any direction!) ─────────────
+  // Horizontal
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c <= cols - WINDOW; c++) {
+      const w = board[r].slice(c, c + WINDOW);
+      if (
+        w.filter(x => x === humanDisc).length === 3 &&
+        w.filter(x => x === 'Empty').length === 1
+      ) {
+        return -IMMEDIATE_THREAT_PENALTY;
+      }
+    }
+  }
+  // Vertical
+  for (let c = 0; c < cols; c++) {
+    for (let r = 0; r <= rows - WINDOW; r++) {
+      const w = [0, 1, 2, 3].map(i => board[r + i][c]);
+      if (
+        w.filter(x => x === humanDisc).length === 3 &&
+        w.filter(x => x === 'Empty').length === 1
+      ) {
+        return -IMMEDIATE_THREAT_PENALTY;
+      }
+    }
+  }
+  // Diagonal down-right
+  for (let r = 0; r <= rows - WINDOW; r++) {
+    for (let c = 0; c <= cols - WINDOW; c++) {
+      const w = [0, 1, 2, 3].map(i => board[r + i][c + i]);
+      if (
+        w.filter(x => x === humanDisc).length === 3 &&
+        w.filter(x => x === 'Empty').length === 1
+      ) {
+        return -IMMEDIATE_THREAT_PENALTY;
+      }
+    }
+  }
+  // Diagonal down-left
+  for (let r = 0; r <= rows - WINDOW; r++) {
+    for (let c = WINDOW - 1; c < cols; c++) {
+      const w = [0, 1, 2, 3].map(i => board[r + i][c - i]);
+      if (
+        w.filter(x => x === humanDisc).length === 3 &&
+        w.filter(x => x === 'Empty').length === 1
+      ) {
+        return -IMMEDIATE_THREAT_PENALTY;
+      }
+    }
+  }
+
+  // ── 4) Positional scan (windows) ───────────────────────────────
   let score = 0;
 
-  // Horizontal
+  // Horizontal windows
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c <= cols - WINDOW; c++) {
       const w = board[r].slice(c, c + WINDOW);
@@ -379,7 +432,7 @@ export function evaluateBoard(
     }
   }
 
-  // Vertical
+  // Vertical windows
   for (let c = 0; c < cols; c++) {
     for (let r = 0; r <= rows - WINDOW; r++) {
       const w = [0, 1, 2, 3].map(i => board[r + i][c]);
@@ -389,13 +442,14 @@ export function evaluateBoard(
     }
   }
 
-  // Diagonals
+  // Diagonal windows
   for (let r = 0; r <= rows - WINDOW; r++) {
     for (let c = 0; c <= cols - WINDOW; c++) {
       const dr = [0, 1, 2, 3].map(i => board[r + i][c + i]);
       score +=
         evaluateWindow(dr, aiDisc) *
         (r === 0 ? TOP_ROW_PENALTY_FACTOR : 1);
+
       const dl = [0, 1, 2, 3].map(i => board[r + i][c + WINDOW - 1 - i]);
       score +=
         evaluateWindow(dl, aiDisc) *
@@ -403,7 +457,7 @@ export function evaluateBoard(
     }
   }
 
-  // Center bonus/penalty
+  // Center‐column bonus/penalty
   const center = Math.floor(cols / 2);
   for (let r = 0; r < rows; r++) {
     if (board[r][center] === aiDisc) score += CENTER_COLUMN_BONUS;
@@ -411,24 +465,12 @@ export function evaluateBoard(
       score -= CENTER_COLUMN_BONUS;
   }
 
-  // 1) Fork doom & single-fork (as before)
-  if (humanForks >= 2)
-    return -DOUBLE_FORK_PENALTY;
-  else if (humanForks === 1)
-    return -SINGLE_FORK_PENALTY;
-
-  // 2) Windows + center → repositioned into evaluatePosition()
+  // ── 5) Remainder of your smooth heuristics ───────────────────────
   score = evaluatePosition(board, aiDisc);
-
-  // 3) Cell‐control: fine granularity per cell
   score += evaluateCellControl(board, aiDisc);
-
-  // 4) Connection potential (2–3 discs builds)
   score += evaluateConnectionPotential(board, aiDisc);
-  // subtract opponent’s potential, but a bit less sharply
   score -= evaluateConnectionPotential(board, humanDisc) * OPP_CONN_POT_WEIGHT;
 
-  // 5) Two‐step forks: smoother penalty per forced fork
   const twoStep = countTwoStepForks(board, aiDisc);
   score -= twoStep * TWO_STEP_FORK_WEIGHT;
 
@@ -1094,79 +1136,282 @@ function selectCandidates(
 }
 
 /**
- * Top‐level AI entry point.
+ * Top-level AI entry point, now blocking ANY open-three.
  */
 export function getBestAIMove(
   board: CellValue[][],
   aiDisc: CellValue,
   timeMs = 200
 ): number {
-  clearTable();  // ── reset TT once per move ──
-
+  clearTable();
   const moves = legalMoves(board);
   const totalCells = board.length * board[0].length;
   const emptyCells = board.flat().filter(c => c === 'Empty').length;
   const oppDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
 
-  // ── 1) Immediate win or block ─────────────────────────────
-  const winCol = findImmediateWin(board, aiDisc, moves);
-  if (winCol !== null) return winCol;
+  console.group(`[AI] getBestAIMove start — AI=${aiDisc}`);
+  console.debug(' Board empties:', emptyCells, '/', totalCells);
+  console.debug(' Legal moves:', moves);
 
-  const blockCol = findImmediateWin(board, oppDisc, moves);
-  if (blockCol !== null) return blockCol;
+  // ── 1) Immediate AI win ───────────────────────────────────────
+  for (const col of moves) {
+    const { board: b2 } = tryDrop(board, col, aiDisc);
+    if (bitboardCheckWin(getBits(b2, aiDisc))) {
+      console.debug(' 🔥 AI wins immediately at col', col);
+      console.groupEnd();
+      return col;
+    }
+  }
 
-  // ── 2) Hard-block any open-three forks ────────────────────
-  const forkCol = findOpenThreeBlock(board, oppDisc);
-  if (forkCol !== null) return forkCol;
+  // ── 2) Immediate 4-in-a-row block ────────────────────────────
+  for (const col of moves) {
+    const { board: b2 } = tryDrop(board, col, oppDisc);
+    if (bitboardCheckWin(getBits(b2, oppDisc))) {
+      console.debug(' 🛑 Block opponent win at col', col);
+      console.groupEnd();
+      return col;
+    }
+  }
 
-  // ── 3) Threat scanning & candidate selection ───────────────
-  const threatCounts = computeThreatCounts(board, aiDisc, oppDisc, moves);
-  let candidates = selectCandidates(moves, threatCounts);
+  // ── 3) Block ANY open-three (all directions) ─────────────────
+  const blockCol = blockAnyOpenThree(board, aiDisc);
 
-  // ── 4) Decide phase ───────────────────────────────────────
-  const isEarly = emptyCells > totalCells * 0.6;
-  const isLate = candidates.length <= 5;
+  if (blockCol !== null) {
+    console.debug(' ⚠️ Block bottom-vertical three at col', blockCol);
+    console.groupEnd();
+    return blockCol;
+  }
 
-  console.debug(
-    `[getBestAIMove] empty=${emptyCells}, total=${totalCells}, ` +
-    `isEarly=${isEarly}, isLate=${isLate}`
-  );
-
-  // ── 5) Late game: iterative deepening minimax ─────────────
-  if (isLate) {
-    const startTime = performance.now();
-    const maxDepth = Math.min(ENGINE_MAX_DEPTH, emptyCells);
-
-    let bestMove: number = candidates[0];
-    for (let depth = 4; depth <= maxDepth; depth += 2) {
-      if (performance.now() - startTime >= timeMs) break;
-
-      const { column } = minimax(
-        board, depth, -Infinity, Infinity, true, aiDisc
-      );
-      if (performance.now() - startTime >= timeMs) break;
-
-      if (column !== null && candidates.includes(column)) {
-        bestMove = column;
+  // ── 4) Immediate 3-in-a-row (open-three) block ───────────────
+  // If opponent already has any “3 + empty” window, block it now:
+  const humanThrees = countOpenThree(board, oppDisc);
+  if (humanThrees > 0) {
+    // find the column that kills that open-three
+    for (const col of moves) {
+      const { board: b2 } = tryDrop(board, col, aiDisc);
+      if (countOpenThree(b2, oppDisc) < humanThrees) {
+        console.debug(' ⚠️ Block open-three at col', col);
+        console.groupEnd();
+        return col;
       }
     }
-    return bestMove;
   }
 
-  // ── 6) Early game: MCTS ────────────────────────────────────
+  // ── 5) Prune any suicide moves (they’d let opp win next) ──────
+  const safeMoves = moves.filter(col => {
+    const { board: b2 } = tryDrop(board, col, aiDisc);
+    const opponentCanWin = legalMoves(b2).some(oppCol => {
+      const { board: b3 } = tryDrop(b2, oppCol, oppDisc);
+      return bitboardCheckWin(getBits(b3, oppDisc));
+    });
+    if (opponentCanWin) {
+      console.debug('  Move', col, 'is unsafe → opponent wins next');
+      return false;
+    }
+    return true;
+  });
+  const movesToSearch = safeMoves.length ? safeMoves : moves;
+  console.debug(' Moves to search:', movesToSearch);
+
+  // ── 6) Threat scan & candidate selection ─────────────────────
+  const threatCounts = computeThreatCounts(board, aiDisc, oppDisc, movesToSearch);
+  console.debug(' Threat counts:', threatCounts);
+  let candidates = selectCandidates(movesToSearch, threatCounts);
+  console.debug(' Candidates:', candidates);
+
+  // ── 7) Choose search strategy ────────────────────────────────
+  const isEarly = emptyCells > totalCells * 0.6;
+  const isLate = candidates.length <= 5;
+  console.debug(` isEarly=${isEarly}, isLate=${isLate}`);
+
+  // ── 8) Late game: iterative‐deepening minimax ────────────────
+  if (isLate) {
+    const start = performance.now();
+    const maxDepth = Math.min(ENGINE_MAX_DEPTH, emptyCells);
+    let best = candidates[0];
+    console.group(' Late‐game minimax');
+    for (let d = 4; d <= maxDepth; d += 2) {
+      if (performance.now() - start >= timeMs) {
+        console.debug('  ⏱ Time up at depth', d);
+        break;
+      }
+      const { column, score } = minimax(board, d, -Infinity, Infinity, true, aiDisc);
+      console.debug(`  depth=${d} → col=${column} score=${score.toFixed(1)}`);
+      if (column !== null && candidates.includes(column)) {
+        best = column;
+        console.debug('   ✨ New best:', best);
+      }
+    }
+    console.groupEnd();
+    console.debug(' → Late pick:', best);
+    console.groupEnd();
+    return best;
+  }
+
+  // ── 9) Early game: MCTS ───────────────────────────────────────
   if (isEarly) {
+    console.group(' Early6‐game MCTS');
+    const t0 = performance.now();
     const col = mcts(board, aiDisc, timeMs);
-    return candidates.includes(col) ? col : candidates[0];
+    const pick = candidates.includes(col) ? col : candidates[0];
+    console.debug(`  MCTS → col=${col} time=${(performance.now() - t0).toFixed(1)}ms`);
+    console.debug(' → Early pick:', pick);
+    console.groupEnd();
+    console.groupEnd();
+    return pick;
   }
 
-  // ── 7) Mid game fallback: one full‐depth minimax ────────────
-  {
-    const depth = Math.min(ENGINE_MAX_DEPTH, emptyCells);
-    const { column } = minimax(
-      board, depth, -Infinity, Infinity, true, aiDisc
-    );
-    return column !== null && candidates.includes(column)
-      ? column
-      : candidates[0];
+  // ── 10) Mid‐game fallback: full‐depth minimax ────────────────
+  console.group(' Mid‐game fallback minimax');
+  const depth = Math.min(ENGINE_MAX_DEPTH, emptyCells);
+  const { column, score } = minimax(board, depth, -Infinity, Infinity, true, aiDisc);
+  const pick = column !== null && candidates.includes(column) ? column : candidates[0];
+  console.debug(`  depth=${depth} → col=${column} score=${score.toFixed(1)}`);
+  console.debug(' → Fallback pick:', pick);
+  console.groupEnd();
+  console.groupEnd();
+  return pick;
+}
+
+/**
+ * Beefed-up vertical-3 guard:
+ *   • Scans every 4-cell vertical window (rows r…r+3 in each column)
+ *   • If it finds ≥3 opponent discs in that window, it blocks by dropping
+ *     in that column (nextEmptyRow), regardless of whether the hole is
+ *     “floating” or at the bottom.
+ *   • Emits detailed debug logs for every step.
+ */
+export function blockVerticalThreeIfAny(
+  board: CellValue[][],
+  aiDisc: CellValue
+): number | null {
+  console.group('[AI] blockVerticalThreeIfAny (beefed) start');
+  try {
+    const rows = board.length;
+    const cols = board[0].length;
+    const oppDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
+    console.debug(' Opponent disc:', oppDisc);
+
+    // Helper: next available row in column c (or -1 if full)
+    const nextEmptyRow = (c: number): number => {
+      for (let r = rows - 1; r >= 0; r--) {
+        if (board[r][c] === 'Empty') return r;
+      }
+      return -1;
+    };
+
+    for (let c = 0; c < cols; c++) {
+      console.debug(` Scanning column ${c}`);
+      const dropRow = nextEmptyRow(c);
+      console.debug('  → Next empty (drop) row:', dropRow);
+
+      // slide a 4-cell window down this column
+      for (let r0 = 0; r0 <= rows - 4; r0++) {
+        const windowVals = [0,1,2,3].map(i => board[r0 + i][c]);
+        const oppCount = windowVals.filter(x => x === oppDisc).length;
+        const emptyCount = windowVals.filter(x => x === 'Empty').length;
+
+        console.debug(
+          `   Window rows ${r0}–${r0+3}: ` +
+          `vals=[${windowVals.join(',')}] opp=${oppCount} empty=${emptyCount}`
+        );
+
+        if (oppCount >= 3 && emptyCount >= 1) {
+          console.debug(
+            `   ⚠️ Detected vertical threat (3+ discs) in col ${c},` +
+            ` window rows ${r0}–${r0+3}`
+          );
+          if (dropRow >= 0) {
+            console.debug(`   ✅ Blocking by dropping at (row=${dropRow}, col=${c})`);
+            console.groupEnd();
+            return c;
+          } else {
+            console.warn(`   ❌ Cannot drop in col ${c} (column is full)`);
+          }
+        }
+      }
+    }
+
+    console.debug(' No vertical-3 threats found');
+    console.groupEnd();
+    return null;
+  } catch (err: any) {
+    console.error('[AI] blockVerticalThreeIfAny ERROR:', err);
+    console.groupEnd();
+    return null;
   }
 }
+
+/**
+* Scan all 4-cell windows in all directions for 3 opponent discs + 1 empty,
+* and block if the empty is the next legal drop. Falls back to vertical-three helper.
+*/
+export function blockAnyOpenThree(
+ board: CellValue[][],
+ aiDisc: CellValue
+): number | null {
+ console.group('[AI] blockAnyOpenThree start');
+ try {
+   // 1) First, bullet-proof vertical-three
+   const vert = blockVerticalThreeIfAny(board, aiDisc);
+
+   if (vert !== null) {
+     console.debug(' ⚠️ Using vertical-three block at col', vert);
+     console.groupEnd();
+     return vert;
+   }
+
+   const rows = board.length;
+   const cols = board[0].length;
+   const oppDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
+   console.debug(' Board size:', rows, 'x', cols);
+   console.debug(' Opponent disc:', oppDisc);
+
+   const nextEmpty = (c: number): number => {
+     for (let r = rows - 1; r >= 0; r--) if (board[r][c] === 'Empty') return r;
+     return -1;
+   };
+   const dirs: [number, number][] = [[0,1],[1,0],[1,1],[1,-1]];
+
+   for (const [dr, dc] of dirs) {
+     console.debug(` Scanning direction dr=${dr},dc=${dc}`);
+     for (let r0 = 0; r0 < rows; r0++) {
+       for (let c0 = 0; c0 < cols; c0++) {
+         const coords: [number, number][] = [];
+         for (let i = 0; i < 4; i++) coords.push([r0+dr*i, c0+dc*i]);
+         if (!coords.every(([r,c])=>r>=0&&r<rows&&c>=0&&c<cols)) continue;
+
+         const vals = coords.map(([r,c])=>board[r][c]);
+         const oppCount = vals.filter(x=>x===oppDisc).length;
+         const emptyCount = vals.filter(x=>x==='Empty').length;
+         console.debug(
+           `  Window @ [${coords.map(([r,c])=>r+','+c).join('|')}] `+
+           `vals=[${vals.join(',')}] opp=${oppCount} empty=${emptyCount}`
+         );
+
+         if (oppCount===3 && emptyCount===1) {
+           const idx = vals.findIndex(x=>'Empty'===x);
+           const [er,ec] = coords[idx];
+           const landing = nextEmpty(ec);
+           console.debug(`   Threat at (${er},${ec}), drop->row=${landing}`);
+           if (landing===er) {
+             console.debug('   ✅ Blocking at col', ec);
+             console.groupEnd();
+             return ec;
+           }
+           console.debug(`   ⚠️ Skip block at col=${ec}; drop->${landing}`);
+         }
+       }
+     }
+   }
+
+   console.debug(' No open-three threats found');
+   console.groupEnd();
+   return null;
+ } catch (err: any) {
+   console.error('[AI] blockAnyOpenThree ERROR:', err);
+   console.groupEnd();
+   return null;
+ }
+}
+

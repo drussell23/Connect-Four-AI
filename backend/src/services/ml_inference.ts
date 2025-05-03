@@ -3,8 +3,8 @@ import { EventEmitter } from 'events';
 
 // Set up custom logging via EventEmitter
 export const logger = new EventEmitter();
-logger.on('info',  (...args) => console.log('[AI API INFO]',  ...args));
-logger.on('warn',  (...args) => console.warn('[AI API WARN]',  ...args));
+logger.on('info', (...args) => console.log('[AI API INFO]', ...args));
+logger.on('warn', (...args) => console.warn('[AI API WARN]', ...args));
 logger.on('error', (...args) => console.error('[AI API ERROR]', ...args));
 logger.on('debug', (...args) => console.debug('[AI API DEBUG]', ...args));
 
@@ -46,18 +46,15 @@ function validateBoard2CH(board: unknown): asserts board is Board2CH {
       if (!Array.isArray(row) || row.length !== 7) {
         throw new TypeError(`Row ${ri} in channel ${pi} must have 7 columns`);
       }
-      row.forEach((cell, ci) => {
-        if (typeof cell !== 'number') {
-          throw new TypeError(`Cell at [${pi}][${ri}][${ci}] must be a number`);
+      row.forEach(cell => {
+        if (typeof cell !== 'number' || ![0, 1].includes(cell)) {
+          throw new TypeError(`Cell values must be 0 or 1, got ${cell}`);
         }
       });
     });
   });
 }
 
-/**
- * Sleep for a duration
- */
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -73,6 +70,7 @@ async function fetchWithTimeout(
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
+    logger.emit('debug', `fetchWithTimeout url=${url}`, options);
     return await fetch(url, { ...options, signal: controller.signal });
   } finally {
     clearTimeout(id);
@@ -89,68 +87,86 @@ export class MLInferenceClient {
   private retryDelayMs: number;
 
   constructor(options: FetchOptions = {}) {
-    this.baseUrl      = options.baseUrl     ?? process.env.ML_SERVICE_URL ?? 'http://localhost:8000';
-    this.timeoutMs    = options.timeoutMs   ?? 5000;
-    this.maxRetries   = options.maxRetries  ?? 3;
-    this.retryDelayMs = options.retryDelayMs?? 200;
-    logger.emit('info', 'MLInferenceClient initialized with:', {
+    this.baseUrl = options.baseUrl ?? process.env.ML_SERVICE_URL ?? 'http://localhost:8000';
+    this.timeoutMs = options.timeoutMs ?? 5000;
+    this.maxRetries = options.maxRetries ?? 3;
+    this.retryDelayMs = options.retryDelayMs ?? 200;
+    console.group(`[AI API CLIENT] Initialized`);
+    logger.emit('info', 'Configuration:', {
       baseUrl: this.baseUrl,
       timeoutMs: this.timeoutMs,
       maxRetries: this.maxRetries,
       retryDelayMs: this.retryDelayMs
     });
+    console.groupEnd();
   }
 
   /**
    * Request AI move via POST /predict with retries
    */
   async getAIMove(board2ch: Board2CH): Promise<AIPrediction> {
+    console.group(`[AI API] getAIMove start`);
+    logger.emit('info', 'Input board2CH:', board2ch);
+
     validateBoard2CH(board2ch);
+    logger.emit('debug', 'Board validation passed');
+
     const url = `${this.baseUrl}/predict`;
     const payload = JSON.stringify({ board: board2ch });
+    logger.emit('debug', 'Serialized payload:', payload);
+
     let lastErr: unknown;
 
     for (let attempt = 1; attempt <= this.maxRetries + 1; attempt++) {
-      const start = Date.now();
+      const startTime = Date.now();
+      console.groupCollapsed(`[AI API] Attempt ${attempt} POST ${url}`);
+      logger.emit('info', `Starting attempt ${attempt}`);
+
       try {
-        logger.emit('info', `Attempt ${attempt} POST ${url}`);
         const res = await fetchWithTimeout(
           url,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: payload,
-          },
+          { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload },
           this.timeoutMs
         );
         logger.emit('debug', `HTTP status: ${res.status}`);
+
         if (!res.ok) {
           const text = await res.text();
           throw new Error(`HTTP ${res.status}: ${text}`);
         }
+
         const data = (await res.json()) as AIPrediction;
+        logger.emit('debug', 'Response JSON:', data);
+
         if (typeof data.move !== 'number' || !Array.isArray(data.probs)) {
           throw new Error(`Invalid response structure: ${JSON.stringify(data)}`);
         }
-        const elapsed = Date.now() - start;
-        logger.emit('info', `Success in ${elapsed}ms, move=${data.move}`);
+
+        const elapsed = Date.now() - startTime;
+        logger.emit('info', `Success in ${elapsed}ms → move=${data.move}`, `probs=[${data.probs.join(', ')}]`);
+        console.groupEnd();
+        console.groupEnd();
         return data;
       } catch (err: any) {
-        const elapsed = Date.now() - start;
+        const elapsed = Date.now() - startTime;
         lastErr = err;
         if (err.name === 'AbortError') {
           logger.emit('warn', `Request aborted after ${elapsed}ms`);
         } else {
           logger.emit('warn', `Error on attempt ${attempt}:`, err.message);
         }
+
         if (attempt <= this.maxRetries) {
           const delay = this.retryDelayMs * 2 ** (attempt - 1);
           logger.emit('info', `Retrying in ${delay}ms`);
           await sleep(delay);
         }
+        console.groupEnd();
       }
     }
-    logger.emit('error', `All ${this.maxRetries + 1} attempts failed`);
+
+    logger.emit('error', `All ${this.maxRetries + 1} attempts failed`, lastErr);
+    console.groupEnd();
     throw lastErr;
   }
 
@@ -158,14 +174,18 @@ export class MLInferenceClient {
    * HEAD /predict health check
    */
   async healthCheck(): Promise<boolean> {
+    console.group(`[AI API] healthCheck`);
     const url = `${this.baseUrl}/predict`;
+
     try {
       logger.emit('info', `Health check (HEAD) ${url}`);
       const res = await fetchWithTimeout(url, { method: 'HEAD' }, this.timeoutMs);
       logger.emit('info', `Health check status: ${res.status}`);
+      console.groupEnd();
       return res.ok;
     } catch (err) {
       logger.emit('error', 'Health check failed:', err);
+      console.groupEnd();
       return false;
     }
   }
