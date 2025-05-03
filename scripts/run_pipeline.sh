@@ -107,16 +107,22 @@ parse_args() {
 start_api() {
   if [[ "$SERVE" == true ]]; then
     log INFO "Preparing to start inference API on port $PORT"
+
+    # If port is in use, kill all processes listening on it
     if lsof -ti tcp:"$PORT" >/dev/null; then
-      local pid
-      pid=$(lsof -ti tcp:"$PORT")
-      log WARN "Port $PORT in use by PID $pid—terminating process"
-      kill -9 "$pid"
-      log INFO "Terminated existing process $pid on port $PORT"
+      local pid_list
+      # Collapse newlines into spaces so we log on one line.
+      pid_list=$(lsof -ti tcp:"$PORT" | xargs)
+      log WARN "Port $PORT in use by PID(s) $pid_list — terminating process(es)"
+      for pid in $pid_list; do
+        kill -9 "$pid"
+        log INFO "Terminated existing process $pid on port $PORT"
+      done
     else
       log INFO "Port $PORT is free"
     fi
 
+    # Start the ML inference API
     cd "$ROOT/ml_service"
     uvicorn ml_service:app --reload --host 0.0.0.0 --port "$PORT" &
     API_PID=$!
