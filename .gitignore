@@ -2,11 +2,19 @@
 
 # macOS Finder files
 .DS_Store
+# .gitignore – files and directories to exclude from version control
 
+# macOS Finder files
+.DS_Store
+
+# Node.js dependencies
+#  Store installed packages locally, not in source repo
 # Node.js dependencies
 #  Store installed packages locally, not in source repo
 node_modules/
 
+# Compiled and build artifacts
+#  Remove any generated output to keep repo clean
 # Compiled and build artifacts
 #  Remove any generated output to keep repo clean
 dist/
@@ -25,7 +33,25 @@ __pycache__/
 *.pyc
 # Ignore the ml_service compiled bytecode
 ml_service.cpython-310.pyc
+bin/
 
+# Ignore all ML data dumps
+backend/src/ml/data/*.json
+
+# TensorFlow.js virtual environment
+#  Local Python environment for TF.js conversion
+tfjs-env/
+
+# Python cache files
+#  Bytecode caches created by Python
+__pycache__/
+# Compiled Python files
+*.pyc
+# Ignore the ml_service compiled bytecode
+ml_service.cpython-310.pyc
+
+# IDE and editor settings
+#  Personal configuration files
 # IDE and editor settings
 #  Personal configuration files
 .vscode/
