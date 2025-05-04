@@ -1407,10 +1407,20 @@ export function blockFloatingOpenThree(
     const oppDisc: CellValue = aiDisc === 'Red' ? 'Yellow' : 'Red';
     console.debug(' Opponent disc:', oppDisc);
 
-    interface Threat { col: number; oppCount: number; emptyCount: number; coords: [number, number][] }
+    interface Threat { 
+      col: number; 
+      oppCount: number; 
+      emptyCount: number; 
+      coords: [number, number][] 
+    }
+    
     const threats: Threat[] = [];
 
-    const dirs: [number, number][] = [[0, 1], [1, 0], [1, 1], [1, -1]];
+    const dirs: [
+      number, 
+      number][] = [[0, 1], [1, 0], [1, 1], [1, -1]
+    ];
+    
     let total = 0;
 
     for (const [dr, dc] of dirs) {
@@ -1418,8 +1428,11 @@ export function blockFloatingOpenThree(
       for (let r0 = 0; r0 < rows; r0++) {
         for (let c0 = 0; c0 < cols; c0++) {
           const coords: [number, number][] = [];
-          for (let i = 0; i < 4; i++) coords.push([r0 + dr * i, c0 + dc * i]);
-          if (!coords.every(([r, c]) => r >= 0 && r < rows && c >= 0 && c < cols)) continue;
+          for (let i = 0; i < 4; i++) 
+            coords.push([r0 + dr * i, c0 + dc * i]);
+          
+          if (!coords.every(([r, c]) => r >= 0 && r < rows && c >= 0 && c < cols)) 
+            continue;
 
           total++;
           const vals = coords.map(([r, c]) => board[r][c]);
@@ -1464,7 +1477,7 @@ export function blockFloatingOpenThree(
     });
 
     const top = threats[0];
-    
+
     console.info(
       ` 🚨 Blocking top floating threat at col=${top.col}, ` +
       `opp=${top.oppCount}, emptySlots=${top.emptyCount}, window=` +

@@ -12,7 +12,9 @@ async function bootstrap() {
   console.log('🚀 bootstrap() start');
 
   // Initialize NestJS application
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['log', 'warn', 'error'],
+  });
 
   console.log('✅ NestFactory.create complete');
 
