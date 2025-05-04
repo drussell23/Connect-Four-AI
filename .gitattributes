@@ -1,1 +1,2 @@
+backend/src/ml/data/*.json filter=lfs diff=lfs merge=lfs -text
 *.pt filter=lfs diff=lfs merge=lfs -text
