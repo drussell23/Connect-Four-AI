@@ -1,0 +1,43 @@
+name: CI
+
+# Run on pushes and PRs to the main branch
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Set up Node.js
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # 3. Install dependencies
+      - name: Install npm dependencies
+        run: npm ci
+
+      # 4. TypeScript compilation (no emit)
+      - name: Check TypeScript compilation
+        run: npx tsc --noEmit
+
+      # 5. Linting
+      - name: Run ESLint
+        run: npm run lint
+
+      # 6. Formatting check
+      - name: Check Prettier formatting
+        run: npm run format:check
+
+      # 7. Unit tests
+      - name: Run unit tests
+        run: npm test
