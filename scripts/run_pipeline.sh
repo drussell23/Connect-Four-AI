@@ -103,32 +103,45 @@ parse_args() {
   log INFO "Configuration: MODE=$MODE, SERVE=$SERVE, INTERVAL=${INTERVAL}m, PORT=$PORT, LOG_FILE=${LOG_FILE:-none}"
 }
 
-# Start the inference API if requested
+# -----------------------------------------------------------------------------
+# Start the inference API if requested (auto‐pick open port)
+# -----------------------------------------------------------------------------
 start_api() {
   if [[ "$SERVE" == true ]]; then
-    log INFO "Preparing to start inference API on port $PORT"
+    return
 
-    # If port is in use, kill all processes listening on it
-    if lsof -ti tcp:"$PORT" >/dev/null; then
-      local pid_list
-      # Collapse newlines into spaces so we log on one line.
-      pid_list=$(lsof -ti tcp:"$PORT" | xargs)
-      log WARN "Port $PORT in use by PID(s) $pid_list — terminating process(es)"
-      for pid in $pid_list; do
-        kill -9 "$pid"
-        log INFO "Terminated existing process $pid on port $PORT"
-      done
-    else
-      log INFO "Port $PORT is free"
-    fi
+  fi 
+  log INFO "Preparing to start inference API (preferred port $PORT)"
 
-    # Start the ML inference API
+  # Range for random ports.
+  local MIN_PORT 1= 8000
+  local MAX_PORT = 9000
+  local MAX_ATTEMPTS = 20
+
+  # First try the requested port, then randoms. 
+  declare -a candidates=("$PORT")
+
+  for i in $(seq 1 $MAX_ATTEMPTS); do 
+    candidates+=( $(( MIN_PORT + RANDOM % (MAX_PORT - MIN_PORT + 1) )) )
+  done
+
+  for p in "${candidates[@]}"; do
+    if lsof -ti tcp:"$p" >/dev/null; then 
+      log WARN "Port $p in use, trying next candidate..."
+      continue
+    fi 
+
+    log INFO "Starting inference API on port $p"
     cd "$ROOT/ml_service"
-    uvicorn ml_service:app --reload --host 0.0.0.0 --port "$PORT" &
+    uvicorn ml_service:app --reload --host 0.0.0.0 --port "$p" &
     API_PID=$!
-    log INFO "Inference API started with PID $API_PID"
+    log INFO "Inference API launched (PID $API_PID) on port $p"
     cd "$ROOT"
-  fi
+    return 
+  done 
+
+  log ERROR "Could not find a free port in [$MIN_PORT...$MAX_PORT] after $(( MAX_ATTEMPTS + 1 )) tries-aborting."
+  exit 1
 }
 
 # Offline pipeline execution
