@@ -7,13 +7,15 @@ import {
   bitboardCheckWin,
   blockVerticalThreeIfAny,
   blockFloatingOpenThree,
+  findOpenThreeBlock,
   minimax,
   mcts,
   getBestAIMove,
   evaluateBoard,
   softmax,
   evaluateWindow,
-  playout
+  playout,
+  blockFloatingOpenThreeDiagonal,
 } from '../ai/connect4AI';
 import type { CellValue } from '../ai/connect4AI';
 
@@ -42,7 +44,7 @@ export class GameAIService {
     board: CellValue[][],
     aiDisc: CellValue = 'Yellow',
     timeMs = 200,
-    difficulty: Difficulty = Difficulty.Medium
+    difficulty: Difficulty = Difficulty.Hard
   ): number {
     const key = JSON.stringify(board) + aiDisc + difficulty;
     if (this.cache.has(key)) {
@@ -54,42 +56,101 @@ export class GameAIService {
       this.logger.log(`→ [AI] getNextMove start: disc=${aiDisc}, budget=${timeMs}ms, diff=${difficulty}`);
       const opp: CellValue = aiDisc === 'Red' ? 'Yellow' : 'Red';
 
-      // 1) Immediate vertical block
-      const vcol = blockVerticalThreeIfAny(board, aiDisc);
+      // ── 0) Immediate opponent‐win block ────────────────────────────
+      for (const col of legalMoves(board)) {
+        const { board: b2 } = tryDrop(board, col, opp);
+        if (bitboardCheckWin(getBits(b2, opp))) {
+          this.logger.log(`Immediate opponent win! Blocking at col ${col}`);
+          return this._cacheAndReturn(key, col);
+        }
+      }
+
+      // ── 0.5) Opponent “fork” block (2-ply) ─────────────────────────
+      const forkCol = this._findOpponentFork(board, opp);
+
+      if (forkCol !== null) {
+        this.logger.log(`Opponent can fork next turn! Blocking at ${forkCol}`);
+        return this._cacheAndReturn(key, forkCol);
+      }
+
+      // ── 1) Opponent vertical‐three block ───────────────────────────
+      const vcol = blockVerticalThreeIfAny(board, opp);
+
       if (vcol !== null) {
-        this.logger.log(`Immediate vertical block needed at ${vcol}`);
+        this.logger.log(`Block opponent vertical-three at col ${vcol}`);
         return this._cacheAndReturn(key, vcol);
       }
 
-      // 2) Immediate floating‐three block
-      const fcol = blockFloatingOpenThree(board, aiDisc);
-      if (fcol !== null) {
-        this.logger.log(`Immediate floating‐three block at ${fcol}`);
-        return this._cacheAndReturn(key, fcol);
+      // ── 2) Strict gravity‐aware 3-in-a-row block ───────────────────
+      this.logger.log(`[AI] calling findOpenThreeBlock for opponent=${opp}`);
+      const strictCol = findOpenThreeBlock(board, opp);
+      this.logger.log(`[AI] findOpenThreeBlock returned=${strictCol}`);
+      if (strictCol !== null && this._isSafe(board, strictCol, aiDisc, opp)) {
+        this.logger.log(`Block opponent strict-three at ${strictCol}`);
+        return this._cacheAndReturn(key, strictCol);
       }
 
-      // 3) Shallow minimax
+      // ── 3) Horizontal floating-three block ───────────────────────────
+      this.logger.log(`[AI] scanning horizontal floating-three threats for aiDisc=${aiDisc}`);
+      const fcol = blockFloatingOpenThree(board, aiDisc);
+      this.logger.log(`[AI] blockFloatingOpenThree → candidate column=${fcol}`);
+
+      if (fcol !== null) {
+        const safeH = this._isSafe(board, fcol, aiDisc, opp);
+        this.logger.log(`[AI] safety check for horiz block at ${fcol} → ${safeH}`);
+        if (safeH) {
+          this.logger.log(`→ [AI] executing horizontal floating-three block at col ${fcol}`);
+          return this._cacheAndReturn(key, fcol);
+        } else {
+          this.logger.log(`[AI] skipping unsafe horizontal block at col ${fcol}`);
+        }
+      }
+
+      // ── 3b) Diagonal floating-three block ───────────────────────────
+      this.logger.log(`[AI] scanning diagonal floating-three threats for aiDisc=${aiDisc}`);
+      const dcol = blockFloatingOpenThreeDiagonal(board, aiDisc);
+      this.logger.log(`[AI] blockFloatingOpenThreeDiagonal → candidate column=${dcol}`);
+
+      if (dcol !== null) {
+        const safeD = this._isSafe(board, dcol, aiDisc, opp);
+        this.logger.log(`[AI] safety check for diag block at ${dcol} → ${safeD}`);
+        if (safeD) {
+          this.logger.log(`→ [AI] executing diagonal floating-three block at col ${dcol}`);
+          return this._cacheAndReturn(key, dcol);
+        } else {
+          this.logger.log(`[AI] skipping unsafe diagonal block at col ${dcol}`);
+        }
+      }
+
+      // ── 4) Shallow minimax ─────────────────────────────────────────
       const miniNode = minimax(board, 4, -Infinity, Infinity, true, aiDisc);
-      if (miniNode.column !== null && this._isSafe(board, miniNode.column, aiDisc, opp)) {
-        this.logger.log(`Minimax (d=4) selects ${miniNode.column}`);
+      if (
+        miniNode.column !== null &&
+        this._isSafe(board, miniNode.column, aiDisc, opp)
+      ) {
+        this.logger.log(`Minimax (d=4) selects col ${miniNode.column}`);
         return this._cacheAndReturn(key, miniNode.column);
       }
 
-      // 4) MCTS
+      // ── 5) Monte Carlo Tree Search ─────────────────────────────────
       const mctsCol = mcts(board, aiDisc, timeMs);
       if (this._isSafe(board, mctsCol, aiDisc, opp)) {
-        this.logger.log(`MCTS selects ${mctsCol}`);
+        this.logger.log(`MCTS selects col ${mctsCol}`);
         return this._cacheAndReturn(key, mctsCol);
       }
 
-      // 5) Fallback to getBestAIMove (your “full” search)
+      // ── 6) Full search fallback ─────────────────────────────────────
       const best = getBestAIMove(board, aiDisc, timeMs);
-      this.logger.log(`Fallback getBestAIMove → ${best}`);
+      this.logger.log(`Fallback getBestAIMove → col ${best}`);
       return this._cacheAndReturn(key, best);
+
     } catch (err) {
-      this.logger.error('Error in getNextMove, falling back to random legal move', (err as Error).stack);
+      this.logger.error(
+        'Error in getNextMove, falling back to random legal move',
+        (err as Error).stack
+      );
       const fallback = this.getRandomMove(board);
-      this.logger.log(`→ [AI] fallback random move → ${fallback}`);
+      this.logger.log(`→ [AI] fallback random move → col ${fallback}`);
       return fallback;
     }
   }
@@ -257,4 +318,32 @@ export class GameAIService {
     this.cache.set(key, col);
     return col;
   }
+
+  /**
+   * Return any column where the opponent can drop *and* create
+   * two or more immediate winning replies (a fork).
+   */
+  private _findOpponentFork(board: CellValue[][], oppDisc: CellValue): number | null {
+    for (const col of legalMoves(board)) {
+      // Simulate opponent drop.
+      const { board: b2 } = tryDrop(board, col, oppDisc);
+      let winCount = 0;
+
+      // Count how many replies win immediately.
+      for (const c2 of legalMoves(b2)) {
+        const { board: b3 } = tryDrop(b2, c2, oppDisc);
+
+        if (bitboardCheckWin(getBits(b3, oppDisc))) {
+          winCount++;
+
+          if (winCount >= 2) {
+            // As soon as we see two winning replies, it's a fork.
+            return col;
+          }
+        }
+      }
+    }
+    return null;
+  }
 }
+
