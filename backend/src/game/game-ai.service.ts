@@ -30,6 +30,21 @@ export class GameAIService {
   private readonly logger = new Logger(GameAIService.name);
   private cache = new Map<string, number>();
 
+  constructor() {
+    // Build a canonical empty board.
+    const emptyBoard: CellValue[][] = Array.from({ length: 6 }, () => Array<CellValue>(7).fill('Empty'));
+    const center = Math.floor(emptyBoard[0].length / 2);
+
+    // Pre-cache for both AI colors and all difficulty levels.
+    for (const disc of ['Yellow', 'Red'] as CellValue[]) {
+      for (const diff of Object.values(Difficulty)) {
+        const key = JSON.stringify(emptyBoard) + disc + diff;
+        this.cache.set(key, center);
+        this.logger.debug(`Pre-cached opening book → disc=${disc}, diff=${diff}, col=${center}`);
+      }
+    }
+  }
+
   /**
      * Core entry point. Wraps a multi‐step pipeline based on difficulty:
      * 
@@ -48,7 +63,10 @@ export class GameAIService {
     difficulty: Difficulty = Difficulty.Hard
   ): number {
     const key = JSON.stringify(board) + aiDisc + difficulty;
-    
+
+    // Precompute opponent disc.
+    const opp: CellValue = aiDisc === 'Red' ? 'Yellow' : 'Red';
+
     if (this.cache.has(key)) {
       this.logger.debug(`Cache hit [${key.slice(-10)}] → col ${this.cache.get(key)}`);
       return this.cache.get(key)!;
@@ -56,19 +74,103 @@ export class GameAIService {
 
     const overallStart = performance.now();
     this.logger.log(
-      `getNextMove START: disc=${aiDisc} diff=${difficulty} budget=${timeMs}ms boardHash=${key.slice(-10)}`
+      `→ [AI] getNextMove START: disc=${aiDisc} diff=${difficulty} budget=${timeMs}ms boardHash=${key.slice(-10)}`
     );
 
+    // Opening book: on empty board, play center instantly;.
     try {
-      const opp: CellValue = aiDisc === 'Red' ? 'Yellow' : 'Red';
+      const tOpen = performance.now();
+      const isEmpty = board.every(row => row.every(cell => cell === 'Empty'));
 
+      if (isEmpty) {
+        const center = Math.floor(board[0].length / 2);
+        const openMs = (performance.now() - tOpen).toFixed(3);
+
+        this.logger.debug(`Opening-book check in ${openMs}ms → center ${center}`);
+
+        return this._cacheAndReturn(key, center);
+      }
+
+      const openMs = (performance.now() - tOpen).toFixed(3);
+
+      this.logger.debug(`Opening-book (non-empty) check in ${openMs}ms`);
+    } catch (e) {
+      this.logger.warn(`Opening-book ERROR: ${(e as Error).message}`);
+    }
+
+    // Count empties.
+    const empties = board.flat().filter(c => c === 'Empty').length;
+
+    // Only do a deep, perfect‐play solve in Hard endgames.
+    if (difficulty === Difficulty.Hard && empties <= 12) {
+      try {
+        const solveStart = performance.now();
+        this.logger.log(`Endgame HARD: ${empties} empties, doing full‐depth minimax`);
+
+        // Full‐depth solve: look ahead through every remaining move.
+        const full = minimax(board, empties, -Infinity, Infinity, true, aiDisc);
+
+        const solveTime = performance.now() - solveStart;
+        this.logger.log(
+          `Endgame solve complete in ${solveTime.toFixed(2)}ms → col=${full.column}`
+        );
+
+        // Warn if it took unexpectedly long
+        if (solveTime > 100) {
+          this.logger.warn(
+            `Endgame solve took ${solveTime.toFixed(2)}ms, consider lowering threshold`
+          );
+        }
+
+        // Validate the move is safe
+        if (
+          full.column !== null &&
+          this._isSafe(board, full.column, aiDisc, opp)
+        ) {
+          return this._cacheAndReturn(key, full.column);
+        } else {
+          this.logger.warn(
+            `Endgame solve move ${full.column} deemed unsafe, falling back`
+          );
+        }
+      } catch (err) {
+        this.logger.error(
+          `Endgame HARD solve ERROR: ${(err as Error).message}`
+        );
+      }
+
+      // As a last‐resort, fall back to MCTS or best‐move search
+      this.logger.log(`Endgame fallback → MCTS`);
+      const mctsCol = mcts(board, aiDisc, timeMs);
+      return this._cacheAndReturn(key, mctsCol);
+    }
+
+    // ── Step –1: If AI can win immediately, do that ───────────────
+    try {
+      const t0 = performance.now();
+
+      for (const col of legalMoves(board)) {
+        const { board: b2 } = tryDrop(board, col, aiDisc);
+
+        if (bitboardCheckWin(getBits(b2, aiDisc))) {
+          this.logger.log(`Step-1 WIN: AI wins at col ${col}`);
+          return this._cacheAndReturn(key, col);
+        }
+      }
+      this.logger.debug(`Step-1 COMPLETE in ${(performance.now() - t0).toFixed(2)}ms`);
+    } catch (e) {
+      this.logger.warn(`Step-1 ERROR: ${(e as Error).message}`);
+    }
+
+
+    try {
       // Step 0: Immediate opponent-win block
       try {
         const stepStart = performance.now();
-        
+
         for (const col of legalMoves(board)) {
           const { board: next } = tryDrop(board, col, opp);
-        
+
           if (bitboardCheckWin(getBits(next, opp))) {
             this.logger.log(`Step0 BLOCK: opponent win at ${col}`);
             return this._cacheAndReturn(key, col);
@@ -88,7 +190,7 @@ export class GameAIService {
             this.logger.debug('Easy mode: skipping deeper analysis');
             const choice = this.getRandomMove(board);
             this.logger.log(`Easy fallback → ${choice}`);
-            
+
             return this._cacheAndReturn(key, choice);
           } catch (e) {
             this.logger.error(`Easy fallback ERROR: ${(e as Error).stack}`);
@@ -101,55 +203,55 @@ export class GameAIService {
           try {
             const stageStart = performance.now();
             // Fork block
-            
+
             const fork = this._findOpponentFork(board, opp);
-            
+
             if (fork !== null) {
               this.logger.log(`Step0.5 FORK: block at ${fork}`);
               return this._cacheAndReturn(key, fork);
             }
-            
+
             // Vertical block
             const vcol = blockVerticalThreeIfAny(board, opp);
-            
+
             if (vcol !== null) {
               this.logger.log(`Step1 VERT: block at ${vcol}`);
               return this._cacheAndReturn(key, vcol);
             }
-            
+
             // Strict three
             const strict = findOpenThreeBlock(board, opp);
             this.logger.debug(`Step2 STRICT→${strict}`);
-            
+
             if (strict !== null && this._isSafe(board, strict, aiDisc, opp)) {
               this.logger.log(`Step2 BLOCK at ${strict}`);
               return this._cacheAndReturn(key, strict);
             }
-            
+
             // Horizontal float
             const hf = blockFloatingOpenThree(board, aiDisc);
             this.logger.debug(`Step3a HFLT→${hf}`);
-            
+
             if (hf !== null && this._isSafe(board, hf, aiDisc, opp)) {
               this.logger.log(`Step3a BLOCK at ${hf}`);
               return this._cacheAndReturn(key, hf);
             }
-            
+
             // Diagonal float
             const df = blockFloatingOpenThreeDiagonal(board, aiDisc);
             this.logger.debug(`Step3b DFLT→${df}`);
-            
+
             if (df !== null && this._isSafe(board, df, aiDisc, opp)) {
               this.logger.log(`Step3b BLOCK at ${df}`);
               return this._cacheAndReturn(key, df);
             }
-            
+
             // Minimax
             const mini = minimax(board, 4, -Infinity, Infinity, true, aiDisc);
             this.logger.debug(
               `Step4 MINMX: col=${mini.column} score=${mini.score}`
             );
-            
+
             if (
               mini.column !== null &&
               this._isSafe(board, mini.column, aiDisc, opp)
@@ -157,7 +259,7 @@ export class GameAIService {
               this.logger.log(`Step4 PICK: ${mini.column}`);
               return this._cacheAndReturn(key, mini.column);
             }
-            
+
             this.logger.debug(
               `StageMedium COMPLETE in ${(
                 performance.now() - stageStart
@@ -178,50 +280,50 @@ export class GameAIService {
           try {
             const hardStart = performance.now();
             // reuse Medium initial logic
-            
+
             const forkH = this._findOpponentFork(board, opp);
-            
+
             if (forkH !== null) {
               this.logger.log(`Step0.5H FORK at ${forkH}`);
               return this._cacheAndReturn(key, forkH);
             }
-            
+
             const vH = blockVerticalThreeIfAny(board, opp);
-            
+
             if (vH !== null) {
               this.logger.log(`Step1H VERT at ${vH}`);
               return this._cacheAndReturn(key, vH);
             }
-            
+
             const sH = findOpenThreeBlock(board, opp);
             this.logger.debug(`Step2H STRICT→${sH}`);
-            
+
             if (sH !== null && this._isSafe(board, sH, aiDisc, opp)) {
               this.logger.log(`Step2H BLOCK at ${sH}`);
               return this._cacheAndReturn(key, sH);
             }
-            
+
             const hH = blockFloatingOpenThree(board, aiDisc);
             this.logger.debug(`Step3aH HFLT→${hH}`);
-            
+
             if (hH !== null && this._isSafe(board, hH, aiDisc, opp)) {
               this.logger.log(`Step3aH BLOCK at ${hH}`);
               return this._cacheAndReturn(key, hH);
             }
-            
+
             const dH = blockFloatingOpenThreeDiagonal(board, aiDisc);
             this.logger.debug(`Step3bH DFLT→${dH}`);
-            
+
             if (dH !== null && this._isSafe(board, dH, aiDisc, opp)) {
               this.logger.log(`Step3bH BLOCK at ${dH}`);
               return this._cacheAndReturn(key, dH);
             }
-            
+
             const miniH = minimax(board, 4, -Infinity, Infinity, true, aiDisc);
             this.logger.debug(
               `Step4H MINMX: col=${miniH.column} score=${miniH.score}`
             );
-            
+
             if (
               miniH.column !== null &&
               this._isSafe(board, miniH.column, aiDisc, opp)
@@ -229,10 +331,10 @@ export class GameAIService {
               this.logger.log(`Step4H PICK at ${miniH.column}`);
               return this._cacheAndReturn(key, miniH.column);
             }
-            
+
             const mctsC = mcts(board, aiDisc, timeMs);
             this.logger.debug(`Step5H MCTS→${mctsC}`);
-            
+
             if (this._isSafe(board, mctsC, aiDisc, opp)) {
               this.logger.log(`Step5H PICK at ${mctsC}`);
               return this._cacheAndReturn(key, mctsC);
@@ -240,15 +342,15 @@ export class GameAIService {
 
             // Combined softmax + full-search
             const bestCol = getBestAIMove(board, aiDisc, timeMs);
-            
+
             this.logger.log(`getBestAIMove → ${bestCol}`);
-            
+
             const probs = this.getMoveProbabilities(board, aiDisc);
             const sorted = probs.slice().sort((a, b) => b.probability - a.probability);
             const top = sorted[0];
             const obj = probs.find(x => x.column === bestCol);
             const bestProb = obj?.probability ?? 0;
-            
+
             this.logger.log(
               `softmax top=${top.column}(p=${top.probability.toFixed(2)}), ` +
               `bestAIMove p=${bestProb.toFixed(2)}`
@@ -279,7 +381,7 @@ export class GameAIService {
 
       const fb = this.getRandomMove(board);
       this.logger.log(`Global fallback → ${fb}`);
-      
+
       return fb;
     } finally {
       const total = (performance.now() - overallStart).toFixed(2);
