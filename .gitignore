@@ -4,9 +4,6 @@
 .DS_Store
 # .gitignore – files and directories to exclude from version control
 
-# macOS Finder files
-.DS_Store
-
 # Node.js dependencies
 #  Store installed packages locally, not in source repo
 # Node.js dependencies
