@@ -1,16 +1,14 @@
-// Updated App.tsx: added early exit on AI win/draw in aiMove handler
-// Based on your original App.tsx :contentReference[oaicite:0]{index=0}&#8203;:contentReference[oaicite:1]{index=1}
+// src/App.tsx
 import React, { useEffect, useState } from 'react';
-import io from 'socket.io-client';
 import Board from './components/Board';
+import apiSocket from './api/socket';
 
 // cell values
 type CellValue = 'Empty' | 'Red' | 'Yellow';
 
-const SERVER_URL = 'http://localhost:3000/game';
-
 const App: React.FC = () => {
-  type ClientSocket = ReturnType<typeof io>;
+  // Use the same socket you configure in src/api/socket.ts
+  type ClientSocket = typeof apiSocket;
   const [socket, setSocket] = useState<ClientSocket | null>(null);
   const [gameId, setGameId] = useState<string | null>(null);
   const [board, setBoard] = useState<CellValue[][]>(
@@ -22,58 +20,67 @@ const App: React.FC = () => {
 
   // Effect: establish connection & create game
   useEffect(() => {
-    const sock = io(SERVER_URL);
-    setSocket(sock);
+    // hook up our singleton socket
+    setSocket(apiSocket);
 
-    sock.on('connect', () => {
-      console.log('🔗 connected, id=', sock.id);
+    apiSocket.on('connect', () => {
+      console.log('🔗 connected, id=', apiSocket.id);
       setStatus('Creating game…');
-      // sock.emit('createGame', { playerId: 'Red' });
-      sock.emit(
+      apiSocket.emit(
         'createGame',
         { playerId: 'Red' },
-        (res: { success: boolean; error?: string; gameId?: string; nextPlayer?: CellValue }) => {
+        (res: {
+          success: boolean;
+          error?: string;
+          gameId?: string;
+          nextPlayer?: CellValue;
+        }) => {
           if (!res.success) {
             console.error('createGame failed:', res.error);
             setStatus(res.error || 'Failed to create game');
             return;
           }
-          // Optionally, if you return gameId/nextPlayer in the ACK, set them here immediately:
           if (res.gameId && res.nextPlayer) {
             setGameId(res.gameId);
             setCurrentPlayer(res.nextPlayer);
             setStatus(
-              res.nextPlayer === 'Red' ? 'Your turn (Red)' : 'AI is thinking (Yellow)...'
+              res.nextPlayer === 'Red'
+                ? 'Your turn (Red)'
+                : 'AI is thinking (Yellow)…'
             );
           }
         }
       );
     });
 
-    sock.on('disconnect', () => {
+    apiSocket.on('disconnect', () => {
       console.log('❌ disconnected');
       setStatus('Disconnected');
     });
 
-    sock.on('gameCreated', (data: { gameId: string; nextPlayer: CellValue }) => {
-      console.log('⬅️ gameCreated', data);
-      setGameId(data.gameId);
-      setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
-      setWinningLine([]);
-      if (data.nextPlayer === 'Red') {
-        setStatus('Your turn (Red)');
-        setCurrentPlayer('Red');
-      } else {
-        setStatus('AI is thinking (Yellow)…');
-        setCurrentPlayer('Yellow');
+    apiSocket.on(
+      'gameCreated',
+      (data: { gameId: string; nextPlayer: CellValue }) => {
+        console.log('⬅️ gameCreated', data);
+        setGameId(data.gameId);
+        setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
+        setWinningLine([]);
+        if (data.nextPlayer === 'Red') {
+          setStatus('Your turn (Red)');
+          setCurrentPlayer('Red');
+        } else {
+          setStatus('AI is thinking (Yellow)…');
+          setCurrentPlayer('Yellow');
+        }
       }
-    });
+    );
 
     return () => {
-      sock.off('connect');
-      sock.off('disconnect');
-      sock.off('gameCreated');
-      sock.disconnect();
+      apiSocket.off('connect');
+      apiSocket.off('disconnect');
+      apiSocket.off('gameCreated');
+      // note: we do NOT call apiSocket.disconnect() here, so the same socket
+      // stays alive if you remount App or navigate around
     };
   }, []);
 
@@ -81,65 +88,69 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('playerMove', (data: {
-      board: CellValue[][];
-      lastMove: { column: number; playerId: string };
-      nextPlayer: CellValue;
-      winner?: CellValue;
-      draw?: boolean;
-      winningLine?: [number, number][];
-    }) => {
-      console.log('⬅️ playerMove', data);
-      setBoard(data.board);
-      setWinningLine(data.winningLine || []);
+    socket.on(
+      'playerMove',
+      (data: {
+        board: CellValue[][];
+        lastMove: { column: number; playerId: string };
+        nextPlayer: CellValue;
+        winner?: CellValue;
+        draw?: boolean;
+        winningLine?: [number, number][];
+      }) => {
+        console.log('⬅️ playerMove', data);
+        setBoard(data.board);
+        setWinningLine(data.winningLine || []);
 
-      // Early exit if player wins or draw. 
-      if (data.winner) {
-        setStatus(`${data.winner} wins!`);
-        return;
+        // Early exit if player wins or draw.
+        if (data.winner) {
+          setStatus(`${data.winner} wins!`);
+          return;
+        }
+        if (data.draw) {
+          setStatus('Draw game');
+          return;
+        }
+
+        setStatus('AI is thinking (Yellow)…');
+        setCurrentPlayer('Yellow');
       }
-
-      if (data.draw) {
-        setStatus('Draw game');
-        return;
-      }
-
-      setStatus('AI is thinking (Yellow)…');
-      setCurrentPlayer('Yellow');
-    });
+    );
 
     socket.on('aiThinking', () => {
       setStatus('AI is thinking (Yellow)…');
     });
 
-    socket.on('aiMove', (data: {
-      board: CellValue[][];
-      lastMove: { column: number; playerId: string };
-      nextPlayer: CellValue;
-      winner?: CellValue;
-      draw?: boolean;
-      winningLine?: [number, number][];
-    }) => {
-      console.log('⬅️ aiMove', data);
-      setBoard(data.board);
-      setWinningLine(data.winningLine || []);
+    socket.on(
+      'aiMove',
+      (data: {
+        board: CellValue[][];
+        lastMove: { column: number; playerId: string };
+        nextPlayer: CellValue;
+        winner?: CellValue;
+        draw?: boolean;
+        winningLine?: [number, number][];
+      }) => {
+        console.log('⬅️ aiMove', data);
+        setBoard(data.board);
+        setWinningLine(data.winningLine || []);
 
-      // If AI has won, show win and exit early
-      if (data.winner) {
-        setStatus(`${data.winner} wins!`);
-        return;
+        // If AI has won, show win and exit early
+        if (data.winner) {
+          setStatus(`${data.winner} wins!`);
+          return;
+        }
+        // If it's a draw, show draw and exit early
+        if (data.draw) {
+          setStatus('Draw game');
+          return;
+        }
+
+        // Otherwise, back to the human's turn
+        setStatus('Your turn (Red)');
+        setCurrentPlayer('Red');
       }
-
-      // If it's a draw, show draw and exit early
-      if (data.draw) {
-        setStatus('Draw game');
-        return;
-      }
-
-      // Otherwise, back to the human's turn
-      setStatus('Your turn (Red)');
-      setCurrentPlayer('Red');
-    });
+    );
 
     return () => {
       socket.off('playerMove');
@@ -174,7 +185,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4">
-      <h1 className="text-white text-2xl mb-4">Connect Four vs. AI</h1>
+      <h1 className="text-white text-2xl mb-4">Connect Four vs. AI</h1>
       <Board board={board} onDrop={onColumnClick} winningLine={winningLine} />
       <div className="mt-4 text-white">{status}</div>
     </div>
@@ -182,5 +193,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
-
