@@ -7,7 +7,7 @@ import Board from './components/Board';
 // cell values
 type CellValue = 'Empty' | 'Red' | 'Yellow';
 
-const SERVER_URL = 'http://localhost:3001/game';
+const SERVER_URL = 'http://localhost:3000/game';
 
 const App: React.FC = () => {
   type ClientSocket = ReturnType<typeof io>;
@@ -22,7 +22,7 @@ const App: React.FC = () => {
 
   // Effect: establish connection & create game
   useEffect(() => {
-    const sock = io(SERVER_URL, { transports: ['websocket'] });
+    const sock = io(SERVER_URL);
     setSocket(sock);
 
     sock.on('connect', () => {
