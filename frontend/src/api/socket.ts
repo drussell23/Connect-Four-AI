@@ -4,7 +4,10 @@
 import io from 'socket.io-client';
 
 // Initialize Socket.IO client
-const socket = io('http://localhost:3000/game');
+// hit your NestWS namespace on 3000
+const socket = io('http://localhost:3000/game', {
+    transports: ['websocket'],
+  });
 
 // Default export for use throughout the app
 export default socket;
