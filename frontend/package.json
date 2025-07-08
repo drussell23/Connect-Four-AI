@@ -1,8 +1,9 @@
 {
   "name": "connect-four-frontend",
   "version": "1.0.0",
+  "proxy": "http://localhost:3000",
   "scripts": {
-    "start": "react-scripts start",
+    "start": "PORT=3001 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test"
   },

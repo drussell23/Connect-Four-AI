@@ -1,4 +1,3 @@
-import fetch, { AbortController } from 'node-fetch';
 import { EventEmitter } from 'events';
 
 // Set up custom logging via EventEmitter
@@ -67,7 +66,7 @@ async function fetchWithTimeout(
   options: RequestInit,
   timeoutMs: number
 ): Promise<Response> {
-  const controller = new AbortController();
+  const controller = new AbortController();      // ← global
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
     logger.emit('debug', `fetchWithTimeout url=${url}`, options);
@@ -76,6 +75,7 @@ async function fetchWithTimeout(
     clearTimeout(id);
   }
 }
+
 
 /**
  * Client for ML Prediction Service
