@@ -194,7 +194,14 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4" style={{ fontFamily: "'Poppins', sans-serif" }}>
-      <h1 className="text-white text-2xl mb-4">Connect Four vs. AI</h1>
+      {status.endsWith('wins!') && (
+  <div className="fixed top-0 left-0 w-full flex justify-center z-50">
+    <div className="slide-down pulse bg-black bg-opacity-75 text-white font-bold text-3xl py-4 px-8 rounded-b-lg">
+      {status.startsWith('Red') ? 'You Win!' : 'AI Wins!'}
+    </div>
+  </div>
+)}
+<h1 className="text-white text-2xl mb-4">Connect Four vs. AI</h1>
       <Board board={board} onDrop={onColumnClick} winningLine={winningLine} />
       <div className="mt-4">
         <span className="bg-white bg-opacity-20 text-white font-semibold rounded-full px-4 py-2 fade-text">{status}</span>

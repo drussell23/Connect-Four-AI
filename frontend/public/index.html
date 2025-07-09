@@ -43,6 +43,22 @@
     .drop {
       animation: drop 0.4s ease-out;
     }
+    @keyframes slideDown {
+      0% { transform: translateY(-100%) scale(0.8); opacity: 0; }
+      60% { transform: translateY(10%) scale(1.05); opacity: 1; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .slide-down {
+      animation: slideDown 0.6s ease-out;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .pulse {
+      animation: pulse 1s ease-in-out infinite;
+    }
     .fade-text {
       animation: fadeText 0.5s ease-in-out;
     }
