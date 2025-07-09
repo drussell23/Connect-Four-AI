@@ -58,6 +58,7 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
   // Animate disc dropping when the board prop changes
   const prevBoardRef = useRef<CellValue[][]>(localBoard);
   const [hoveredCol, setHoveredCol] = useState<number | null>(null);
+  const [dropCoord, setDropCoord] = useState<{ row: number; col: number } | null>(null);
   const [bounceCoord, setBounceCoord] = useState<{ row: number; col: number } | null>(null);
   useEffect(() => {
     if (!board) return;
@@ -78,28 +79,19 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
       prevBoardRef.current = board;
       return;
     }
-    const { row: targetRow, col, color } = newPos;
-    // Generate intermediate frames for animation
-    const frames: CellValue[][][] = [];
-    for (let i = 0; i <= targetRow; i++) {
-      const frame = prevBoard.map(rArr => rArr.slice());
-      frame[i][col] = color;
-      frames.push(frame);
-    }
-    // Apply frames with timeouts
-    frames.forEach((frameBoard, idx) => {
-      setTimeout(() => {
-        setLocalBoard(frameBoard);
-      }, idx * 100);
-    });
-    // After animation, set to final board state
+    const { row: targetRow, col } = newPos;
+    // Immediately update board to final state and update prevBoard
+    setLocalBoard(board);
+    prevBoardRef.current = board;
+    // Trigger drop animation
+    setDropCoord({ row: targetRow, col });
+    // Clear drop after animation
+    setTimeout(() => setDropCoord(null), 400);
+    // Trigger bounce after drop animation
     setTimeout(() => {
-      prevBoardRef.current = board;
-      setLocalBoard(board);
-      // trigger disc bounce
       setBounceCoord({ row: targetRow, col });
       setTimeout(() => setBounceCoord(null), 400);
-    }, (targetRow + 1) * 100);
+    }, 400);
   }, [board]);
 
   const displayBoard = localBoard;
@@ -144,7 +136,10 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
                   <div
                     style={{
                       ...discStyle(cell === 'Red' ? 'red' : 'yellow'),
-                      animation: bounceCoord?.row === rowIndex && bounceCoord?.col === colIndex ? 'bounce 0.4s ease-out' : undefined,
+                      animation: [
+                        dropCoord?.row === rowIndex && dropCoord?.col === colIndex ? 'drop 0.4s ease-out' : '',
+                        bounceCoord?.row === rowIndex && bounceCoord?.col === colIndex ? 'bounce 0.4s ease-out' : ''
+                      ].filter(anim => anim).join(', '),
                     }}
                   />
                 )}

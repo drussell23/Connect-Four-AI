@@ -197,12 +197,12 @@ const App: React.FC = () => {
       <h1 className="text-white text-2xl mb-4">Connect Four vs. AI</h1>
       <Board board={board} onDrop={onColumnClick} winningLine={winningLine} />
       <div className="mt-4">
-        <span className="bg-white bg-opacity-20 text-white font-semibold rounded-full px-4 py-2">{status}</span>
+        <span className="bg-white bg-opacity-20 text-white font-semibold rounded-full px-4 py-2 fade-text">{status}</span>
       </div>
       {(status.endsWith('wins!') || status === 'Draw game') && (
         <button
           onClick={handlePlayAgain}
-          className="mt-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded px-4 py-2"
+          className="mt-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded px-4 py-2 transition transform duration-200 ease-in-out hover:scale-105 fade-in"
         >
           Play Again
         </button>
