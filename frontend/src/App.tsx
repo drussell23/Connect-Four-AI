@@ -183,11 +183,30 @@ const App: React.FC = () => {
     );
   }
 
+  // Play Again button handler
+  const handlePlayAgain = () => {
+    if (!socket) return;
+    setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
+    setWinningLine([]);
+    setStatus('Creating game…');
+    socket.emit('createGame', { playerId: 'Red' });
+  };
+
   return (
-    <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4" style={{ fontFamily: "'Poppins', sans-serif" }}>
       <h1 className="text-white text-2xl mb-4">Connect Four vs. AI</h1>
       <Board board={board} onDrop={onColumnClick} winningLine={winningLine} />
-      <div className="mt-4 text-white">{status}</div>
+      <div className="mt-4">
+        <span className="bg-white bg-opacity-20 text-white font-semibold rounded-full px-4 py-2">{status}</span>
+      </div>
+      {(status.endsWith('wins!') || status === 'Draw game') && (
+        <button
+          onClick={handlePlayAgain}
+          className="mt-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded px-4 py-2"
+        >
+          Play Again
+        </button>
+      )}
     </div>
   );
 };
