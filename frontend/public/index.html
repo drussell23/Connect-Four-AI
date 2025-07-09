@@ -59,6 +59,32 @@
     .pulse {
       animation: pulse 1s ease-in-out infinite;
     }
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .title-gradient {
+      background: linear-gradient(270deg, #06d6a0, #118ab2, #ef476f, #ffd166);
+      background-size: 800% 800%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientBG 6s ease infinite;
+    }
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(-2deg); }
+      50% { transform: rotate(2deg); }
+    }
+    .hover-wiggle:hover {
+      animation: wiggle 0.6s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .title-float {
+      animation: float 4s ease-in-out infinite;
+    }
     @keyframes slideInRight {
       0% { transform: translateX(100%); }
       100% { transform: translateX(0); }
