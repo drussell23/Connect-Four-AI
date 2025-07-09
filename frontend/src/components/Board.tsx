@@ -17,7 +17,7 @@ const gridStyle: React.CSSProperties = {
   gridTemplateRows: 'repeat(6, 80px)',
   gridTemplateColumns: 'repeat(7, 80px)',
   gap: '12px',
-  background: '#1e2a47',
+  background: 'transparent',
   padding: '16px',
   borderRadius: '8px',
 };
@@ -109,7 +109,7 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
         marginTop: '2rem',
       }}
     >
-      <div style={gridStyle}>
+      <div className="board-bg board-float" style={gridStyle}>
         {displayBoard.map((row, rowIndex) =>
           row.map((cell, colIndex) => {
             const highlight = isWinningCell(rowIndex, colIndex);
