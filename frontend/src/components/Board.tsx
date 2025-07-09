@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export type CellValue = 'Empty' | 'Red' | 'Yellow';
 
@@ -54,11 +54,47 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
     board ?? Array.from({ length: 6 }, () => Array(7).fill('Empty'))
   );
 
-  // Sync local state whenever the prop changes
+  // Animate disc dropping when the board prop changes
+  const prevBoardRef = useRef<CellValue[][]>(localBoard);
+  const [hoveredCol, setHoveredCol] = useState<number | null>(null);
   useEffect(() => {
-    if (board) {
-      setLocalBoard(board);
+    if (!board) return;
+    const prevBoard = prevBoardRef.current;
+    // Find the new disc position
+    let newPos: { row: number; col: number; color: CellValue } | null = null;
+    for (let r = 0; r < prevBoard.length; r++) {
+      for (let c = 0; c < prevBoard[r].length; c++) {
+        if (prevBoard[r][c] === 'Empty' && board[r][c] !== 'Empty') {
+          newPos = { row: r, col: c, color: board[r][c] };
+          break;
+        }
+      }
+      if (newPos) break;
     }
+    if (!newPos) {
+      setLocalBoard(board);
+      prevBoardRef.current = board;
+      return;
+    }
+    const { row: targetRow, col, color } = newPos;
+    // Generate intermediate frames for animation
+    const frames: CellValue[][][] = [];
+    for (let i = 0; i <= targetRow; i++) {
+      const frame = prevBoard.map(rArr => rArr.slice());
+      frame[i][col] = color;
+      frames.push(frame);
+    }
+    // Apply frames with timeouts
+    frames.forEach((frameBoard, idx) => {
+      setTimeout(() => {
+        setLocalBoard(frameBoard);
+      }, idx * 100);
+    });
+    // After animation, set to final board state
+    setTimeout(() => {
+      prevBoardRef.current = board;
+      setLocalBoard(board);
+    }, (targetRow + 1) * 100);
   }, [board]);
 
   const displayBoard = localBoard;
@@ -86,6 +122,7 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
                 style={{
                   ...cellStyle,
                   border: highlight ? '4px solid #06d6a0' : cellStyle.border,
+                  background: displayBoard[rowIndex][colIndex] === 'Empty' && hoveredCol === colIndex ? 'rgba(255,255,255,0.2)' : cellStyle.background,
                   boxShadow: highlight
                     ? '0 0 8px 4px rgba(6,214,160,0.7)'
                     : undefined,
@@ -94,7 +131,7 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
                       ? 'pointer'
                       : 'default',
                 }}
-                onClick={() => onDrop(colIndex)}
+                onMouseEnter={() => setHoveredCol(colIndex)} onMouseLeave={() => setHoveredCol(null)} onClick={() => onDrop(colIndex)}
               >
                 {cell !== 'Empty' && (
                   <div
