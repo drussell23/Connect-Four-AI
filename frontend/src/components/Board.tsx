@@ -14,31 +14,32 @@ interface BoardProps {
 // Grid container style
 const gridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateRows: 'repeat(6, 60px)',
-  gridTemplateColumns: 'repeat(7, 60px)',
-  gap: '8px',
+  gridTemplateRows: 'repeat(6, 80px)',
+  gridTemplateColumns: 'repeat(7, 80px)',
+  gap: '12px',
   background: '#1e2a47',
-  padding: '12px',
+  padding: '16px',
   borderRadius: '8px',
 };
 
 // Individual slot style (ring)
 const cellStyle: React.CSSProperties = {
-  width: '60px',
-  height: '60px',
+  width: '80px',
+  height: '80px',
   borderRadius: '50%',
-  border: '4px solid #26418f',
+  border: '6px solid #26418f',
   background: '#1e2a47',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  transition: 'background 0.2s ease, transform 0.2s ease',
   cursor: 'pointer',
 };
 
 // Disc style matching slot interior (60px - 2*4px border = 52px)
 const discStyle = (color: 'red' | 'yellow'): React.CSSProperties => ({
-  width: '52px',
-  height: '52px',
+  width: '68px',
+  height: '68px',
   borderRadius: '50%',
   backgroundColor: color,
   pointerEvents: 'none',
@@ -57,6 +58,7 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
   // Animate disc dropping when the board prop changes
   const prevBoardRef = useRef<CellValue[][]>(localBoard);
   const [hoveredCol, setHoveredCol] = useState<number | null>(null);
+  const [bounceCoord, setBounceCoord] = useState<{ row: number; col: number } | null>(null);
   useEffect(() => {
     if (!board) return;
     const prevBoard = prevBoardRef.current;
@@ -94,6 +96,9 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
     setTimeout(() => {
       prevBoardRef.current = board;
       setLocalBoard(board);
+      // trigger disc bounce
+      setBounceCoord({ row: targetRow, col });
+      setTimeout(() => setBounceCoord(null), 400);
     }, (targetRow + 1) * 100);
   }, [board]);
 
@@ -104,7 +109,7 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
     winningLine.some(([wr, wc]) => wr === r && wc === c);
 
   return (
-    <div
+    <div className="fade-in"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -123,9 +128,11 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
                   ...cellStyle,
                   border: highlight ? '4px solid #06d6a0' : cellStyle.border,
                   background: displayBoard[rowIndex][colIndex] === 'Empty' && hoveredCol === colIndex ? 'rgba(255,255,255,0.2)' : cellStyle.background,
+                   transform: displayBoard[rowIndex][colIndex] === 'Empty' && hoveredCol === colIndex ? 'scale(1.05)' : 'scale(1)',
                   boxShadow: highlight
                     ? '0 0 8px 4px rgba(6,214,160,0.7)'
                     : undefined,
+                   animation: highlight ? 'glow 1s ease-in-out infinite alternate' : undefined,
                   cursor:
                     displayBoard[rowIndex][colIndex] === 'Empty'
                       ? 'pointer'
@@ -135,7 +142,10 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
               >
                 {cell !== 'Empty' && (
                   <div
-                    style={discStyle(cell === 'Red' ? 'red' : 'yellow')}
+                    style={{
+                      ...discStyle(cell === 'Red' ? 'red' : 'yellow'),
+                      animation: bounceCoord?.row === rowIndex && bounceCoord?.col === colIndex ? 'bounce 0.4s ease-out' : undefined,
+                    }}
                   />
                 )}
               </div>
