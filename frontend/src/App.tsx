@@ -251,7 +251,7 @@ const App: React.FC = () => {
     </div>
   </div>
 )}
-<h1 className="text-white text-2xl mb-4">Connect Four vs. AI</h1>
+<h1 className="text-5xl mb-6 title-gradient font-extrabold hover-wiggle title-float">Connect Four vs. AI</h1>
       <Board board={board} onDrop={onColumnClick} winningLine={winningLine} />
       <div className="mt-4">
         <span className="bg-white bg-opacity-20 text-white font-semibold rounded-full px-4 py-2 fade-text">{status}</span>
