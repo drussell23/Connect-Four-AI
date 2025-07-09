@@ -1,5 +1,5 @@
 // src/App.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Board from './components/Board';
 import apiSocket from './api/socket';
 
@@ -17,6 +17,40 @@ const App: React.FC = () => {
   const [currentPlayer, setCurrentPlayer] = useState<CellValue>('Red');
   const [status, setStatus] = useState<string>('Connecting…');
   const [winningLine, setWinningLine] = useState<[number, number][]>([]);
+  // Move history and sidebar
+  interface Move { player: CellValue; column: number; }
+  const [history, setHistory] = useState<Move[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  
+  // Audio and haptic feedback setup
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  useEffect(() => {
+    audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+  }, []);
+  const playTone = (freq: number, duration: number) => {
+    const ctx = audioCtxRef.current;
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.value = freq;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+    setTimeout(() => osc.stop(), duration * 1000);
+  };
+  const playClick = () => { playTone(1000, 0.05); navigator.vibrate?.(10); };
+  const playDrop = () => { playTone(300, 0.2); navigator.vibrate?.(20); };
+  const playVictory = () => {
+    playTone(523.25, 0.3);
+    setTimeout(() => playTone(659.25, 0.3), 300);
+    setTimeout(() => playTone(783.99, 0.3), 600);
+    navigator.vibrate?.([100,50,100]);
+  };
+  // Play victory sound when status changes to win
+  useEffect(() => {
+    if (status.endsWith('wins!')) playVictory();
+  }, [status]);
 
   // Effect: establish connection & create game
   useEffect(() => {
@@ -100,7 +134,9 @@ const App: React.FC = () => {
       }) => {
         console.log('⬅️ playerMove', data);
         setBoard(data.board);
+        playDrop();
         setWinningLine(data.winningLine || []);
+        setHistory(prev => [...prev, { player: data.lastMove.playerId as CellValue, column: data.lastMove.column }]);
 
         // Early exit if player wins or draw.
         if (data.winner) {
@@ -133,7 +169,9 @@ const App: React.FC = () => {
       }) => {
         console.log('⬅️ aiMove', data);
         setBoard(data.board);
+        playDrop();
         setWinningLine(data.winningLine || []);
+        setHistory(prev => [...prev, { player: data.lastMove.playerId as CellValue, column: data.lastMove.column }]);
 
         // If AI has won, show win and exit early
         if (data.winner) {
@@ -166,6 +204,7 @@ const App: React.FC = () => {
     if (currentPlayer !== 'Red') return;
 
     console.log('➡️ human dropDisc at', col);
+    playClick();
     setCurrentPlayer('Yellow');
     setStatus('AI is thinking (Yellow)…');
 
@@ -194,6 +233,17 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4" style={{ fontFamily: "'Poppins', sans-serif" }}>
+      <button onClick={() => setSidebarOpen(!sidebarOpen)} className="absolute top-4 right-4 bg-white bg-opacity-20 text-white px-3 py-1 rounded hover:bg-opacity-40 transition">Moves</button>
+      <div className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
+        <h2 className="text-xl font-bold p-4 border-b border-white/20">Move History</h2>
+        <ul>
+          {history.map((move, idx) => (
+            <li key={idx} className="p-2 border-b border-white/20">
+              {idx + 1}. {move.player} → Col {move.column + 1}
+            </li>
+          ))}
+        </ul>
+      </div>
       {status.endsWith('wins!') && (
   <div className="fixed top-0 left-0 w-full flex justify-center z-50">
     <div className="slide-down pulse bg-black bg-opacity-75 text-white font-bold text-3xl py-4 px-8 rounded-b-lg">

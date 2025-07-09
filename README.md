@@ -1,158 +1,135 @@
-# Connect-Four Game
+# Connect Four
 
-This repository contains three main components for running and developing the Connect-Four game:
+A modern, animated web-based Connect Four game. Challenge an AI opponent with real-time animations, sound effects, and move history tracking.
 
-1. **Frontend (React)**: User interface for playing Connect-Four against the AI.
-2. **Backend (NestJS)**: WebSocket server and REST API for managing gameplay.
-3. **AI/ML Service (Python)**: AI inference and continuous learning system.
+![Game Screenshot](frontend/public/screenshot.png)
 
----
+## Table of Contents
 
-## Prerequisites
+- [Features](#features)
+- [Demo](#demo)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Usage](#usage)
+- [Training & AI](#training--ai)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
 
-Ensure you have the following installed:
+## Features
 
-- **Node.js** v16+ and **npm** or **yarn**
-- **Python** 3.8+ with **pip**
-- **bash** shell (for running scripts)
+- **Smooth Animations**: CSS keyframe disc drops, bounce effects, and slide-in move history sidebar.
+- **Sound & Haptics**: Click, drop, and victory chimes with optional device vibration.
+- **Real-Time Play**: Socket.io-powered NestJS backend for seamless gameplay.
+- **Smart AI**: Python-based ML inference service with continuous learning capabilities.
+- **Responsive UI**: Mobile-friendly design with intuitive controls and clear visual feedback.
 
-Optional but recommended:
-- **Poetry** (Python dependency management)
+## Demo
 
----
+![Move History Sidebar](frontend/public/demo-sidebar.gif)  
+*Slide-in move history panel showing past moves.*
 
-## Installation
+## Tech Stack
 
-Clone the repository and install dependencies:
+- **Frontend**: React (TypeScript), Tailwind CSS, Socket.io-client
+- **Backend**: NestJS, Socket.io, TypeScript
+- **AI Service**: Uvicorn/FastAPI, Python 3, PyTorch/TensorFlow
+- **CI/CD**: GitHub Actions, Docker
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js v16+ and npm or yarn
+- Python 3.8+ with pip
+- Bash shell
+- [Optional] Poetry for Python environment management
+
+### Installation
 
 ```bash
 git clone https://github.com/drussell23/Connect-Four.git
 cd Connect-Four
 
-# Backend setup
-cd backend
-npm install
-cd ..
+# Install frontend dependencies
+cd frontend && npm install && cd ..
 
-# Frontend setup
-cd frontend
-npm install
-cd ..
+# Install backend dependencies
+cd backend && npm install && cd ..
 
-# AI/ML Service setup
-cd ml_service
-poetry install  # if using Poetry
-# or
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cd ..
+# Install AI/ML service dependencies
+cd ml_service && poetry install || pip install -r requirements.txt && cd ..
 ```
 
----
+#### Environment Variables
 
-## Running the Frontend
+Create `.env` files as needed in `frontend` and `backend`:
 
-To start the React frontend locally:
+```
+# frontend/.env
+REACT_APP_API_URL=http://localhost:3000
 
+# backend/.env
+PORT=3000
+```
+
+## Usage
+
+#### Start Frontend
 ```bash
-cd frontend
-npm start
+cd frontend && npm start
 ```
+Open http://localhost:3001 in your browser.
 
-Open **http://localhost:3000** to access the application.
-
-For a production build:
-
+#### Start Backend
 ```bash
-npm run build
+cd backend && npm run start:dev
 ```
+Server listens on http://localhost:3000.
 
----
-
-## Running the Backend
-
-Start the NestJS backend server:
-
+#### Start AI Service
 ```bash
-cd backend
-npm run start:dev
+cd ml_service && uvicorn ml_service:app --reload --host 0.0.0.0 --port 8000
 ```
 
-The server runs on **http://localhost:3001**.
+## Training & AI
 
-For production:
+- **Offline Training** (self-play):
+  ```bash
+  ./scripts/run_pipeline.sh offline
+  ```
+- **Continuous Learning** (human vs AI logs):
+  ```bash
+  ./scripts/run_pipeline.sh continuous
+  ```
+- **Hybrid Mode**:
+  ```bash
+  ./scripts/run_pipeline.sh both --serve --interval 10
+  ```
 
-```bash
-npm run build
-npm run start:prod
-```
-
----
-
-## Running the AI/ML Service
-
-Activate the Python environment and start the ML inference API:
-
-```bash
-cd ml_service
-# Activate virtual environment if using venv
-source .venv/bin/activate
-uvicorn ml_service:app --reload --host 0.0.0.0 --port 8000
-```
-
-Check API status:
-
-```bash
-curl http://localhost:8000/health
-```
-
-The ML API provides move predictions at `/predict`.
-
----
-
-## Training and Continuous Learning
-
-Use provided scripts for training and continuous AI improvement.
-
-- **Offline training** (AI plays against itself):
-
-```bash
-./scripts/run_pipeline.sh offline
-```
-
-- **Continuous learning** (train from human vs AI logs):
-
-```bash
-./scripts/run_pipeline.sh continuous
-```
-
-- **Hybrid (Offline + Continuous)**:
-
-```bash
-./scripts/run_pipeline.sh both --serve
-# with custom interval:
-./scripts/run_pipeline.sh both --serve --interval 10
-```
-
-`--serve` launches the inference server for logging human games.
-
----
-
-## Directory Structure
+## Project Structure
 
 ```
 Connect-Four/
-├── backend/           # NestJS backend
-├── frontend/          # React frontend
-├── ai/                # Connect4 AI logic
-├── backend/src/ml/    # Self-play & training scripts
-├── ml_service/        # AI/ML inference and training service
-├── models/            # Model checkpoints
-├── scripts/           # Pipeline execution scripts
+├── backend/          # NestJS WebSocket & REST API
+├── frontend/         # React user interface
+├── ai/               # Core AI algorithms & self-play scripts
+├── ml_service/       # Inference & training API service
+├── scripts/          # Training & CI/CD pipelines
+├── models/           # Trained model checkpoints
 └── README.md
 ```
 
----
+## Contributing
 
-Enjoy developing and improving your Connect-Four AI!
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/awesome`)
+3. Commit your changes (`git commit -m 'feat: awesome feature'`)
+4. Push to your branch (`git push origin feature/awesome`)
+5. Open a Pull Request
+
+## License
+
+MIT © 2025 drussell23
