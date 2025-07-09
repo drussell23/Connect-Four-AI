@@ -59,6 +59,21 @@
     .pulse {
       animation: pulse 1s ease-in-out infinite;
     }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .spin {
+      animation: spin 0.6s linear;
+    }
+    @keyframes slotPulse {
+      0% { border-color: #26418f; }
+      50% { border-color: #118ab2; }
+      100% { border-color: #26418f; }
+    }
+    .slot-pulse {
+      animation: slotPulse 2s ease-in-out infinite;
+    }
     @keyframes gradientBG {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
@@ -91,8 +106,8 @@
       100% { background-color: #1e2a47; }
     }
     @keyframes boardFloat {
-      0%, 100% { transform: translateY(0) rotateX(0deg); }
-      50% { transform: translateY(5px) rotateX(3deg); }
+      0%, 100% { transform: translateY(0) ; }
+      50% { transform: translateY(5px); }
     }
     .board-bg {
       animation: boardGradient 8s ease-in-out infinite;
@@ -100,6 +115,16 @@
     .board-float {
       animation: boardFloat 6s ease-in-out infinite;
       transform-style: preserve-3d;
+    }
+    .board-tilt {
+      perspective: 800px;
+    }
+    .board-tilt .board-bg {
+      transform-style: preserve-3d;
+      transition: transform 0.3s ease-out;
+    }
+    .board-tilt:hover .board-bg {
+      transform: rotateX(10deg) rotateY(-10deg);
     }
     @keyframes slideInRight {
       0% { transform: translateX(100%); }
@@ -133,6 +158,8 @@
   </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root" style="position: relative;"></div>
+
+
 </body>
 </html>

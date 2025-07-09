@@ -101,7 +101,7 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
     winningLine.some(([wr, wc]) => wr === r && wc === c);
 
   return (
-    <div className="fade-in"
+    <div className="fade-in board-tilt"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -115,7 +115,7 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
             const highlight = isWinningCell(rowIndex, colIndex);
             return (
               <div
-                key={`${rowIndex}-${colIndex}`}
+                key={`${rowIndex}-${colIndex}`} className={cell === 'Empty' ? 'slot-pulse' : ''}
                 style={{
                   ...cellStyle,
                   border: highlight ? '4px solid #06d6a0' : cellStyle.border,
@@ -137,7 +137,7 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
                     style={{
                       ...discStyle(cell === 'Red' ? 'red' : 'yellow'),
                       animation: [
-                        dropCoord?.row === rowIndex && dropCoord?.col === colIndex ? 'drop 0.4s ease-out' : '',
+                        dropCoord?.row === rowIndex && dropCoord?.col === colIndex ? 'drop 0.4s ease-out, spin 0.6s linear' : '',
                         bounceCoord?.row === rowIndex && bounceCoord?.col === colIndex ? 'bounce 0.4s ease-out' : ''
                       ].filter(anim => anim).join(', '),
                     }}

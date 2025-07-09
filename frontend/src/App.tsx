@@ -1,7 +1,9 @@
 // src/App.tsx
 import React, { useEffect, useState, useRef } from 'react';
 import Board from './components/Board';
+
 import apiSocket from './api/socket';
+import { Fireworks } from 'fireworks-js';
 
 // cell values
 type CellValue = 'Empty' | 'Red' | 'Yellow';
@@ -30,6 +32,9 @@ const App: React.FC = () => {
   const playTone = (freq: number, duration: number) => {
     const ctx = audioCtxRef.current;
     if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.frequency.value = freq;
@@ -47,9 +52,26 @@ const App: React.FC = () => {
     setTimeout(() => playTone(783.99, 0.3), 600);
     navigator.vibrate?.([100,50,100]);
   };
-  // Play victory sound when status changes to win
+  // Play victory sound and fireworks animation when status changes to win
   useEffect(() => {
-    if (status.endsWith('wins!')) playVictory();
+    if (status.endsWith('wins!')) {
+      playVictory();
+      if (status.startsWith('Red')) {
+        const fw = new Fireworks(document.body, { sound: { enabled: false } });
+        const canvas = (fw as any).canvas as HTMLCanvasElement;
+        if (canvas) {
+          canvas.style.position = 'fixed';
+          canvas.style.top = '0';
+          canvas.style.left = '0';
+          canvas.style.width = '100%';
+          canvas.style.height = '100%';
+          canvas.style.pointerEvents = 'none';
+          canvas.style.zIndex = '10000';
+        }
+        fw.start();
+        setTimeout(() => fw.stop(), 5000);
+      }
+    }
   }, [status]);
 
   // Effect: establish connection & create game
