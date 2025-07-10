@@ -8,8 +8,11 @@
     "test": "react-scripts test"
   },
   "dependencies": {
+    "chart.js": "^4.5.0",
     "fireworks-js": "^2.10.8",
+    "framer-motion": "^12.23.3",
     "react": "^18.0.0",
+    "react-chartjs-2": "^5.3.0",
     "react-dom": "^18.0.0",
     "socket.io-client": "^4.8.1"
   },
