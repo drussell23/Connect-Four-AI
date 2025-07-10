@@ -2,11 +2,15 @@
 .landing-container {
   height: 100vh;
   width: 100%;
-  background: linear-gradient(135deg, #1E2A47 0%, #26418F 100%);
+  background: linear-gradient(-45deg, #1E2A47, #26418F, #1A1F36, #28407A);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  transition: transform 0.3s ease-out;
+  transform-style: preserve-3d;
 }
 
 .title-animation {
@@ -73,4 +77,11 @@
 .start-button:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(66,153,225,0.6);
+}
+
+/* Gradient background animation */
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
