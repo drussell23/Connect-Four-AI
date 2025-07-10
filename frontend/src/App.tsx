@@ -262,6 +262,7 @@ const [started, setStarted] = useState<boolean>(false);
   return (
     <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4" style={{ fontFamily: "'Poppins', sans-serif" }}>
       <button onClick={() => setSidebarOpen(!sidebarOpen)} className="absolute top-4 right-4 bg-white bg-opacity-20 text-white px-3 py-1 rounded hover:bg-opacity-40 transition">Moves</button>
+      <button onClick={() => setStarted(false)} className="absolute top-4 left-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition">Quit</button>
       <div className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
         <h2 className="text-xl font-bold p-4 border-b border-white/20">Move History</h2>
         <ul>
