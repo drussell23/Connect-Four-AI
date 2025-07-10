@@ -4,6 +4,7 @@ import Board from './components/Board';
 
 import apiSocket from './api/socket';
 import { Fireworks } from 'fireworks-js';
+import LandingPage from './components/LandingPage';
 
 // cell values
 type CellValue = 'Empty' | 'Red' | 'Yellow';
@@ -23,6 +24,7 @@ const App: React.FC = () => {
   interface Move { player: CellValue; column: number; }
   const [history, setHistory] = useState<Move[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+const [started, setStarted] = useState<boolean>(false);
   
   // Audio and haptic feedback setup
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -218,6 +220,10 @@ const App: React.FC = () => {
       socket.off('aiMove');
     };
   }, [socket]);
+
+  if (!started) {
+    return <LandingPage onStart={() => setStarted(true)} />;
+  }
 
   // Handler for when the human clicks a column
   function onColumnClick(col: number) {
