@@ -6,6 +6,9 @@ import apiSocket from './api/socket';
 import { Fireworks } from 'fireworks-js';
 import LandingPage from './components/LandingPage';
 
+import { AnimatePresence } from 'framer-motion';
+import Sidebar from './components/Sidebar';
+
 // cell values
 type CellValue = 'Empty' | 'Red' | 'Yellow';
 
@@ -73,6 +76,19 @@ const [started, setStarted] = useState<boolean>(false);
         fw.start();
         setTimeout(() => fw.stop(), 100000); // Extinguish fireworks after 100 seconds. 
       }
+    }
+  }, [status]);
+
+  // Update stats in localStorage and notify Stats component
+  useEffect(() => {
+    if (status.endsWith('wins!') || status === 'Draw game') {
+      const stored = localStorage.getItem('connect4Stats');
+      const stats = stored ? JSON.parse(stored) : { wins: 0, losses: 0, draws: 0 };
+      if (status.startsWith('Red')) stats.wins++;
+      else if (status.startsWith('Yellow')) stats.losses++;
+      else stats.draws++;
+      localStorage.setItem('connect4Stats', JSON.stringify(stats));
+      window.dispatchEvent(new CustomEvent('statsUpdate', { detail: stats }));
     }
   }, [status]);
 
@@ -270,16 +286,11 @@ const [started, setStarted] = useState<boolean>(false);
     <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4" style={{ fontFamily: "'Poppins', sans-serif" }}>
       <button onClick={() => setSidebarOpen(!sidebarOpen)} className="absolute top-4 right-4 bg-white bg-opacity-20 text-white px-3 py-1 rounded hover:bg-opacity-40 transition">Moves</button>
       <button onClick={() => setStarted(false)} className="absolute top-4 left-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition">Quit</button>
-      <div className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
-        <h2 className="text-xl font-bold p-4 border-b border-white/20">Move History</h2>
-        <ul>
-          {history.map((move, idx) => (
-            <li key={idx} className="p-2 border-b border-white/20">
-              {idx + 1}. {move.player} → Col {move.column + 1}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <AnimatePresence>
+        {sidebarOpen && (
+          <Sidebar history={history} onClose={() => setSidebarOpen(false)} />
+        )}
+      </AnimatePresence>
       {status.endsWith('wins!') && (
   <div className="fixed top-0 left-0 w-full flex justify-center z-50 pointer-events-none">
     <div className="slide-down pulse bg-black bg-opacity-75 text-white font-bold text-3xl py-4 px-8 rounded-b-lg pointer-events-none">
