@@ -71,7 +71,7 @@ const [started, setStarted] = useState<boolean>(false);
           canvas.style.zIndex = '10000';
         }
         fw.start();
-        setTimeout(() => fw.stop(), 60000); // Extinguish fireworks after 60 seconds. 
+        setTimeout(() => fw.stop(), 100000); // Extinguish fireworks after 100 seconds. 
       }
     }
   }, [status]);
