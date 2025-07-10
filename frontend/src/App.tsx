@@ -71,7 +71,7 @@ const [started, setStarted] = useState<boolean>(false);
           canvas.style.zIndex = '10000';
         }
         fw.start();
-        setTimeout(() => fw.stop(), 5000);
+        setTimeout(() => fw.stop(), 60000); // Extinguish fireworks after 60 seconds. 
       }
     }
   }, [status]);
@@ -221,8 +221,22 @@ const [started, setStarted] = useState<boolean>(false);
     };
   }, [socket]);
 
+  // Handler to start or restart game
+  const handlePlayAgain = () => {
+    // Reset game state
+    setHistory([]);
+    setSidebarOpen(false);
+    if (!socket) return;
+    setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
+    setWinningLine([]);
+    setStatus('Creating game…');
+    socket.emit('createGame', { playerId: 'Red' });
+  };
+
+  
+
   if (!started) {
-    return <LandingPage onStart={() => setStarted(true)} />;
+    return <LandingPage onStart={() => { handlePlayAgain(); setStarted(true); }} />;
   }
 
   // Handler for when the human clicks a column
@@ -250,14 +264,7 @@ const [started, setStarted] = useState<boolean>(false);
     );
   }
 
-  // Play Again button handler
-  const handlePlayAgain = () => {
-    if (!socket) return;
-    setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
-    setWinningLine([]);
-    setStatus('Creating game…');
-    socket.emit('createGame', { playerId: 'Red' });
-  };
+
 
   return (
     <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4" style={{ fontFamily: "'Poppins', sans-serif" }}>
@@ -274,8 +281,8 @@ const [started, setStarted] = useState<boolean>(false);
         </ul>
       </div>
       {status.endsWith('wins!') && (
-  <div className="fixed top-0 left-0 w-full flex justify-center z-50">
-    <div className="slide-down pulse bg-black bg-opacity-75 text-white font-bold text-3xl py-4 px-8 rounded-b-lg">
+  <div className="fixed top-0 left-0 w-full flex justify-center z-50 pointer-events-none">
+    <div className="slide-down pulse bg-black bg-opacity-75 text-white font-bold text-3xl py-4 px-8 rounded-b-lg pointer-events-none">
       {status.startsWith('Red') ? 'You Win!' : 'AI Wins!'}
     </div>
   </div>
