@@ -29739,3 +29739,312 @@ TypeError: server.listeners is not a function
 
 [[90m7:39:25 PM[0m] Found 18 errors. Watching for file changes.
 
+c[[90m7:57:27 PM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m3[0m:[93m23[0m - [91merror[0m[90m TS2305: [0mModule '"../../networks/cnnNetworks"' has no exported member 'Connect4ResNet'.
+
+[7m3[0m import { Connect4CNN, Connect4ResNet, Connect4AttentionNetwork } from '../../networks/cnnNetworks';
+[7m [0m [91m                      ~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m3[0m:[93m39[0m - [91merror[0m[90m TS2305: [0mModule '"../../networks/cnnNetworks"' has no exported member 'Connect4AttentionNetwork'.
+
+[7m3[0m import { Connect4CNN, Connect4ResNet, Connect4AttentionNetwork } from '../../networks/cnnNetworks';
+[7m [0m [91m                                      ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m251[0m:[93m13[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ optimizer: tf.AdamaxOptimizer; loss: { [x: string]: string; }; lossWeights: { [x: string]: number; }; metrics: string[]; }' is not assignable to parameter of type 'ModelCompileArgs'.
+  Object literal may only specify known properties, and 'lossWeights' does not exist in type 'ModelCompileArgs'.
+
+[7m251[0m             lossWeights: {
+[7m   [0m [91m            ~~~~~~~~~~~~~~[0m
+[7m252[0m                 [policy.name]: this.config.policyCoefficient,
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m...[0m 
+[7m255[0m                 [auxiliaryPolicy.name]: 0.1
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m256[0m             },
+[7m   [0m [91m~~~~~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m537[0m:[93m19[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m537[0m     private root: MCTSNode;
+[7m   [0m [91m                  ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m542[0m:[93m34[0m - [91merror[0m[90m TS2304: [0mCannot find name 'PVNetwork'.
+
+[7m542[0m     constructor(private network: PVNetwork, private simulations = 800) { }
+[7m   [0m [91m                                 ~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m545[0m:[93m25[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m545[0m         this.root = new MCTSNode(rootState, 1.0, null);
+[7m   [0m [91m                        ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m549[0m:[93m75[0m - [91merror[0m[90m TS2339: [0mProperty 'prior' does not exist on type 'unknown'.
+
+[7m549[0m         const priors = Array.from(this.root.children.values()).map(c => c.prior);
+[7m   [0m [91m                                                                          ~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m560[0m:[93m25[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m560[0m             const path: MCTSNode[] = [node];
+[7m   [0m [91m                        ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m583[0m:[93m75[0m - [91merror[0m[90m TS2339: [0mProperty 'visitCount' does not exist on type 'unknown'.
+
+[7m583[0m         const visits = Array.from(this.root.children.values()).map(c => c.visitCount);
+[7m   [0m [91m                                                                          ~~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m592[0m:[93m26[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m592[0m     private expand(node: MCTSNode) {
+[7m   [0m [91m                         ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m598[0m:[93m38[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m598[0m             node.children.set(a, new MCTSNode(this.tryAction(node.state, a), probs[a], node));
+[7m   [0m [91m                                     ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m602[0m:[93m26[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m602[0m     private select(node: MCTSNode): MCTSNode {
+[7m   [0m [91m                         ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m602[0m:[93m37[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m602[0m     private select(node: MCTSNode): MCTSNode {
+[7m   [0m [91m                                    ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m604[0m:[93m19[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m604[0m         let best: MCTSNode | null = null;
+[7m   [0m [91m                  ~~~~~~~~[0m
+
+[96msrc/ai/selfplay/parallelSelfPlay.ts[0m:[93m234[0m:[93m22[0m - [91merror[0m[90m TS2339: [0mProperty 'initialize' does not exist on type 'UltimateConnect4AI'.
+
+[7m234[0m             await ai.initialize();
+[7m   [0m [91m                     ~~~~~~~~~~[0m
+
+[96msrc/ai/selfplay/parallelSelfPlay.ts[0m:[93m428[0m:[93m35[0m - [91merror[0m[90m TS2345: [0mArgument of type 'Promise<GameResult[]>' is not assignable to parameter of type 'Promise<GameResult>'.
+  Type 'GameResult[]' is missing the following properties from type 'GameResult': player1, player2, winner, moves, and 4 more.
+
+[7m428[0m                 gamePromises.push(this.runWorkerGames(worker, workerGames));
+[7m   [0m [91m                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/selfplay/parallelSelfPlay.ts[0m:[93m744[0m:[93m22[0m - [91merror[0m[90m TS2339: [0mProperty 'initialize' does not exist on type 'UltimateConnect4AI'.
+
+[7m744[0m             await ai.initialize();
+[7m   [0m [91m                     ~~~~~~~~~~[0m
+
+[96msrc/ai/selfplay/parallelSelfPlay.ts[0m:[93m873[0m:[93m22[0m - [91merror[0m[90m TS2339: [0mProperty 'initialize' does not exist on type 'UltimateConnect4AI'.
+
+[7m873[0m             await ai.initialize();
+[7m   [0m [91m                     ~~~~~~~~~~[0m
+
+[[90m7:57:29 PM[0m] Found 18 errors. Watching for file changes.
+
+c[[90m7:57:40 PM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m3[0m:[93m23[0m - [91merror[0m[90m TS2305: [0mModule '"../../networks/cnnNetworks"' has no exported member 'Connect4ResNet'.
+
+[7m3[0m import { Connect4CNN, Connect4ResNet, Connect4AttentionNetwork } from '../../networks/cnnNetworks';
+[7m [0m [91m                      ~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m3[0m:[93m39[0m - [91merror[0m[90m TS2305: [0mModule '"../../networks/cnnNetworks"' has no exported member 'Connect4AttentionNetwork'.
+
+[7m3[0m import { Connect4CNN, Connect4ResNet, Connect4AttentionNetwork } from '../../networks/cnnNetworks';
+[7m [0m [91m                                      ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m251[0m:[93m13[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ optimizer: tf.AdamaxOptimizer; loss: { [x: string]: string; }; lossWeights: { [x: string]: number; }; metrics: string[]; }' is not assignable to parameter of type 'ModelCompileArgs'.
+  Object literal may only specify known properties, and 'lossWeights' does not exist in type 'ModelCompileArgs'.
+
+[7m251[0m             lossWeights: {
+[7m   [0m [91m            ~~~~~~~~~~~~~~[0m
+[7m252[0m                 [policy.name]: this.config.policyCoefficient,
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m...[0m 
+[7m255[0m                 [auxiliaryPolicy.name]: 0.1
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m256[0m             },
+[7m   [0m [91m~~~~~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m537[0m:[93m19[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m537[0m     private root: MCTSNode;
+[7m   [0m [91m                  ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m542[0m:[93m34[0m - [91merror[0m[90m TS2304: [0mCannot find name 'PVNetwork'.
+
+[7m542[0m     constructor(private network: PVNetwork, private simulations = 800) { }
+[7m   [0m [91m                                 ~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m545[0m:[93m25[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m545[0m         this.root = new MCTSNode(rootState, 1.0, null);
+[7m   [0m [91m                        ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m549[0m:[93m75[0m - [91merror[0m[90m TS2339: [0mProperty 'prior' does not exist on type 'unknown'.
+
+[7m549[0m         const priors = Array.from(this.root.children.values()).map(c => c.prior);
+[7m   [0m [91m                                                                          ~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m560[0m:[93m25[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m560[0m             const path: MCTSNode[] = [node];
+[7m   [0m [91m                        ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m583[0m:[93m75[0m - [91merror[0m[90m TS2339: [0mProperty 'visitCount' does not exist on type 'unknown'.
+
+[7m583[0m         const visits = Array.from(this.root.children.values()).map(c => c.visitCount);
+[7m   [0m [91m                                                                          ~~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m592[0m:[93m26[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m592[0m     private expand(node: MCTSNode) {
+[7m   [0m [91m                         ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m598[0m:[93m38[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m598[0m             node.children.set(a, new MCTSNode(this.tryAction(node.state, a), probs[a], node));
+[7m   [0m [91m                                     ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m602[0m:[93m26[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m602[0m     private select(node: MCTSNode): MCTSNode {
+[7m   [0m [91m                         ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m602[0m:[93m37[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m602[0m     private select(node: MCTSNode): MCTSNode {
+[7m   [0m [91m                                    ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m604[0m:[93m19[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m604[0m         let best: MCTSNode | null = null;
+[7m   [0m [91m                  ~~~~~~~~[0m
+
+[96msrc/ai/selfplay/parallelSelfPlay.ts[0m:[93m234[0m:[93m22[0m - [91merror[0m[90m TS2339: [0mProperty 'initialize' does not exist on type 'UltimateConnect4AI'.
+
+[7m234[0m             await ai.initialize();
+[7m   [0m [91m                     ~~~~~~~~~~[0m
+
+[96msrc/ai/selfplay/parallelSelfPlay.ts[0m:[93m428[0m:[93m35[0m - [91merror[0m[90m TS2345: [0mArgument of type 'Promise<GameResult[]>' is not assignable to parameter of type 'Promise<GameResult>'.
+  Type 'GameResult[]' is missing the following properties from type 'GameResult': player1, player2, winner, moves, and 4 more.
+
+[7m428[0m                 gamePromises.push(this.runWorkerGames(worker, workerGames));
+[7m   [0m [91m                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/selfplay/parallelSelfPlay.ts[0m:[93m744[0m:[93m22[0m - [91merror[0m[90m TS2339: [0mProperty 'initialize' does not exist on type 'UltimateConnect4AI'.
+
+[7m744[0m             await ai.initialize();
+[7m   [0m [91m                     ~~~~~~~~~~[0m
+
+[96msrc/ai/selfplay/parallelSelfPlay.ts[0m:[93m873[0m:[93m22[0m - [91merror[0m[90m TS2339: [0mProperty 'initialize' does not exist on type 'UltimateConnect4AI'.
+
+[7m873[0m             await ai.initialize();
+[7m   [0m [91m                     ~~~~~~~~~~[0m
+
+[[90m7:57:41 PM[0m] Found 18 errors. Watching for file changes.
+
+c[[90m7:57:42 PM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m3[0m:[93m23[0m - [91merror[0m[90m TS2305: [0mModule '"../../networks/cnnNetworks"' has no exported member 'Connect4ResNet'.
+
+[7m3[0m import { Connect4CNN, Connect4ResNet, Connect4AttentionNetwork } from '../../networks/cnnNetworks';
+[7m [0m [91m                      ~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m3[0m:[93m39[0m - [91merror[0m[90m TS2305: [0mModule '"../../networks/cnnNetworks"' has no exported member 'Connect4AttentionNetwork'.
+
+[7m3[0m import { Connect4CNN, Connect4ResNet, Connect4AttentionNetwork } from '../../networks/cnnNetworks';
+[7m [0m [91m                                      ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m251[0m:[93m13[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ optimizer: tf.AdamaxOptimizer; loss: { [x: string]: string; }; lossWeights: { [x: string]: number; }; metrics: string[]; }' is not assignable to parameter of type 'ModelCompileArgs'.
+  Object literal may only specify known properties, and 'lossWeights' does not exist in type 'ModelCompileArgs'.
+
+[7m251[0m             lossWeights: {
+[7m   [0m [91m            ~~~~~~~~~~~~~~[0m
+[7m252[0m                 [policy.name]: this.config.policyCoefficient,
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m...[0m 
+[7m255[0m                 [auxiliaryPolicy.name]: 0.1
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m256[0m             },
+[7m   [0m [91m~~~~~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m537[0m:[93m19[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m537[0m     private root: MCTSNode;
+[7m   [0m [91m                  ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m542[0m:[93m34[0m - [91merror[0m[90m TS2304: [0mCannot find name 'PVNetwork'.
+
+[7m542[0m     constructor(private network: PVNetwork, private simulations = 800) { }
+[7m   [0m [91m                                 ~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m545[0m:[93m25[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m545[0m         this.root = new MCTSNode(rootState, 1.0, null);
+[7m   [0m [91m                        ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m549[0m:[93m75[0m - [91merror[0m[90m TS2339: [0mProperty 'prior' does not exist on type 'unknown'.
+
+[7m549[0m         const priors = Array.from(this.root.children.values()).map(c => c.prior);
+[7m   [0m [91m                                                                          ~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m560[0m:[93m25[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m560[0m             const path: MCTSNode[] = [node];
+[7m   [0m [91m                        ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m583[0m:[93m75[0m - [91merror[0m[90m TS2339: [0mProperty 'visitCount' does not exist on type 'unknown'.
+
+[7m583[0m         const visits = Array.from(this.root.children.values()).map(c => c.visitCount);
+[7m   [0m [91m                                                                          ~~~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m592[0m:[93m26[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m592[0m     private expand(node: MCTSNode) {
+[7m   [0m [91m                         ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m598[0m:[93m38[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m598[0m             node.children.set(a, new MCTSNode(this.tryAction(node.state, a), probs[a], node));
+[7m   [0m [91m                                     ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m602[0m:[93m26[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m602[0m     private select(node: MCTSNode): MCTSNode {
+[7m   [0m [91m                         ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m602[0m:[93m37[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m602[0m     private select(node: MCTSNode): MCTSNode {
+[7m   [0m [91m                                    ~~~~~~~~[0m
+
+[96msrc/ai/algorithms/hybrid/AlphaZero.ts[0m:[93m604[0m:[93m19[0m - [91merror[0m[90m TS2304: [0mCannot find name 'MCTSNode'.
+
+[7m604[0m         let best: MCTSNode | null = null;
+[7m   [0m [91m                  ~~~~~~~~[0m
+
+[96msrc/ai/selfplay/parallelSelfPlay.ts[0m:[93m234[0m:[93m22[0m - [91merror[0m[90m TS2339: [0mProperty 'initialize' does not exist on type 'UltimateConnect4AI'.
+
+[7m234[0m             await ai.initialize();
+[7m   [0m [91m                     ~~~~~~~~~~[0m
+
+[96msrc/ai/selfplay/parallelSelfPlay.ts[0m:[93m428[0m:[93m35[0m - [91merror[0m[90m TS2345: [0mArgument of type 'Promise<GameResult[]>' is not assignable to parameter of type 'Promise<GameResult>'.
+  Type 'GameResult[]' is missing the following properties from type 'GameResult': player1, player2, winner, moves, and 4 more.
+
+[7m428[0m                 gamePromises.push(this.runWorkerGames(worker, workerGames));
+[7m   [0m [91m                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/selfplay/parallelSelfPlay.ts[0m:[93m744[0m:[93m22[0m - [91merror[0m[90m TS2339: [0mProperty 'initialize' does not exist on type 'UltimateConnect4AI'.
+
+[7m744[0m             await ai.initialize();
+[7m   [0m [91m                     ~~~~~~~~~~[0m
+
+[96msrc/ai/selfplay/parallelSelfPlay.ts[0m:[93m873[0m:[93m22[0m - [91merror[0m[90m TS2339: [0mProperty 'initialize' does not exist on type 'UltimateConnect4AI'.
+
+[7m873[0m             await ai.initialize();
+[7m   [0m [91m                     ~~~~~~~~~~[0m
+
+[[90m7:57:42 PM[0m] Found 18 errors. Watching for file changes.
+
