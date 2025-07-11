@@ -210,6 +210,41 @@ uvicorn ml_service:app --reload --host 0.0.0.0 --port 8000
 
 ## Troubleshooting
 
+### Port is already in use (EADDRINUSE)
+
+If you see an error like `Error: listen EADDRINUSE: address already in use :::3000`, it means another process is occupying the port the application is trying to use. This can happen if a previous development session did not terminate correctly.
+
+To resolve this, you can use the provided `kill-port` script to free up the required port.
+
+**Usage:**
+
+Run the following command from the root of the project, replacing `<port_number>` with the port(s) you need to clear.
+
+```bash
+npm run kill-port -- <port_number_1> <port_number_2>
+```
+
+**Examples:**
+
+To kill a single port:
+```bash
+npm run kill-port -- 3000
+```
+
+To kill multiple ports:
+```bash
+npm run kill-port -- 3000 3002
+```
+
+#### Clearing Default Development Ports
+
+For convenience, a `dev:kill` script is available to clear the default backend and frontend ports (3000 and 3002) with a single command:
+
+```bash
+npm run dev:kill
+```
+
+
 * **Stuck on “Connecting…”**: Check that both frontend and backend are running on ports 3001/3000, and that your proxy or WS URL matches.
 * **CORS errors**: Verify `CORS_ORIGINS` in backend `.env` includes your front‑end origin.
 * **Proxy ECONNREFUSED**: Scope CRA proxy to `/socket.io` or disable it if directly hitting port 3000.

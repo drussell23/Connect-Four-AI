@@ -27,7 +27,24 @@ const App: React.FC = () => {
   interface Move { player: CellValue; column: number; }
   const [history, setHistory] = useState<Move[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
-const [started, setStarted] = useState<boolean>(false);
+  const [aiLevel, setAILevel] = useState<number>(1);
+  const [aiJustLeveledUp, setAIJustLeveledUp] = useState<boolean>(false);
+  const [started, setStarted] = useState<boolean>(false);
+
+  const fetchAILevel = async () => {
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${API_URL}/api/ai/level`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch AI level: ${response.statusText}`);
+      }
+      const data = await response.json();
+      setAILevel(data.level);
+      console.log(`Rival AI level is now ${data.level}`);
+    } catch (error) {
+      console.error('Error fetching AI level:', error);
+    }
+  };
   
   // Audio and haptic feedback setup
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -57,11 +74,20 @@ const [started, setStarted] = useState<boolean>(false);
     setTimeout(() => playTone(783.99, 0.3), 600);
     navigator.vibrate?.([100,50,100]);
   };
-  // Play victory sound and fireworks animation when status changes to win
+  // Effect for game-end events (win, draw)
   useEffect(() => {
-    if (status.endsWith('wins!')) {
-      playVictory();
+    if (status.endsWith('wins!') || status === 'Draw game') {
+      // Update stats in localStorage
+      const stored = localStorage.getItem('connect4Stats');
+      const stats = stored ? JSON.parse(stored) : { wins: 0, losses: 0, draws: 0 };
+
       if (status.startsWith('Red')) {
+        stats.wins++;
+        // When the human wins, level up the AI and trigger fireworks.
+        fetchAILevel();
+        setAIJustLeveledUp(true);
+        setTimeout(() => setAIJustLeveledUp(false), 2500); // Show indicator for 2.5s
+        playVictory();
         const fw = new Fireworks(document.body, { sound: { enabled: false } });
         const canvas = (fw as any).canvas as HTMLCanvasElement;
         if (canvas) {
@@ -74,19 +100,14 @@ const [started, setStarted] = useState<boolean>(false);
           canvas.style.zIndex = '10000';
         }
         fw.start();
-        setTimeout(() => fw.stop(), 100000); // Extinguish fireworks after 100 seconds. 
+        setTimeout(() => fw.stop(), 100000);
+      } else if (status.startsWith('Yellow')) {
+        stats.losses++;
+        playVictory();
+      } else {
+        stats.draws++;
       }
-    }
-  }, [status]);
 
-  // Update stats in localStorage and notify Stats component
-  useEffect(() => {
-    if (status.endsWith('wins!') || status === 'Draw game') {
-      const stored = localStorage.getItem('connect4Stats');
-      const stats = stored ? JSON.parse(stored) : { wins: 0, losses: 0, draws: 0 };
-      if (status.startsWith('Red')) stats.wins++;
-      else if (status.startsWith('Yellow')) stats.losses++;
-      else stats.draws++;
       localStorage.setItem('connect4Stats', JSON.stringify(stats));
       window.dispatchEvent(new CustomEvent('statsUpdate', { detail: stats }));
     }
@@ -94,8 +115,9 @@ const [started, setStarted] = useState<boolean>(false);
 
   // Effect: establish connection & create game
   useEffect(() => {
-    // hook up our singleton socket
+    // Hook up our singleton socket and fetch the initial AI level.
     setSocket(apiSocket);
+    fetchAILevel();
 
     apiSocket.on('connect', () => {
       console.log('🔗 connected, id=', apiSocket.id);
@@ -288,7 +310,12 @@ const [started, setStarted] = useState<boolean>(false);
       <button onClick={() => setStarted(false)} className="absolute top-4 left-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition">Quit</button>
       <AnimatePresence>
         {sidebarOpen && (
-          <Sidebar history={history} onClose={() => setSidebarOpen(false)} />
+          <Sidebar
+            history={history}
+            onClose={() => setSidebarOpen(false)}
+            aiLevel={aiLevel}
+            aiJustLeveledUp={aiJustLeveledUp}
+          />
         )}
       </AnimatePresence>
       {status.endsWith('wins!') && (
