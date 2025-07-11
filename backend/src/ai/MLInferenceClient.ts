@@ -41,7 +41,8 @@ export class MLInferenceClient {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(boardState),
-          signal: controller.signal,
+          // Cast to node-fetch's AbortSignal to satisfy TypeScript
+          signal: controller.signal as unknown as AbortSignal,
         };
 
         const response = await fetch(url, init);

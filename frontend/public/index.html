@@ -4,8 +4,162 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Connect Four</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    @keyframes bounce {
+      0% { transform: translateY(-20px); }
+      60% { transform: translateY(5px); }
+      100% { transform: translateY(0); }
+    }
+    @keyframes boardFadeIn {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes glow {
+      0% { box-shadow: 0 0 8px 4px rgba(6,214,160,0.7); }
+      100% { box-shadow: 0 0 12px 6px rgba(6,214,160,1); }
+    }
+    @keyframes fadeText {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    .fade-in {
+      animation: boardFadeIn 0.5s ease-out;
+    }
+    .bounce {
+      animation: bounce 0.4s ease-out;
+    }
+    .glow {
+      animation: glow 1s ease-in-out infinite alternate;
+      border: 4px solid #06d6a0;
+    }
+    .fade-text {
+      animation: fadeText 0.5s ease-in-out;
+    }
+    @keyframes drop {
+      0% { transform: translateY(-200%); }
+      100% { transform: translateY(0); }
+    }
+    .drop {
+      animation: drop 0.4s ease-out;
+    }
+    @keyframes slideDown {
+      0% { transform: translateY(-100%) scale(0.8); opacity: 0; }
+      60% { transform: translateY(10%) scale(1.05); opacity: 1; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .slide-down {
+      animation: slideDown 0.6s ease-out;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .pulse {
+      animation: pulse 1s ease-in-out infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .spin {
+      animation: spin 0.6s linear;
+    }
+    @keyframes slotPulse {
+      0% { border-color: #26418f; }
+      50% { border-color: #118ab2; }
+      100% { border-color: #26418f; }
+    }
+    .slot-pulse {
+      animation: slotPulse 2s ease-in-out infinite;
+    }
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .title-gradient {
+      background: linear-gradient(270deg, #06d6a0, #118ab2, #ef476f, #ffd166);
+      background-size: 800% 800%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientBG 6s ease infinite;
+    }
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(-2deg); }
+      50% { transform: rotate(2deg); }
+    }
+    .hover-wiggle:hover {
+      animation: wiggle 0.6s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .title-float {
+      animation: float 4s ease-in-out infinite;
+    }
+    @keyframes boardGradient {
+      0% { background-color: #1e2a47; }
+      50% { background-color: #26418f; }
+      100% { background-color: #1e2a47; }
+    }
+    @keyframes boardFloat {
+      0%, 100% { transform: translateY(0) ; }
+      50% { transform: translateY(5px); }
+    }
+    .board-bg {
+      animation: boardGradient 8s ease-in-out infinite;
+    }
+    .board-float {
+      animation: boardFloat 6s ease-in-out infinite;
+      transform-style: preserve-3d;
+    }
+    .board-tilt {
+      perspective: 800px;
+    }
+    .board-tilt .board-bg {
+      transform-style: preserve-3d;
+      transition: transform 0.3s ease-out;
+    }
+    .board-tilt:hover .board-bg {
+      transform: rotateX(10deg) rotateY(-10deg);
+    }
+    @keyframes slideInRight {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(0); }
+    }
+    @keyframes slideOutRight {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(100%); }
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100%;
+      width: 280px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      overflow-y: auto;
+      transform: translateX(100%);
+      z-index: 1000;
+    }
+    .sidebar.open {
+      animation: slideInRight 0.3s ease-out forwards;
+    }
+    .sidebar.closed {
+      animation: slideOutRight 0.3s ease-in forwards;
+    }
+    .fade-text {
+      animation: fadeText 0.5s ease-in-out;
+    }
+  </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root" style="position: relative;"></div>
+
+
 </body>
 </html>
