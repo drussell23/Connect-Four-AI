@@ -1,0 +1,35 @@
+[2025-07-11 17:50:26] [INFO] Scanning ports: 3000 3001 3002 3003 3004 3005 3006 8000 8001 8080 8888 5000 5001 9000
+[2025-07-11 17:50:42] [INFO] Scanning ports: 3000 3001 3002 3003 3004 3005 3006 8000 8001 8080 8888 5000 5001 9000
+[2025-07-11 17:57:57] [INFO] Scanning ports: 3000 3001 3002 3003 3004 3005 3006 8000 8001 8080 8888 5000 5001 9000
+[2025-07-11 17:58:02] [INFO] Starting cleanup of development ports...
+[2025-07-11 17:58:03] [INFO] Found process on port 3000:
+[2025-07-11 17:58:03] [INFO] Attempting to kill process 31591 on port 3000...
+[2025-07-11 17:58:05] [SUCCESS] Process 31591 gracefully terminated
+[2025-07-11 17:58:06] [INFO] Found process on port 3001:
+[2025-07-11 17:58:06] [INFO] Attempting to kill process 40260 on port 3001...
+[2025-07-11 17:58:08] [SUCCESS] Process 40260 gracefully terminated
+[2025-07-11 17:58:08] [INFO] Found process on port 3002:
+[2025-07-11 17:58:08] [INFO] Attempting to kill process 31756
+40261 on port 3002...
+[2025-07-11 17:58:11] [SUCCESS] Process 31756
+40261 gracefully terminated
+[2025-07-11 17:58:11] [INFO] Found process on port 3003:
+[2025-07-11 17:58:11] [INFO] Attempting to kill process 40263 on port 3003...
+[2025-07-11 17:58:13] [SUCCESS] Process 40263 gracefully terminated
+[2025-07-11 17:58:14] [INFO] Found process on port 3004:
+[2025-07-11 17:58:14] [INFO] Attempting to kill process 40262 on port 3004...
+[2025-07-11 17:58:16] [SUCCESS] Process 40262 gracefully terminated
+[2025-07-11 17:58:16] [INFO] Found process on port 3005:
+[2025-07-11 17:58:16] [INFO] Attempting to kill process 40264 on port 3005...
+[2025-07-11 17:58:19] [SUCCESS] Process 40264 gracefully terminated
+[2025-07-11 17:58:19] [INFO] Found process on port 8000:
+[2025-07-11 17:58:19] [INFO] Attempting to kill process 57711
+63277 on port 8000...
+[2025-07-11 17:58:21] [SUCCESS] Process 57711
+63277 gracefully terminated
+[2025-07-11 17:58:23] [INFO] Found process on port 5000:
+[2025-07-11 17:58:23] [INFO] Attempting to kill process 618 on port 5000...
+[2025-07-11 17:58:25] [SUCCESS] Process 618 gracefully terminated
+[2025-07-11 17:58:26] [SUCCESS] Cleaned up ports: 3000 3001 3002 3003 3004 3005 8000 5000
+[2025-07-11 17:58:26] [INFO] Scanning ports: 3000 3001 3002 3003 3004 3005 3006 8000 8001 8080 8888 5000 5001 9000
+[2025-07-11 17:58:32] [INFO] Scanning ports: 3000 3001 3002 3003 3004 3005 3006 8000 8001 8080 8888 5000 5001 9000
