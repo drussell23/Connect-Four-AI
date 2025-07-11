@@ -1,5 +1,6 @@
 import React from 'react';
 import Stats from './Stats';
+import ThreatMeter from './ThreatMeter';
 import { motion } from 'framer-motion';
 
 interface Move {
@@ -10,9 +11,11 @@ interface Move {
 interface SidebarProps {
   history: Move[];
   onClose: () => void;
+  aiLevel: number;
+  aiJustLeveledUp: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ history, onClose }) => (
+const Sidebar: React.FC<SidebarProps> = ({ history, onClose, aiLevel, aiJustLeveledUp }) => (
   <motion.aside
     initial={{ x: 256, opacity: 0 }}
     animate={{ x: 0, opacity: 1 }}
@@ -21,6 +24,8 @@ const Sidebar: React.FC<SidebarProps> = ({ history, onClose }) => (
     className="fixed top-0 right-0 w-64 h-full bg-gray-900 bg-opacity-75 backdrop-blur-lg p-6 z-50 rounded-l-lg shadow-lg flex flex-col"
   >
     <button onClick={onClose} className="absolute top-2 right-2 text-white text-xl">&times;</button>
+    <ThreatMeter level={aiLevel} isAdapting={aiJustLeveledUp} />
+    <hr className="my-4 border-white opacity-20" />
     <h2 className="text-lg font-bold mb-4 text-white">Game Stats</h2>
     <Stats />
     <hr className="my-4 border-white opacity-20" />

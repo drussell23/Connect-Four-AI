@@ -18,6 +18,7 @@ import {
   blockFloatingOpenThreeDiagonal,
 } from '../ai/connect4AI';
 import type { CellValue } from '../ai/connect4AI';
+import { AIProfileService } from './ai-profile.service';
 
 export enum Difficulty {
   Easy = 'Easy',
@@ -30,12 +31,10 @@ export class GameAIService {
   private readonly logger = new Logger(GameAIService.name);
   private cache = new Map<string, number>();
 
-  constructor() {
-    // Build a canonical empty board.
+  constructor(private readonly aiProfileService: AIProfileService) {
     const emptyBoard: CellValue[][] = Array.from({ length: 6 }, () => Array<CellValue>(7).fill('Empty'));
     const center = Math.floor(emptyBoard[0].length / 2);
 
-    // Pre-cache for both AI colors and all difficulty levels.
     for (const disc of ['Yellow', 'Red'] as CellValue[]) {
       for (const diff of Object.values(Difficulty)) {
         const key = JSON.stringify(emptyBoard) + disc + diff;
@@ -46,22 +45,27 @@ export class GameAIService {
   }
 
   /**
-     * Core entry point. Wraps a multi‐step pipeline based on difficulty:
-     * 
-     *  Easy:   0) Immediate opponent‐win block + fallback
-     *  Medium: 0) Immediate blocks, 0.5) fork block, 1) vertical-three block,
-     *           2) strict-three block, 3) horizontal/diagonal floating-three,
-     *           4) shallow minimax + fallback
-     *  Hard:   Medium pipeline + 5) Monte Carlo Tree Search + full-search fallback
-     *
-     * Caches results, honors difficulty, and never yields a one‐move loss.
-     */
+   * Dynamically selects the AI's next move based on its current adaptive level.
+   * The AI's level determines its difficulty and strategy.
+   */
   getNextMove(
     board: CellValue[][],
     aiDisc: CellValue = 'Yellow',
     timeMs = 200,
-    difficulty: Difficulty = Difficulty.Hard
   ): number {
+    const aiLevel = this.aiProfileService.getCurrentLevel();
+    let difficulty: Difficulty;
+
+    if (aiLevel <= 2) {
+      difficulty = Difficulty.Easy;
+    } else if (aiLevel <= 5) {
+      difficulty = Difficulty.Medium;
+    } else {
+      difficulty = Difficulty.Hard;
+    }
+
+    this.logger.log(`Current AI Level: ${aiLevel} -> Mapped to Difficulty: ${difficulty}`);
+
     const key = JSON.stringify(board) + aiDisc + difficulty;
 
     // Precompute opponent disc.

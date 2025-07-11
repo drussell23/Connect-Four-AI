@@ -12,6 +12,7 @@ import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { GameAIService } from './game-ai.service';
+import { AIProfileService } from './ai-profile.service';
 import type { CellValue } from '../ai/connect4AI';
 import { MLInferenceClient } from '../ai/MLInferenceClient';
 
@@ -36,6 +37,7 @@ export class GameGateway
   constructor(
     private readonly gameService: GameService,
     private readonly gameAi: GameAIService,
+    private readonly aiProfileService: AIProfileService,
   ) {}
 
   afterInit(server: Server) {
@@ -118,6 +120,12 @@ export class GameGateway
         draw: res.draw,
         nextPlayer: res.nextPlayer,
       });
+
+      // If the human player won, level up the AI for the next game.
+      if (res.winner && res.winner !== 'Yellow') {
+        this.logger.log(`[${gameId}] Human player ${res.winner} won. Leveling up AI.`);
+        this.aiProfileService.levelUp();
+      }
 
       await new Promise(r => setTimeout(r, this.AI_THINK_DELAY_MS));
       if (res.winner || res.draw) {
