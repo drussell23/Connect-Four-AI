@@ -205,7 +205,7 @@ export class MADDPG {
 
             x = tf.layers.batchNormalization({ axis: -1 }).apply(x) as tf.SymbolicTensor;
 
-            x = tf.layers.globalAveragePooling2d().apply(x) as tf.SymbolicTensor;
+            x = tf.layers.globalAveragePooling2d({}).apply(x) as tf.SymbolicTensor;
         } else {
             x = tf.layers.flatten().apply(input) as tf.SymbolicTensor;
         }
@@ -261,7 +261,7 @@ export class MADDPG {
             kernelInitializer: 'heNormal'
         }).apply(stateFeatures) as tf.SymbolicTensor;
 
-        stateFeatures = tf.layers.globalAveragePooling2d().apply(stateFeatures) as tf.SymbolicTensor;
+        stateFeatures = tf.layers.globalAveragePooling2d({}).apply(stateFeatures) as tf.SymbolicTensor;
 
         // Process actions
         let actionFeatures = tf.layers.dense({
@@ -580,10 +580,10 @@ export class MADDPG {
                 allActions
             ]) as tf.Tensor;
 
-            const loss = tf.mean(tf.square(tf.sub(targets, tf.squeeze(predictions))));
+            const loss = tf.losses.meanSquaredError(targets, tf.squeeze(predictions));
 
             // Compute gradients and apply
-            const gradients = tf.variableGrads(() => loss);
+            const gradients = tf.variableGrads(() => loss as tf.Scalar);
             agent.criticOptimizer.applyGradients(gradients.grads);
 
             return loss.dataSync()[0];
@@ -632,7 +632,7 @@ export class MADDPG {
             const loss = tf.neg(tf.mean(qValues));
 
             // Compute gradients and apply
-            const gradients = tf.variableGrads(() => loss);
+            const gradients = tf.variableGrads(() => loss as tf.Scalar);
             agent.actorOptimizer.applyGradients(gradients.grads);
 
             return loss.dataSync()[0];

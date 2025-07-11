@@ -248,14 +248,16 @@ export class PPO {
                 kernelInitializer: 'heNormal'
             }).apply(x) as tf.SymbolicTensor;
 
-            x = tf.layers.globalAveragePooling2d().apply(x) as tf.SymbolicTensor;
+            // Fix globalAveragePooling2d calls
+            x = tf.layers.globalAveragePooling2d({}).apply(x) as tf.SymbolicTensor;
 
         } else if (this.config.networkType === 'resnet') {
             // ResNet architecture
             x = this.createResNetBlock(input, 64);
             x = this.createResNetBlock(x, 128);
             x = this.createResNetBlock(x, 256);
-            x = tf.layers.globalAveragePooling2d().apply(x) as tf.SymbolicTensor;
+            // Fix another globalAveragePooling2d call
+            x = tf.layers.globalAveragePooling2d({}).apply(x) as tf.SymbolicTensor;
 
         } else {
             // MLP architecture
@@ -548,8 +550,8 @@ export class PPO {
                 tf.mul(tf.neg(entropy), this.config.entropyCoeff)
             );
 
-            // Compute and apply gradients
-            const gradients = tf.variableGrads(() => totalLoss);
+            // Fix variableGrads call
+            const gradients = tf.variableGrads(() => totalLoss as tf.Scalar);
 
             // Gradient clipping
             const clippedGradients: { [name: string]: tf.Tensor } = {};
