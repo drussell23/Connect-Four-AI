@@ -77,6 +77,24 @@ export class GameAIService {
       `→ [AI] getNextMove START: disc=${aiDisc} diff=${difficulty} budget=${timeMs}ms boardHash=${key.slice(-10)}`
     );
 
+    // Count total discs on the board to identify opening moves.
+    const discCount = board.flat().filter(c => c !== 'Empty').length;
+
+    // Opening book: if it's the AI's first move (as P2), play center or adjacent.
+    if (discCount === 1) {
+      const center = Math.floor(board[0].length / 2);
+      // Check if center column is available (bottom row is index 5).
+      if (board[5][center] === 'Empty') {
+        this.logger.log(`Opening Book (P2): Center available, picking ${center}`);
+        return this._cacheAndReturn(key, center);
+      } else {
+        // Center is taken, pick a random adjacent column.
+        const adjacentCols = [center - 1, center + 1].filter(c => c >= 0 && c < 7);
+        this.logger.log(`Opening Book (P2): Center taken, picking from ${adjacentCols}`);
+        return this._cacheAndReturn(key, adjacentCols[Math.floor(Math.random() * adjacentCols.length)]);
+      }
+    }
+
     // Opening book: on empty board, play center instantly;.
     try {
       const tOpen = performance.now();
