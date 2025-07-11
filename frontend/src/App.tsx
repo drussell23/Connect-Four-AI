@@ -6,7 +6,7 @@ import apiSocket from './api/socket';
 import { Fireworks } from 'fireworks-js';
 import LandingPage from './components/LandingPage';
 
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import Sidebar from './components/Sidebar';
 
 // cell values
@@ -30,6 +30,7 @@ const App: React.FC = () => {
   const [aiLevel, setAILevel] = useState<number>(1);
   const [aiJustLeveledUp, setAIJustLeveledUp] = useState<boolean>(false);
   const [started, setStarted] = useState<boolean>(false);
+  const [showNightmareNotification, setShowNightmareNotification] = useState<boolean>(false);
 
   const fetchAILevel = async () => {
     try {
@@ -39,6 +40,13 @@ const App: React.FC = () => {
         throw new Error(`Failed to fetch AI level: ${response.statusText}`);
       }
       const data = await response.json();
+      // Check if we just crossed the Nightmare threshold
+      if (aiLevel < 9 && data.level >= 9) {
+        console.log('!!! NIGHTMARE MODE UNLOCKED !!!');
+        setShowNightmareNotification(true);
+        // Hide the notification after a few seconds
+        setTimeout(() => setShowNightmareNotification(false), 5000);
+      }
       setAILevel(data.level);
       console.log(`Rival AI level is now ${data.level}`);
     } catch (error) {
@@ -306,6 +314,35 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4" style={{ fontFamily: "'Poppins', sans-serif" }}>
+      <AnimatePresence>
+        {showNightmareNotification && (
+          <motion.div
+            className="fixed inset-0 bg-gray-900 bg-opacity-95 flex flex-col items-center justify-center z-[10001]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.h1
+              className="text-6xl font-extrabold glitch"
+              data-text="NIGHTMARE MODE"
+              initial={{ scale: 0.5, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 10, delay: 0.2 }}
+            >
+              NIGHTMARE MODE
+            </motion.h1>
+            <motion.p
+              className="text-2xl text-red-500 mt-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1 }}
+            >
+              The AI has evolved. Good luck.
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <button onClick={() => setSidebarOpen(!sidebarOpen)} className="absolute top-4 right-4 bg-white bg-opacity-20 text-white px-3 py-1 rounded hover:bg-opacity-40 transition">Moves</button>
       <button onClick={() => setStarted(false)} className="absolute top-4 left-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition">Quit</button>
       <AnimatePresence>

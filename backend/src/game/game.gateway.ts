@@ -12,7 +12,7 @@ import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { GameAIService } from './game-ai.service';
-import { AIProfileService } from './ai-profile.service';
+import { AiProfileService } from './ai-profile.service';
 import type { CellValue } from '../ai/connect4AI';
 import { MLInferenceClient } from '../ai/MLInferenceClient';
 
@@ -37,8 +37,8 @@ export class GameGateway
   constructor(
     private readonly gameService: GameService,
     private readonly gameAi: GameAIService,
-    private readonly aiProfileService: AIProfileService,
-  ) {}
+    private readonly aiProfileService: AiProfileService,
+  ) { }
 
   afterInit(server: Server) {
     this.logger.log('WebSocket server initialized');
@@ -121,10 +121,39 @@ export class GameGateway
         nextPlayer: res.nextPlayer,
       });
 
-      // If the human player won, level up the AI for the next game.
+      // If the human player won, record the game result to level up the AI.
       if (res.winner && res.winner !== 'Yellow') {
-        this.logger.log(`[${gameId}] Human player ${res.winner} won. Leveling up AI.`);
-        this.aiProfileService.levelUp();
+        this.logger.log(`[${gameId}] Human player ${res.winner} won. Recording game result.`);
+        try {
+          await this.aiProfileService.recordGameResult(playerId, {
+            gameId: gameId,
+            playerMoves: this.gameService.getPlayerMoves(gameId, playerId),
+            aiMoves: this.gameService.getPlayerMoves(gameId, 'Yellow'),
+            winner: 'player',
+            gameLength: this.gameService.getGameLength(gameId),
+            playerMistakes: 0, // TODO: Implement mistake counting
+            aiThreatsMissed: 0, // TODO: Implement threat analysis
+            analysisNotes: ['Player victory']
+          });
+        } catch (error: any) {
+          this.logger.error(`Error recording game result: ${error.message}`);
+        }
+      } else if (res.winner === 'Yellow') {
+        this.logger.log(`[${gameId}] AI won. Recording game result.`);
+        try {
+          await this.aiProfileService.recordGameResult(playerId, {
+            gameId: gameId,
+            playerMoves: this.gameService.getPlayerMoves(gameId, playerId),
+            aiMoves: this.gameService.getPlayerMoves(gameId, 'Yellow'),
+            winner: 'ai',
+            gameLength: this.gameService.getGameLength(gameId),
+            playerMistakes: 0, // TODO: Implement mistake counting
+            aiThreatsMissed: 0, // TODO: Implement threat analysis
+            analysisNotes: ['AI victory']
+          });
+        } catch (error: any) {
+          this.logger.error(`Error recording game result: ${error.message}`);
+        }
       }
 
       await new Promise(r => setTimeout(r, this.AI_THINK_DELAY_MS));
@@ -136,8 +165,8 @@ export class GameGateway
       this.server.to(gameId).emit('aiThinking');
       this.logger.log(`[${gameId}] Computing AI move via GameAIService`);
       const startLogic = Date.now();
-      let aiColumn = await this.gameAi.getNextMove(res.board, 'Yellow', this.AI_THINK_DELAY_MS);
-      this.logger.log(`AI logic time: ${Date.now()-startLogic}ms`);
+      let aiColumn = await this.gameAi.getNextMove(res.board, 'Yellow', playerId);
+      this.logger.log(`AI logic time: ${Date.now() - startLogic}ms`);
 
       if (process.env.USE_ML_MODEL === 'true') {
         this.logger.log(`[${gameId}] ML override active`);
