@@ -1,18 +1,22 @@
 {
     "compilerOptions": {
-        /* … your existing options … */
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "types": ["node", "jest"],
-        "target": "ES2020",
-        "module": "CommonJS",
-        "lib": [
-            "ES2017",
-            "ES2020", 
-            "DOM"
-        ]
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
+      "types": ["node", "jest"],
+      "target": "ES2020",
+      "module": "CommonJS",
+      "lib": [
+        "ES2017",
+        "ES2020",
+        "DOM"
+      ],
+      "noEmit": false,
+      "outDir": "./dist",
+      "skipLibCheck": true
     },
     "include": [
-        "src/**/*.ts", "test/**/*.ts"
+      "src/**/*.ts",
+      "test/**/*.ts"
     ]
-}
+  }
+  
