@@ -71,7 +71,7 @@ export class A3C {
     private isTraining = false;
     private currentStep = 0;
     private bestReward = -Infinity;
-    private lrScheduler: tf.callbacks.Callback[] = [];
+    private lrScheduler: tf.Callback[] = [];
 
     constructor(config: Partial<A3CConfig> = {}) {
         this.config = {
@@ -169,14 +169,14 @@ export class A3C {
                 kernelInitializer: 'heNormal'
             }).apply(x) as tf.SymbolicTensor;
 
-            x = tf.layers.globalAveragePooling2d().apply(x) as tf.SymbolicTensor;
+            x = tf.layers.globalAveragePooling2d({}).apply(x) as tf.SymbolicTensor;
 
         } else if (this.config.networkType === 'resnet') {
             // ResNet blocks for deeper understanding
             x = this.createResNetBlock(input, 64);
             x = this.createResNetBlock(x, 128);
             x = this.createResNetBlock(x, 256);
-            x = tf.layers.globalAveragePooling2d().apply(x) as tf.SymbolicTensor;
+            x = tf.layers.globalAveragePooling2d({}).apply(x) as tf.SymbolicTensor;
 
         } else {
             // MLP architecture
@@ -281,11 +281,10 @@ export class A3C {
     private setupLearningRateScheduler(): void {
         // Exponential decay scheduler
         this.lrScheduler = [
-            tf.callbacks.reduceLROnPlateau({
+            tf.callbacks.earlyStopping({
                 monitor: 'loss',
-                factor: 0.5,
                 patience: 100,
-                minLr: 1e-6
+                verbose: 1
             })
         ];
     }
@@ -450,7 +449,7 @@ export class A3C {
             );
 
             // Compute gradients and apply
-            const gradients = tf.variableGrads(() => totalLoss);
+            const gradients = tf.variableGrads(() => totalLoss as tf.Scalar);
 
             // Gradient clipping
             const clippedGradients: { [name: string]: tf.Tensor } = {};
@@ -579,7 +578,7 @@ export class A3C {
      * Load A3C model
      */
     async loadModel(path: string): Promise<void> {
-        this.actorCriticModel = await tf.loadLayersModel(`file://${path}`);
+        this.actorCriticModel = await tf.loadLayersModel(`file://${path}`) as tf.LayersModel;
         console.log(`📂 A3C model loaded from ${path}`);
     }
 
@@ -627,7 +626,7 @@ class A3CWorker {
     private async cloneModel(model: tf.LayersModel): Promise<tf.LayersModel> {
         const modelJSON = model.toJSON();
         const weights = model.getWeights();
-        const cloned = await tf.models.modelFromJSON(modelJSON);
+        const cloned = await tf.models.modelFromJSON(modelJSON as unknown as tf.io.ModelJSON);
         cloned.setWeights(weights);
         return cloned;
     }

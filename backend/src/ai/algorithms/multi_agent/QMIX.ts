@@ -157,7 +157,7 @@ export class QMIX {
                 kernelInitializer: 'heNormal'
             }).apply(x) as tf.SymbolicTensor;
 
-            x = tf.layers.globalAveragePooling2d().apply(x) as tf.SymbolicTensor;
+            x = tf.layers.globalAveragePooling2d({}).apply(x) as tf.SymbolicTensor;
         } else {
             x = tf.layers.flatten().apply(input) as tf.SymbolicTensor;
         }
@@ -199,7 +199,7 @@ export class QMIX {
             kernelInitializer: 'heNormal'
         }).apply(globalStateInput) as tf.SymbolicTensor;
 
-        stateFeatures = tf.layers.globalAveragePooling2d().apply(stateFeatures) as tf.SymbolicTensor;
+        stateFeatures = tf.layers.globalAveragePooling2d({}).apply(stateFeatures) as tf.SymbolicTensor;
 
         stateFeatures = tf.layers.dense({
             units: this.config.mixingEmbedDim,
@@ -223,7 +223,9 @@ export class QMIX {
 
         // Mix agent Q-values
         const weightedQs = tf.layers.multiply().apply([agentQsInput, mixingWeights]) as tf.SymbolicTensor;
-        const summedQs = tf.layers.dot({ axes: 1 }).apply([weightedQs, tf.ones([this.config.numAgents, 1])]) as tf.SymbolicTensor;
+        // Create a ones tensor for summing
+        const onesInput = tf.input({ shape: [this.config.numAgents, 1] });
+        const summedQs = tf.layers.dot({ axes: 1 }).apply([weightedQs, onesInput]) as tf.SymbolicTensor;
         const mixedQ = tf.layers.add().apply([summedQs, mixingBias]) as tf.SymbolicTensor;
 
         return tf.model({
@@ -244,7 +246,7 @@ export class QMIX {
             kernelInitializer: 'heNormal'
         }).apply(input) as tf.SymbolicTensor;
 
-        x = tf.layers.globalAveragePooling2d().apply(x) as tf.SymbolicTensor;
+        x = tf.layers.globalAveragePooling2d({}).apply(x) as tf.SymbolicTensor;
 
         x = tf.layers.dense({
             units: this.config.hypernetHiddenDim,
@@ -464,7 +466,7 @@ export class QMIX {
             const loss = tf.mean(tf.square(tf.sub(tdTargets, tf.squeeze(currentMixedQs))));
 
             // Compute gradients and apply
-            const gradients = tf.variableGrads(() => loss);
+            const gradients = tf.variableGrads(() => loss as tf.Scalar);
             this.optimizer.applyGradients(gradients.grads);
 
             return loss.dataSync()[0];
