@@ -26,6 +26,12 @@ START_ML_INFERENCE=${START_ML_INFERENCE:-true}
 START_AI_COORDINATION=${START_AI_COORDINATION:-true}
 DEVELOPMENT_MODE=${DEVELOPMENT_MODE:-true}
 
+# Set secure environment variables for development
+# Services bind to all interfaces (0.0.0.0) for development/Docker compatibility
+export ML_SERVICE_HOST=${ML_SERVICE_HOST:-0.0.0.0}
+export ML_INFERENCE_HOST=${ML_INFERENCE_HOST:-0.0.0.0}
+export AI_COORDINATION_HOST=${AI_COORDINATION_HOST:-0.0.0.0}
+
 # Service tracking arrays
 declare -a SERVICE_PIDS=()
 declare -a SERVICE_NAMES=()

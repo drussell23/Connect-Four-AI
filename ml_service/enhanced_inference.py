@@ -98,7 +98,8 @@ class EnhancedInferenceEngine:
         # Try to load weights
         try:
             model_path = "../models/best_policy_net.pt"
-            checkpoint = torch.load(model_path, map_location=self.device)
+            # Use weights_only=True for security (PyTorch 1.13+)
+            checkpoint = torch.load(model_path, map_location=self.device, weights_only=True)
             state_dict = checkpoint.get("model_state_dict", checkpoint)
             model.load_state_dict(state_dict)
             print("✅ Loaded trained weights")
@@ -593,4 +594,8 @@ async def health_check():
 
 
 if __name__ == "__main__":
-    uvicorn.run("enhanced_inference:app", host="0.0.0.0", port=8001, reload=False)
+    import os
+    # Use environment variable for host binding, defaulting to localhost for security
+    host = os.environ.get("ML_INFERENCE_HOST", "127.0.0.1")
+    port = int(os.environ.get("ML_INFERENCE_PORT", "8001"))
+    uvicorn.run("enhanced_inference:app", host=host, port=port, reload=False)

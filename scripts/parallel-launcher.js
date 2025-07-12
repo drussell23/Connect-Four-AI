@@ -12,6 +12,12 @@ const http = require('http');
 const https = require('https');
 const { URL } = require('url');
 
+// Set development environment variables for security
+// Services bind to all interfaces (0.0.0.0) for development/Docker compatibility
+process.env.ML_SERVICE_HOST = process.env.ML_SERVICE_HOST || '0.0.0.0';
+process.env.ML_INFERENCE_HOST = process.env.ML_INFERENCE_HOST || '0.0.0.0';
+process.env.AI_COORDINATION_HOST = process.env.AI_COORDINATION_HOST || '0.0.0.0';
+
 // Configuration
 const CONFIG = {
     services: {

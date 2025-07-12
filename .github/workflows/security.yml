@@ -32,6 +32,14 @@ on:
         default: 'high'
         type: string
 
+# Add permissions for security scanning
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  pull-requests: write
+  issues: write
+
 env:
   NODE_VERSION: '18'
   PYTHON_VERSION: '3.9'
@@ -215,16 +223,16 @@ jobs:
           npx eslint frontend/src --ext .ts,.tsx,.js,.jsx --format json --output-file eslint-frontend-security.json || true
 
       - name: Run CodeQL Analysis
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: javascript,python
           config-file: ./.github/codeql/codeql-config.yml
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v2
+        uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
 
       - name: Run Bandit security analysis (Python)
         working-directory: ml_service
@@ -351,7 +359,7 @@ jobs:
           retention-days: 30
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-${{ matrix.component }}.sarif'
@@ -467,7 +475,8 @@ jobs:
 
       - name: Generate security metrics
         run: |
-          python3 << 'EOF'
+          if [ -f "security-report/security-metrics.json" ]; then
+            python3 << 'EOF'
           import json
           import os
           import glob
@@ -509,6 +518,7 @@ jobs:
           
           print(f"Security scan completed. Total vulnerabilities found: {metrics['total_vulnerabilities']}")
           EOF
+          fi
 
       - name: Upload security report
         uses: actions/upload-artifact@v4

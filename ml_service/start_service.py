@@ -150,7 +150,7 @@ Examples:
     )
 
     # Core settings
-    parser.add_argument("--host", default="0.0.0.0", help="Host address")
+    parser.add_argument("--host", default="127.0.0.1", help="Host address (use 0.0.0.0 for all interfaces)")
     parser.add_argument("--port", type=int, default=8001, help="Port number")
     parser.add_argument(
         "--workers", type=int, default=1, help="Number of worker processes"

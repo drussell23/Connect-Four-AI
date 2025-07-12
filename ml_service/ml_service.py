@@ -367,7 +367,10 @@ class ModelManager:
             # Load weights if path provided
             if model_path and Path(model_path).exists():
                 try:
-                    checkpoint = torch.load(model_path, map_location=config.DEVICE)
+                    # Use weights_only=True for security (PyTorch 1.13+)
+                    checkpoint = torch.load(
+                        model_path, map_location=config.DEVICE, weights_only=True
+                    )
                     state_dict = checkpoint.get("model_state_dict", checkpoint)
                     model.load_state_dict(state_dict)
                     logger.info("Loaded model weights", path=model_path)
@@ -484,9 +487,9 @@ class CacheManager:
             board_str = str(board)
         model_type = str(board_data.get("model_type", config.DEFAULT_MODEL_TYPE))
 
-        # Create hash
+        # Create hash using SHA256 for security
         key_data = f"{board_str}:{model_type}"
-        return hashlib.md5(key_data.encode()).hexdigest()
+        return hashlib.sha256(key_data.encode()).hexdigest()
 
     async def get(self, cache_key: str) -> Optional[Dict[str, Any]]:
         """Get value from cache"""
@@ -1189,10 +1192,14 @@ async def general_exception_handler(request: Request, exc: Exception):
 if __name__ == "__main__":
     import uvicorn
 
+    # Use environment variable for host binding, defaulting to localhost for security
+    host = os.environ.get("ML_SERVICE_HOST", "127.0.0.1")
+    port = int(os.environ.get("ML_SERVICE_PORT", "8000"))
+
     uvicorn.run(
         "ml_service:app",
-        host="0.0.0.0",
-        port=8000,
+        host=host,
+        port=port,
         reload=False,
         access_log=True,
         log_config={
