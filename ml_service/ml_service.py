@@ -49,8 +49,12 @@ from prometheus_client import (
     Gauge,
     generate_latest,
     CONTENT_TYPE_LATEST,
+    CollectorRegistry,
 )
 import structlog
+
+# Create custom registry to avoid conflicts
+custom_registry = CollectorRegistry()
 
 # Advanced caching and monitoring
 try:
@@ -89,27 +93,51 @@ logger = structlog.get_logger()
 # -----------------------------------------------------------------------------
 # Request metrics
 REQUEST_COUNT = Counter(
-    "ml_requests_total", "Total ML requests", ["method", "endpoint", "status"]
+    "ml_requests_total",
+    "Total ML requests",
+    ["method", "endpoint", "status"],
+    registry=custom_registry,
 )
 REQUEST_DURATION = Histogram(
-    "ml_request_duration_seconds", "Request duration", ["method", "endpoint"]
+    "ml_request_duration_seconds",
+    "Request duration",
+    ["method", "endpoint"],
+    registry=custom_registry,
 )
 INFERENCE_DURATION = Histogram(
-    "ml_inference_duration_seconds", "Model inference duration", ["model_type"]
+    "ml_inference_duration_seconds",
+    "Model inference duration",
+    ["model_type"],
+    registry=custom_registry,
 )
 
 # Model metrics
 MODEL_PREDICTIONS = Counter(
-    "ml_predictions_total", "Total predictions", ["model_name", "model_version"]
+    "ml_predictions_total",
+    "Total predictions",
+    ["model_name", "model_version"],
+    registry=custom_registry,
 )
-MODEL_LOAD_TIME = Histogram("ml_model_load_duration_seconds", "Model loading time")
-CACHE_HITS = Counter("ml_cache_hits_total", "Cache hits", ["cache_type"])
-CACHE_MISSES = Counter("ml_cache_misses_total", "Cache misses", ["cache_type"])
+MODEL_LOAD_TIME = Histogram(
+    "ml_model_load_duration_seconds", "Model loading time", registry=custom_registry
+)
+CACHE_HITS = Counter(
+    "ml_cache_hits_total", "Cache hits", ["cache_type"], registry=custom_registry
+)
+CACHE_MISSES = Counter(
+    "ml_cache_misses_total", "Cache misses", ["cache_type"], registry=custom_registry
+)
 
 # System metrics
-ACTIVE_CONNECTIONS = Gauge("ml_active_connections", "Active connections")
-MEMORY_USAGE = Gauge("ml_memory_usage_bytes", "Memory usage in bytes")
-GPU_UTILIZATION = Gauge("ml_gpu_utilization_percent", "GPU utilization percentage")
+ACTIVE_CONNECTIONS = Gauge(
+    "ml_active_connections", "Active connections", registry=custom_registry
+)
+MEMORY_USAGE = Gauge(
+    "ml_memory_usage_bytes", "Memory usage in bytes", registry=custom_registry
+)
+GPU_UTILIZATION = Gauge(
+    "ml_gpu_utilization_percent", "GPU utilization percentage", registry=custom_registry
+)
 
 
 # -----------------------------------------------------------------------------
@@ -399,7 +427,7 @@ class ModelManager:
 
     def get_model_info(self) -> Dict[str, Any]:
         """Get information about loaded models"""
-    return {
+        return {
             "loaded_models": list(self.models.keys()),
             "metadata": self.model_metadata,
             "request_counts": self.request_counts,
@@ -515,7 +543,7 @@ class CacheManager:
                 for k in expired_keys:
                     del self.memory_cache[k]
 
-except Exception as e:
+        except Exception as e:
             logger.warning("Cache set error", error=str(e))
 
     def get_stats(self) -> Dict[str, Any]:
@@ -1085,7 +1113,7 @@ async def load_model_endpoint(model_type: str, _: bool = Depends(verify_api_key)
 @app.get("/metrics")
 async def get_metrics():
     """Prometheus metrics endpoint"""
-    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+    return Response(generate_latest(custom_registry), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.get("/stats")
@@ -1164,7 +1192,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "ml_service:app",
         host="0.0.0.0",
-        port=8001,
+        port=8000,
         reload=False,
         access_log=True,
         log_config={
