@@ -511,14 +511,27 @@ export class OptimizerDemo {
                     enabled: true,
                     preset: 'highExploration',
                     config: {
-                        monitoring: { enabled: true, trackDiversity: true }
+                        monitoring: {
+                            enabled: true,
+                            trackDiversity: true,
+                            logInterval: 1000,
+                            trackConvergence: true,
+                            historySize: 10000
+                        }
                     }
                 },
                 learningRateScheduler: {
                     enabled: true,
                     preset: 'oneCycle',
                     config: {
-                        monitoring: { enabled: true, trackMetrics: true }
+                        monitoring: {
+                            enabled: true,
+                            trackMetrics: true,
+                            logInterval: 1000,
+                            trackGradients: true,
+                            historySize: 10000,
+                            saveCheckpoints: false
+                        }
                     }
                 },
                 integration: {
@@ -782,9 +795,9 @@ export class OptimizerDemo {
 
         if (optimizers === true) {
             return {
-                adamW: { enabled: true, preset: 'neuralNetwork', config: {} },
-                entropyRegularizer: { enabled: true, preset: 'policyGradient', config: {} },
-                learningRateScheduler: { enabled: true, preset: 'neuralNetwork', config: {} },
+                adamW: { enabled: true, preset: 'custom', config: {} },
+                entropyRegularizer: { enabled: true, preset: 'custom', config: {} },
+                learningRateScheduler: { enabled: true, preset: 'custom', config: {} },
                 integration: {
                     adaptiveOptimization: true,
                     crossOptimizerLearning: true,
@@ -796,17 +809,17 @@ export class OptimizerDemo {
 
         if (optimizers.adamW) {
             baseConfig.adamW.enabled = true;
-            baseConfig.adamW.preset = 'neuralNetwork';
+            baseConfig.adamW.preset = 'custom';
         }
 
         if (optimizers.entropy) {
             baseConfig.entropyRegularizer.enabled = true;
-            baseConfig.entropyRegularizer.preset = 'policyGradient';
+            baseConfig.entropyRegularizer.preset = 'custom';
         }
 
         if (optimizers.scheduler) {
             baseConfig.learningRateScheduler.enabled = true;
-            baseConfig.learningRateScheduler.preset = 'neuralNetwork';
+            baseConfig.learningRateScheduler.preset = 'custom';
         }
 
         return baseConfig;
@@ -908,9 +921,7 @@ export class OptimizerDemo {
                     warmup: {
                         enabled: true,
                         steps: 1000,
-                        startFactor: 0.1,
-                        endFactor: 1.0,
-                        method: 'linear'
+                        initialLr: 1e-6
                     },
                     trackStatistics: true
                 }
@@ -923,16 +934,25 @@ export class OptimizerDemo {
                     targetEntropy: -1.0,
                     schedule: {
                         type: 'exponential',
-                        decayRate: 0.995
+                        decayRate: 0.995,
+                        startStep: 0,
+                        endStep: 100000,
+                        minCoefficient: 0.001,
+                        maxCoefficient: 0.1
                     },
                     adaptive: {
                         enabled: true,
                         targetKLDivergence: 0.01,
-                        adaptationRate: 0.001
+                        adaptationRate: 0.001,
+                        windowSize: 100,
+                        toleranceRange: 0.1
                     },
                     monitoring: {
                         enabled: true,
-                        trackDiversity: true
+                        trackDiversity: true,
+                        logInterval: 1000,
+                        trackConvergence: true,
+                        historySize: 10000
                     }
                 }
             },
@@ -945,7 +965,35 @@ export class OptimizerDemo {
                         type: 'cosine',
                         cosineT0: 10000,
                         cosineTMult: 2.0,
-                        cosineEtaMin: 0.00001
+                        cosineEtaMin: 0.00001,
+                        stepSize: 1000,
+                        stepGamma: 0.95,
+                        exponentialGamma: 0.99,
+                        polynomialPower: 1.0,
+                        polynomialTotalSteps: 100000,
+                        cyclicBaseLr: 0.0001,
+                        cyclicMaxLr: 0.01,
+                        cyclicStepSize: 2000,
+                        cyclicMode: 'triangular',
+                        cyclicGamma: 1.0,
+                        oneCycleMaxLr: 0.01,
+                        oneCycleTotalSteps: 100000,
+                        oneCyclePctStart: 0.25,
+                        oneCycleAnnealStrategy: 'cos',
+                        oneCycleDivFactor: 25.0,
+                        oneCycleFinalDivFactor: 10000.0,
+                        plateauMode: 'min',
+                        plateauFactor: 0.1,
+                        plateauPatience: 10,
+                        plateauThreshold: 0.0001,
+                        plateauThresholdMode: 'rel',
+                        plateauCooldown: 0,
+                        plateauMinLr: 0.00001,
+                        adaptiveMetric: 'loss',
+                        adaptivePatience: 5,
+                        adaptiveFactor: 0.5,
+                        adaptiveMinLr: 0.00001,
+                        adaptiveMaxLr: 0.1
                     },
                     warmup: {
                         enabled: true,
@@ -956,7 +1004,11 @@ export class OptimizerDemo {
                     },
                     monitoring: {
                         enabled: true,
-                        trackMetrics: true
+                        trackMetrics: true,
+                        logInterval: 1000,
+                        trackGradients: true,
+                        historySize: 10000,
+                        saveCheckpoints: false
                     }
                 }
             },

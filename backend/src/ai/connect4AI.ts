@@ -17,6 +17,16 @@ import { AdamWOptimizer, AdamWConfig, AdamWPresets } from "./optimizers/adamW";
 import { EntropyRegularizer, EntropyRegularizerConfig, EntropyRegularizerPresets } from "./optimizers/entropyRegularizer";
 import { LearningRateScheduler, LearningRateSchedulerConfig, LearningRateSchedulerPresets } from "./optimizers/learningRateScheduler";
 
+// Import DRL training system
+import {
+  Connect4DRLTrainer,
+  Connect4DRLEnvironment,
+  Connect4DRLConfig,
+  TrainingMetrics,
+  EpisodeResult,
+  createConnect4DRLTrainer
+} from "./connect4DRL";
+
 // 1) A 6 × 7 heatmap: central & lower cells matter most
 const CELL_WEIGHTS: number[][] = [
   [3, 4, 5, 7, 5, 4, 3],
@@ -1448,6 +1458,20 @@ export interface UltimateAIConfig {
       autoTuning: boolean;
     };
   };
+
+  // Deep Reinforcement Learning Training Configuration
+  drlTraining: {
+    enabled: boolean;
+    continuousLearning: boolean;
+    selfPlayEnabled: boolean;
+    experienceReplaySize: number;
+    trainingInterval: number; // Train every N games
+    evaluationInterval: number; // Evaluate every N episodes
+    config: Partial<Connect4DRLConfig>;
+    backgroundTraining: boolean;
+    modelVersioning: boolean;
+    adaptiveRewardShaping: boolean;
+  };
 }
 
 export interface AIDecision {
@@ -1513,6 +1537,13 @@ export class UltimateConnect4AI {
   private adamWOptimizer: AdamWOptimizer | null = null;
   private entropyRegularizer: EntropyRegularizer | null = null;
   private learningRateScheduler: LearningRateScheduler | null = null;
+
+  // DRL Training System
+  private drlTrainer: Connect4DRLTrainer | null = null;
+  private drlEnvironment: Connect4DRLEnvironment | null = null;
+  private drlMetrics: TrainingMetrics[] = [];
+  private gamesPlayedSinceTraining: number = 0;
+  private lastDRLEvaluation: number = 0;
 
   // Performance tracking
   private gameHistory: Array<{
@@ -1595,6 +1626,36 @@ export class UltimateConnect4AI {
           autoTuning: true
         }
       },
+      drlTraining: {
+        enabled: true,
+        continuousLearning: true,
+        selfPlayEnabled: true,
+        experienceReplaySize: 100000,
+        trainingInterval: 50, // Train every 50 games
+        evaluationInterval: 1000, // Evaluate every 1000 episodes
+        config: {
+          training: {
+            algorithm: 'rainbow_dqn',
+            episodes: 10000,
+            maxStepsPerEpisode: 42,
+            batchSize: 32,
+            learningRate: 0.001,
+            discountFactor: 0.99,
+            explorationStrategy: 'epsilon_greedy',
+            targetUpdateFrequency: 100
+          },
+          selfPlay: {
+            enabled: true,
+            opponentStrategies: ['minimax', 'mcts', 'trained_model'],
+            curriculumLearning: true,
+            adaptiveDifficulty: true,
+            tournamentMode: false
+          }
+        },
+        backgroundTraining: true,
+        modelVersioning: true,
+        adaptiveRewardShaping: true
+      },
       ...config
     };
 
@@ -1616,7 +1677,12 @@ export class UltimateConnect4AI {
     // Initialize AlphaZero
     await this.initializeAlphaZero();
 
-    console.log('✅ Ultimate AI initialized successfully!');
+    // Initialize DRL Training System
+    if (this.config.drlTraining.enabled) {
+      await this.initializeDRLTraining();
+    }
+
+    console.log('✅ Ultimate AI with DRL training initialized successfully!');
   }
 
   private async initializeOptimizers(): Promise<void> {
@@ -1836,6 +1902,56 @@ export class UltimateConnect4AI {
     console.log('🏆 Enhanced AlphaZero initialized');
   }
 
+  private async initializeDRLTraining(): Promise<void> {
+    console.log('🎯 Initializing DRL Training System...');
+
+    // Create DRL trainer with optimized configuration
+    this.drlTrainer = createConnect4DRLTrainer(this.config.drlTraining.config);
+
+    // Create standalone DRL environment for evaluation
+    this.drlEnvironment = new Connect4DRLEnvironment(this.config.drlTraining.config);
+
+    // Initialize background training if enabled
+    if (this.config.drlTraining.backgroundTraining) {
+      this.startBackgroundDRLTraining();
+    }
+
+    console.log('🎯 DRL Training System initialized successfully!');
+  }
+
+  private startBackgroundDRLTraining(): void {
+    // Start background training in a non-blocking way
+    if (this.drlTrainer) {
+      // Run training in background with reduced intensity
+      const backgroundConfig = {
+        ...this.config.drlTraining.config,
+        training: {
+          ...this.config.drlTraining.config.training,
+          episodes: 1000, // Smaller batches for background training
+          batchSize: 16
+        }
+      };
+
+      // Start background training loop
+      setInterval(async () => {
+        if (this.drlTrainer && this.gamesPlayedSinceTraining >= this.config.drlTraining.trainingInterval) {
+          try {
+            console.log('🔄 Starting background DRL training...');
+            // Run a short training session
+            const trainer = createConnect4DRLTrainer(backgroundConfig);
+            await trainer.train();
+            trainer.dispose();
+
+            this.gamesPlayedSinceTraining = 0;
+            console.log('✅ Background DRL training completed');
+          } catch (error) {
+            console.warn('⚠️ Background DRL training failed:', error);
+          }
+        }
+      }, 60000); // Check every minute
+    }
+  }
+
   /**
    * Get the best move using the configured AI strategy
    */
@@ -1894,6 +2010,12 @@ export class UltimateConnect4AI {
 
     // Store for learning
     this.storeGameExperience(board, decision, aiDisc);
+
+    // Update DRL training metrics
+    if (this.config.drlTraining.enabled && this.config.drlTraining.continuousLearning) {
+      this.gamesPlayedSinceTraining++;
+      await this.updateDRLTraining(board, decision, aiDisc);
+    }
 
     decision.thinkingTime = performance.now() - startTime;
     return decision;
@@ -2249,6 +2371,155 @@ export class UltimateConnect4AI {
     }
   }
 
+  private async updateDRLTraining(board: CellValue[][], decision: AIDecision, aiDisc: CellValue): Promise<void> {
+    if (!this.drlEnvironment) return;
+
+    try {
+      // Create experience from current game state
+      const currentState = {
+        board: cloneBoard(board),
+        currentPlayer: aiDisc,
+        moveHistory: [],
+        gamePhase: this.determineGamePhase(board) as 'opening' | 'midgame' | 'endgame',
+        features: {
+          threatCount: countOpenThree(board, aiDisc),
+          centerControl: this.calculateCenterControl(board, aiDisc),
+          connectivity: this.calculateConnectivity(board, aiDisc),
+          mobility: legalMoves(board).length
+        }
+      };
+
+      // Simulate the move to get next state
+      const { board: nextBoard } = tryDrop(board, decision.move, aiDisc);
+      const nextState = {
+        ...currentState,
+        board: nextBoard,
+        currentPlayer: (aiDisc === 'Red' ? 'Yellow' : 'Red') as CellValue,
+        moveHistory: [decision.move]
+      };
+
+      // Calculate reward based on move quality
+      const reward = this.calculateDRLReward(board, nextBoard, decision, aiDisc);
+
+      // Check if game is done
+      const done = bitboardCheckWin(getBits(nextBoard, aiDisc)) ||
+        bitboardCheckWin(getBits(nextBoard, aiDisc === 'Red' ? 'Yellow' : 'Red')) ||
+        legalMoves(nextBoard).length === 0;
+
+      // Add experience to DRL environment
+      const experience = {
+        state: currentState,
+        action: decision.move,
+        reward,
+        nextState,
+        done,
+        metadata: {
+          moveNumber: currentState.moveHistory.length,
+          gameResult: done ? (reward > 0 ? 'win' : (reward < 0 ? 'loss' : 'draw')) as 'win' | 'loss' | 'draw' : 'draw',
+          opponent: 'human',
+          difficulty: decision.confidence
+        }
+      };
+
+      this.drlEnvironment.addExperience(experience);
+
+      // Update DRL metrics
+      const episodeResult: EpisodeResult = {
+        totalReward: reward,
+        moves: currentState.moveHistory.length + 1,
+        result: experience.metadata.gameResult,
+        opponent: 'human',
+        explorationRate: decision.metadata.reinforcementLearning?.epsilonValue || 0.1,
+        averageQValue: decision.metadata.reinforcementLearning?.qValues?.reduce((a, b) => a + b, 0) / 7 || 0,
+        finalBoardState: nextBoard,
+        gameHistory: [...currentState.moveHistory, decision.move]
+      };
+
+      this.drlEnvironment.updateMetrics(episodeResult);
+      this.drlMetrics = this.drlEnvironment.getMetrics();
+
+    } catch (error) {
+      console.warn('Failed to update DRL training:', error);
+    }
+  }
+
+  private calculateDRLReward(
+    currentBoard: CellValue[][],
+    nextBoard: CellValue[][],
+    decision: AIDecision,
+    aiDisc: CellValue
+  ): number {
+    let reward = 0;
+
+    // Base move penalty
+    reward -= 1;
+
+    // Win/loss detection
+    if (bitboardCheckWin(getBits(nextBoard, aiDisc))) {
+      reward += 100; // Win reward
+    } else if (bitboardCheckWin(getBits(nextBoard, aiDisc === 'Red' ? 'Yellow' : 'Red'))) {
+      reward -= 100; // Loss penalty
+    }
+
+    // Threat creation/blocking rewards
+    const currentThreats = countOpenThree(currentBoard, aiDisc);
+    const nextThreats = countOpenThree(nextBoard, aiDisc);
+    const oppCurrentThreats = countOpenThree(currentBoard, aiDisc === 'Red' ? 'Yellow' : 'Red');
+    const oppNextThreats = countOpenThree(nextBoard, aiDisc === 'Red' ? 'Yellow' : 'Red');
+
+    reward += (nextThreats - currentThreats) * 10; // Threat creation
+    reward += (oppCurrentThreats - oppNextThreats) * 15; // Threat blocking
+
+    // Center column bonus
+    if (decision.move === 3) {
+      reward += 2;
+    }
+
+    // Position evaluation improvement
+    const currentEval = evaluatePosition(currentBoard, aiDisc);
+    const nextEval = evaluatePosition(nextBoard, aiDisc);
+    reward += (nextEval - currentEval) / 100; // Scale down
+
+    // Confidence bonus - reward confident moves
+    if (decision.confidence > 0.8) {
+      reward += decision.confidence * 5;
+    }
+
+    return reward;
+  }
+
+  private calculateCenterControl(board: CellValue[][], aiDisc: CellValue): number {
+    let control = 0;
+    const centerCol = 3;
+    for (let row = 0; row < 6; row++) {
+      if (board[row][centerCol] === aiDisc) {
+        control++;
+      }
+    }
+    return control;
+  }
+
+  private calculateConnectivity(board: CellValue[][], aiDisc: CellValue): number {
+    // Simplified connectivity measure - count adjacent pieces
+    let connectivity = 0;
+    const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+
+    for (let r = 0; r < 6; r++) {
+      for (let c = 0; c < 7; c++) {
+        if (board[r][c] === aiDisc) {
+          for (const [dr, dc] of directions) {
+            const nr = r + dr;
+            const nc = c + dc;
+            if (nr >= 0 && nr < 6 && nc >= 0 && nc < 7 && board[nr][nc] === aiDisc) {
+              connectivity++;
+            }
+          }
+        }
+      }
+    }
+    return connectivity;
+  }
+
   /**
    * Get comprehensive AI metrics and performance data
    */
@@ -2269,8 +2540,17 @@ export class UltimateConnect4AI {
       type: string;
       active: string[];
     };
+    drlTraining?: {
+      enabled: boolean;
+      metricsCount: number;
+      gamesPlayedSinceTraining: number;
+      lastEvaluation: number;
+      recentRewards: number[];
+      averageReward: number;
+      explorationRate: number;
+    };
   } {
-    return {
+    const baseMetrics: any = {
       strategy: this.config.primaryStrategy,
       performance: {
         gamesPlayed: this.learningMetrics.gamesPlayed,
@@ -2292,6 +2572,24 @@ export class UltimateConnect4AI {
         ].filter(Boolean)
       }
     };
+
+    // Add DRL training metrics if enabled
+    if (this.config.drlTraining.enabled) {
+      const recentMetrics = this.drlMetrics.slice(-10); // Last 10 episodes
+      baseMetrics.drlTraining = {
+        enabled: true,
+        metricsCount: this.drlMetrics.length,
+        gamesPlayedSinceTraining: this.gamesPlayedSinceTraining,
+        lastEvaluation: this.lastDRLEvaluation,
+        recentRewards: recentMetrics.map(m => m.totalReward),
+        averageReward: recentMetrics.length > 0 ?
+          recentMetrics.reduce((sum, m) => sum + m.totalReward, 0) / recentMetrics.length : 0,
+        explorationRate: recentMetrics.length > 0 ?
+          recentMetrics[recentMetrics.length - 1].explorationRate : 0
+      };
+    }
+
+    return baseMetrics;
   }
 
   /**
@@ -2402,8 +2700,20 @@ export class UltimateConnect4AI {
       this.attentionNetwork = null;
     }
 
-    // Clear game history
+    // Dispose of DRL training system
+    if (this.drlTrainer) {
+      this.drlTrainer.dispose();
+      this.drlTrainer = null;
+    }
+    if (this.drlEnvironment) {
+      this.drlEnvironment = null;
+    }
+
+    // Clear training data
     this.gameHistory = [];
+    this.drlMetrics = [];
+    this.gamesPlayedSinceTraining = 0;
+    this.lastDRLEvaluation = 0;
 
     // Clear global network manager
     if (typeof networkManager !== 'undefined') {
