@@ -133,7 +133,7 @@ jobs:
     name: "🤖 AI Algorithm Benchmarks"
     runs-on: ubuntu-latest
     needs: benchmark-config
-    if: needs.benchmark-config.outputs.benchmark_ai == 'true'
+    if: ${{ needs.benchmark-config.outputs.benchmark_ai == 'true' }}
     
     strategy:
       matrix:
@@ -290,7 +290,7 @@ jobs:
     name: "🧠 ML Inference Benchmarks"
     runs-on: ubuntu-latest
     needs: benchmark-config
-    if: needs.benchmark-config.outputs.benchmark_ml == 'true'
+    if: ${{ needs.benchmark-config.outputs.benchmark_ml == 'true' }}
     
     strategy:
       matrix:
@@ -483,7 +483,7 @@ jobs:
     name: "🖥️ System Performance Benchmarks"
     runs-on: ubuntu-latest
     needs: benchmark-config
-    if: needs.benchmark-config.outputs.benchmark_system == 'true'
+    if: ${{ needs.benchmark-config.outputs.benchmark_system == 'true' }}
     
     steps:
       - name: Checkout code
@@ -670,7 +670,7 @@ jobs:
     name: "🚀 Load Testing"
     runs-on: ubuntu-latest
     needs: benchmark-config
-    if: needs.benchmark-config.outputs.benchmark_load == 'true'
+    if: ${{ needs.benchmark-config.outputs.benchmark_load == 'true' }}
     
     services:
       backend:
@@ -1008,7 +1008,7 @@ jobs:
           EOF
 
       - name: Compare with baseline
-        if: needs.benchmark-config.outputs.compare_baseline == 'true'
+        if: ${{ needs.benchmark-config.outputs.compare_baseline == 'true' }}
         run: |
           echo "Baseline comparison would be implemented here"
           echo "This would compare current results with historical baseline"
