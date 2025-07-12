@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -eo pipefail
 
 # ============================================================================
 # Smart ML Pipeline Orchestrator

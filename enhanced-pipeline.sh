@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -eo pipefail
 
 # ============================================================================
-# Enhanced ML Pipeline - Improved version with parallel processing and monitoring
+# Enhanced ML Pipeline - Compatible with older bash versions
 # ============================================================================
 
 # Colors for beautiful output
@@ -20,8 +20,8 @@ MONITORING_ENABLED=true
 API_PORT=8000
 MONITOR_PORT=8001
 
-# PID tracking
-declare -a BACKGROUND_PIDS=()
+# PID tracking file
+PID_FILE="/tmp/enhanced-pipeline-pids.txt"
 
 # Logging with colors and timestamps
 log() {
@@ -46,20 +46,28 @@ header() {
 # Cleanup function
 cleanup() {
     info "🧹 Cleaning up processes..."
-    for pid in "${BACKGROUND_PIDS[@]}"; do
-        kill "$pid" 2>/dev/null || true
-    done
+    if [ -f "$PID_FILE" ]; then
+        while read -r pid; do
+            [ -n "$pid" ] && kill "$pid" 2>/dev/null || true
+        done < "$PID_FILE"
+        rm -f "$PID_FILE"
+    fi
     
     # Clean up ports
-    lsof -ti tcp:$API_PORT | xargs -r kill 2>/dev/null || true
-    lsof -ti tcp:$MONITOR_PORT | xargs -r kill 2>/dev/null || true
+    lsof -ti tcp:$API_PORT | xargs kill 2>/dev/null || true
+    lsof -ti tcp:$MONITOR_PORT | xargs kill 2>/dev/null || true
 }
 
 trap cleanup EXIT INT TERM
 
+# Add PID to tracking
+add_pid() {
+    echo "$1" >> "$PID_FILE"
+}
+
 # Resource monitoring
 start_monitoring() {
-    if [[ "$MONITORING_ENABLED" == "true" ]]; then
+    if [ "$MONITORING_ENABLED" = "true" ]; then
         info "📊 Starting resource monitoring..."
         
         (
@@ -71,7 +79,7 @@ start_monitoring() {
             done
         ) &
         
-        BACKGROUND_PIDS+=($!)
+        add_pid $!
         
         # Simple HTTP monitoring endpoint
         (
@@ -105,7 +113,7 @@ with socketserver.TCPServer(('', $MONITOR_PORT), Handler) as httpd:
 " 2>/dev/null
         ) &
         
-        BACKGROUND_PIDS+=($!)
+        add_pid $!
         info "📊 Monitoring available at: http://localhost:$MONITOR_PORT/status"
     fi
 }
@@ -122,8 +130,7 @@ parallel_game_generation() {
     mkdir -p backend/src/ml/data/parallel
     
     # Start worker processes
-    local worker_pids=()
-    for ((i=0; i<workers; i++)); do
+    for i in $(seq 0 $((workers-1))); do
         (
             echo "Worker $i generating $games_per_worker games..."
             # Simulate game generation with actual command
@@ -134,24 +141,12 @@ parallel_game_generation() {
                 2>/dev/null || echo "[]" > "backend/src/ml/data/parallel/games_$i.json"
         ) &
         
-        worker_pids+=($!)
-        BACKGROUND_PIDS+=($!)
+        add_pid $!
     done
     
     # Monitor progress
-    local completed=0
-    while [[ $completed -lt $workers ]]; do
-        completed=0
-        for pid in "${worker_pids[@]}"; do
-            if ! kill -0 "$pid" 2>/dev/null; then
-                ((completed++))
-            fi
-        done
-        
-        printf "\r${CYAN}Progress: $completed/$workers workers completed${RESET}"
-        sleep 2
-    done
-    echo
+    info "⏳ Waiting for workers to complete..."
+    wait
     
     # Merge results
     info "🔗 Merging parallel results..."
@@ -219,26 +214,27 @@ run_enhanced_offline_pipeline() {
 start_api_server() {
     info "🚀 Starting ML inference API server..."
     
-    cd ml_service 2>/dev/null || {
+    if [ ! -d "ml_service" ]; then
         warn "ml_service directory not found, skipping API server"
         return
-    }
+    fi
     
     (
+        cd ml_service
         uvicorn ml_service:app --reload --host 0.0.0.0 --port "$API_PORT" 2>/dev/null
     ) &
     
-    BACKGROUND_PIDS+=($!)
-    cd - >/dev/null
-    
+    add_pid $!
     info "🚀 API server started on http://localhost:$API_PORT"
 }
 
 # Continuous learning loop
 run_continuous_learning() {
-    header "Continuous Learning Loop"
+    header "Continuous Learning Pipeline"
     
+    info "🔄 Starting continuous learning loop..."
     local cycle=1
+    
     while true; do
         info "🔄 Cycle $cycle: Running continuous learning..."
         
@@ -246,7 +242,7 @@ run_continuous_learning() {
         bash scripts/run_ml_service_pipeline.sh || warn "Continuous cycle $cycle failed"
         
         success "✅ Cycle $cycle completed"
-        ((cycle++))
+        cycle=$((cycle + 1))
         
         # Wait before next cycle
         sleep 60
@@ -279,7 +275,7 @@ main() {
 }
 
 # Show usage
-if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
     cat << EOF
 ${BOLD}Enhanced ML Pipeline${RESET}
 
