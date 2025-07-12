@@ -2,43 +2,156 @@
 > connect-four-backend@1.0.0 start:dev
 > nest start --watch
 
-c[[90m10:00:46 PM[0m] Starting compilation in watch mode...
+c[[90m1:36:30 AM[0m] Starting compilation in watch mode...
 
-[[90m10:01:33 PM[0m] Found 0 errors. Watching for file changes.
+[[90m1:36:41 AM[0m] Found 0 errors. Watching for file changes.
 
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:37 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:38 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +1095ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +119ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +1ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +1ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +5ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:39 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +2ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +3ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +7ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +1ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +21ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +21ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +7ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +15ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +4ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +7ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +1ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +8ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +5ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +15ms[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3000[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:40 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: a2YlAFksqNqXVbctAAAB[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:41 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: WaFdMkJPcU4k33ClAAAD[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:01:41 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mGame cdkrxej1n created by Red[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:03:24 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient disconnected: a2YlAFksqNqXVbctAAAB[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:03:29 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mGame 9gwv911w9 created by Red[39m
-[32m[Nest] 11296  - [39m07/11/2025, 10:03:40 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient disconnected: WaFdMkJPcU4k33ClAAAD[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:42 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:43 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +360ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:43 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +25ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:43 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:43 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:43 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:43 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +4ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +4ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +5ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +11ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +12ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +28ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +56ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +100ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +61ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +2ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +8ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +22ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:44 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3000[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:36:54 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: z768ROlX5mHOAEt4AAAB[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:37:13 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mGame qvpz5g3gx created by Red[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:37:28 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mGame z6phae489 created by Red[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:07 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient disconnected: z768ROlX5mHOAEt4AAAB[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:08 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: jy2YyNxwHaEorEUJAAAD[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:25 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mGame m2fv0ylhl created by Red[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:26 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Human dropDisc by Red at column 3[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:26 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Computing AI move via GameAIService[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:27 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:27 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 22574  - [39m07/12/2025, 1:40:27 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:27 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 3[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:27 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 790ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:30 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Human dropDisc by Red at column 2[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:31 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Computing AI move via GameAIService[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:31 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:31 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 22574  - [39m07/12/2025, 1:40:32 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:32 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 1[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:32 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 667ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:33 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Human dropDisc by Red at column 2[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:34 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Computing AI move via GameAIService[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:34 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:34 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 22574  - [39m07/12/2025, 1:40:35 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:35 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 2[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:35 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 648ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:37 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Human dropDisc by Red at column 3[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:37 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Computing AI move via GameAIService[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:37 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:37 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 22574  - [39m07/12/2025, 1:40:38 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:38 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 4[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:38 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 646ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:42 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Human dropDisc by Red at column 3[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:43 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Computing AI move via GameAIService[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:43 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:43 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 22574  - [39m07/12/2025, 1:40:43 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:43 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 3[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:43 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 630ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:45 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Human dropDisc by Red at column 2[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:45 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Computing AI move via GameAIService[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:45 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:45 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 22574  - [39m07/12/2025, 1:40:46 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:46 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 4[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:46 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 627ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:52 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Human dropDisc by Red at column 4[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:52 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Computing AI move via GameAIService[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:52 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:52 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 22574  - [39m07/12/2025, 1:40:53 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:53 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 3[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:53 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 631ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:55 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Human dropDisc by Red at column 4[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:55 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Computing AI move via GameAIService[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:55 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:55 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 22574  - [39m07/12/2025, 1:40:56 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:56 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 2[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:56 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 629ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:40:59 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Human dropDisc by Red at column 5[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:00 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Computing AI move via GameAIService[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:00 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:00 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 22574  - [39m07/12/2025, 1:41:00 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:00 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 4[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:00 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 624ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:03 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Human dropDisc by Red at column 5[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:03 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Computing AI move via GameAIService[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:03 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:03 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 22574  - [39m07/12/2025, 1:41:04 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:04 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 6[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:04 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 621ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:13 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Human dropDisc by Red at column 5[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:14 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Computing AI move via GameAIService[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:14 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:14 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 22574  - [39m07/12/2025, 1:41:14 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:14 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 5[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:14 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 633ms[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:21 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Human dropDisc by Red at column 5[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:21 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Human player Red won. Recording game result.[39m
+[32m[Nest] 22574  - [39m07/12/2025, 1:41:21 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[m2fv0ylhl] Game ended after human move[39m

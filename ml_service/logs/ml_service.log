@@ -2657,3 +2657,9 @@ FileNotFoundError: [Errno 2] No such file or directory: '/Users/derekjrussell/Do
 2025-07-11 21:55:42,703 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net.onnx'}
 2025-07-11 21:55:42,711 INFO: Using device: cpu
 2025-07-11 21:55:42,736 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt
+2025-07-11 22:14:45,903 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net.onnx'}
+2025-07-11 22:14:45,904 INFO: Using device: cpu
+2025-07-11 22:14:45,931 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt
+2025-07-12 01:19:40,567 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net.onnx'}
+2025-07-12 01:19:40,568 INFO: Using device: cpu
+2025-07-12 01:19:40,593 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt
