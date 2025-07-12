@@ -421,7 +421,7 @@ const App: React.FC = () => {
       );
     } else {
       // Fallback to full initialization if no socket
-      handlePlayAgain();
+    handlePlayAgain();
     }
   };
 
@@ -563,8 +563,8 @@ const App: React.FC = () => {
     apiSocket.on('connect', () => {
       console.log('🔗 connected, id=', apiSocket.id);
       // Don't create game immediately - let loading complete first
-      setShowLoadingProgress(false);
-      setIsInitializing(false);
+            setShowLoadingProgress(false);
+            setIsInitializing(false);
       setStatus('Connection ready - click to start');
     });
 
@@ -864,9 +864,9 @@ const App: React.FC = () => {
             {status}
           </button>
         ) : (
-          <div className="text-xl font-semibold text-white bg-black bg-opacity-30 px-6 py-2 rounded-full">
-            {status}
-          </div>
+        <div className="text-xl font-semibold text-white bg-black bg-opacity-30 px-6 py-2 rounded-full">
+          {status}
+        </div>
         )}
       </motion.div>
 
