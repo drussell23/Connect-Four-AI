@@ -4,20 +4,24 @@ import { GameService } from "./game.service";
 import { MlClientService, LogGameDto } from "../ml/ml-client.service";
 import type { CellValue } from "../ai/connect4AI";
 
-interface CreateGameDto { playerId: string; clientId: string; }
-interface JoinGameDto   { playerId: string; clientId: string; }
-interface DropDiscDto   { playerId: string; column: number; }
+interface CreateGameDto {
+    playerId: string;
+    clientId: string;
+    startingPlayer?: CellValue;
+}
+interface JoinGameDto { playerId: string; clientId: string; }
+interface DropDiscDto { playerId: string; column: number; }
 
 @Controller('games')
 export class GameController {
     constructor(
         private readonly gameService: GameService,
         private readonly mlClient: MlClientService
-    ) {}
+    ) { }
 
-    @Post() 
+        @Post() 
     async createGame(@Body() dto: CreateGameDto) {
-        const gameId = await this.gameService.createGame(dto.playerId, dto.clientId);
+        const gameId = await this.gameService.createGame(dto.playerId, dto.clientId, dto.startingPlayer);
         return { gameId };
     }
 
@@ -31,7 +35,7 @@ export class GameController {
 
     @Post(':id/drop')
     async dropDisc(
-        @Param('id') gameId: string, 
+        @Param('id') gameId: string,
         @Body() dto: DropDiscDto
     ) {
         // 1) Delegate to GameService.
@@ -46,7 +50,7 @@ export class GameController {
         // 2) If the service tells us there was a win or draw, log to ML.
         if (result.winner || result.draw) {
             const payload: LogGameDto = {
-                gameId, 
+                gameId,
                 finalBoard: result.board!,
                 outcome: result.winner ? 'win' : 'draw',
                 winner: result.winner ?? null,
@@ -71,7 +75,7 @@ export class GameController {
 
     @Get(':id/ai-move')
     async getAIMove(
-        @Param('id') gameId: string, 
+        @Param('id') gameId: string,
         @Query('aiDisc') aiDisc: CellValue
     ) {
         try {
