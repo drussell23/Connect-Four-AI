@@ -20,6 +20,9 @@ AUTO_CLEANUP=${AUTO_CLEANUP:-true}
 FORCE_CLEANUP=${FORCE_CLEANUP:-true}
 START_FRONTEND=${START_FRONTEND:-true}
 START_BACKEND=${START_BACKEND:-true}
+START_ML_SERVICE=${START_ML_SERVICE:-true}
+START_ML_INFERENCE=${START_ML_INFERENCE:-true}
+START_AI_COORDINATION=${START_AI_COORDINATION:-true}
 DEVELOPMENT_MODE=${DEVELOPMENT_MODE:-true}
 
 log() {
@@ -70,6 +73,25 @@ preflight_checks() {
         fi
     done
     
+    # Check for ML service if enabled
+    if [[ "$START_ML_SERVICE" == "true" || "$START_ML_INFERENCE" == "true" ]]; then
+        if [[ ! -d "ml_service" ]]; then
+            error "ML service directory not found: ml_service"
+            exit 1
+        fi
+        
+        if [[ ! -f "ml_service/ml_service.py" ]]; then
+            error "ML service not found: ml_service/ml_service.py"
+            exit 1
+        fi
+        
+        # Check for Python
+        if ! command -v python3 >/dev/null 2>&1; then
+            error "Python 3 is not installed or not in PATH"
+            exit 1
+        fi
+    fi
+    
     # Check for Node.js
     if ! command -v node >/dev/null 2>&1; then
         error "Node.js is not installed or not in PATH"
@@ -107,6 +129,24 @@ install_dependencies() {
         success "Frontend dependencies installed"
     fi
     
+    # Check ML service dependencies
+    if [[ "$START_ML_SERVICE" == "true" || "$START_ML_INFERENCE" == "true" ]]; then
+        if [[ ! -f "ml_service/requirements.txt" ]]; then
+            warning "ML service requirements.txt not found, skipping Python dependencies"
+        else
+            log "Checking ML service dependencies..."
+            cd "$SCRIPT_DIR/ml_service"
+            if ! python3 -c "import torch, fastapi, pydantic, numpy" >/dev/null 2>&1; then
+                log "Installing ML service dependencies..."
+                pip3 install -r requirements.txt
+                success "ML service dependencies installed"
+            else
+                log "ML service dependencies are up to date"
+            fi
+            cd "$SCRIPT_DIR"
+        fi
+    fi
+    
     log "Dependencies are up to date"
 }
 
@@ -137,6 +177,108 @@ cleanup_ports() {
             log "No port conflicts detected"
         fi
     fi
+}
+
+# Start ML service
+start_ml_service() {
+    if [[ "$START_ML_SERVICE" != "true" ]]; then
+        log "Skipping ML service startup (disabled)"
+        return 0
+    fi
+    
+    log "Starting ML service..."
+    cd "$SCRIPT_DIR/ml_service"
+    
+    # Check if already running
+    if "$PORT_MANAGER" scan 2>/dev/null | grep -q "8000.*IN USE"; then
+        warning "ML service appears to be already running on port 8000"
+        return 0
+    fi
+    
+    # Start in background
+    log "Starting ML service on port 8000..."
+    nohup python3 ml_service.py > ../logs/ml_service.log 2>&1 &
+    local ml_service_pid=$!
+    echo $ml_service_pid > ../logs/ml_service.pid
+    
+    # Wait a moment to check if it started successfully
+    sleep 5
+    if kill -0 $ml_service_pid 2>/dev/null; then
+        success "ML service started successfully (PID: $ml_service_pid)"
+    else
+        error "ML service failed to start. Check logs/ml_service.log"
+        return 1
+    fi
+    
+    cd "$SCRIPT_DIR"
+}
+
+# Start ML inference service
+start_ml_inference() {
+    if [[ "$START_ML_INFERENCE" != "true" ]]; then
+        log "Skipping ML inference startup (disabled)"
+        return 0
+    fi
+    
+    log "Starting ML inference service..."
+    cd "$SCRIPT_DIR/ml_service"
+    
+    # Check if already running
+    if "$PORT_MANAGER" scan 2>/dev/null | grep -q "8001.*IN USE"; then
+        warning "ML inference appears to be already running on port 8001"
+        return 0
+    fi
+    
+    # Start in background
+    log "Starting Enhanced ML inference service on port 8001..."
+    nohup python3 enhanced_inference.py > ../logs/ml_inference.log 2>&1 &
+    local ml_inference_pid=$!
+    echo $ml_inference_pid > ../logs/ml_inference.pid
+    
+    # Wait a moment to check if it started successfully
+    sleep 3
+    if kill -0 $ml_inference_pid 2>/dev/null; then
+        success "Enhanced ML inference started successfully (PID: $ml_inference_pid)"
+    else
+        error "Enhanced ML inference failed to start. Check logs/ml_inference.log"
+        return 1
+    fi
+    
+    cd "$SCRIPT_DIR"
+}
+
+# Start AI coordination hub
+start_ai_coordination() {
+    if [[ "$START_AI_COORDINATION" != "true" ]]; then
+        log "Skipping AI coordination hub startup (disabled)"
+        return 0
+    fi
+    
+    log "Starting AI coordination hub..."
+    cd "$SCRIPT_DIR/ml_service"
+    
+    # Check if already running
+    if "$PORT_MANAGER" scan 2>/dev/null | grep -q "8002.*IN USE"; then
+        warning "AI coordination hub appears to be already running on port 8002"
+        return 0
+    fi
+    
+    # Start in background
+    log "Starting AI coordination hub on port 8002..."
+    nohup python3 ai_coordination_hub.py > ../logs/ai_coordination.log 2>&1 &
+    local coordination_pid=$!
+    echo $coordination_pid > ../logs/ai_coordination.pid
+    
+    # Wait a moment to check if it started successfully
+    sleep 3
+    if kill -0 $coordination_pid 2>/dev/null; then
+        success "AI coordination hub started successfully (PID: $coordination_pid)"
+    else
+        error "AI coordination hub failed to start. Check logs/ai_coordination.log"
+        return 1
+    fi
+    
+    cd "$SCRIPT_DIR"
 }
 
 # Start backend service
@@ -223,9 +365,63 @@ wait_for_services() {
     local max_attempts=30
     local attempt=0
     
+    # Wait for ML service
+    if [[ "$START_ML_SERVICE" == "true" ]]; then
+        log "Checking ML service health..."
+        while [[ $attempt -lt $max_attempts ]]; do
+            if curl -s http://localhost:8000/health >/dev/null 2>&1; then
+                success "ML service is responding"
+                break
+            fi
+            attempt=$((attempt + 1))
+            sleep 2
+        done
+        
+        if [[ $attempt -eq $max_attempts ]]; then
+            warning "ML service health check timed out"
+        fi
+    fi
+    
+    # Wait for ML inference
+    if [[ "$START_ML_INFERENCE" == "true" ]]; then
+        log "Checking ML inference health..."
+        attempt=0
+        while [[ $attempt -lt $max_attempts ]]; do
+            if curl -s http://localhost:8001/health >/dev/null 2>&1; then
+                success "ML inference is responding"
+                break
+            fi
+            attempt=$((attempt + 1))
+            sleep 2
+        done
+        
+        if [[ $attempt -eq $max_attempts ]]; then
+            warning "ML inference health check timed out"
+        fi
+    fi
+    
+    # Wait for AI coordination hub
+    if [[ "$START_AI_COORDINATION" == "true" ]]; then
+        log "Checking AI coordination hub health..."
+        attempt=0
+        while [[ $attempt -lt $max_attempts ]]; do
+            if curl -s http://localhost:8002/coordination/stats >/dev/null 2>&1; then
+                success "AI coordination hub is responding"
+                break
+            fi
+            attempt=$((attempt + 1))
+            sleep 2
+        done
+        
+        if [[ $attempt -eq $max_attempts ]]; then
+            warning "AI coordination hub health check timed out"
+        fi
+    fi
+    
     # Wait for backend
     if [[ "$START_BACKEND" == "true" ]]; then
         log "Checking backend health..."
+        attempt=0
         while [[ $attempt -lt $max_attempts ]]; do
             if curl -s http://localhost:3000 >/dev/null 2>&1; then
                 success "Backend is responding"
@@ -265,6 +461,22 @@ show_summary() {
     echo -e "${GREEN}🚀 Connect Four Game Services Started! 🚀${NC}"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
+    if [[ "$START_ML_SERVICE" == "true" ]]; then
+        echo -e "  ${BLUE}ML Service:${NC}       http://localhost:8000"
+        echo -e "  ${BLUE}ML Service API:${NC}   http://localhost:8000/docs"
+        echo -e "  ${BLUE}ML Metrics:${NC}       http://localhost:8000/metrics"
+    fi
+    
+    if [[ "$START_ML_INFERENCE" == "true" ]]; then
+        echo -e "  ${BLUE}Enhanced ML-Inference:${NC} http://localhost:8001"
+        echo -e "  ${BLUE}ML-Inference Health:${NC}  http://localhost:8001/health"
+    fi
+    
+    if [[ "$START_AI_COORDINATION" == "true" ]]; then
+        echo -e "  ${BLUE}AI Coordination Hub:${NC}  http://localhost:8002"
+        echo -e "  ${BLUE}AI Coordination Stats:${NC} http://localhost:8002/coordination/stats"
+    fi
+    
     if [[ "$START_BACKEND" == "true" ]]; then
         echo -e "  ${BLUE}Backend API:${NC}      http://localhost:3000"
         echo -e "  ${BLUE}API Docs:${NC}         http://localhost:3000/api"
@@ -276,6 +488,13 @@ show_summary() {
     fi
     
     echo ""
+    echo -e "  ${YELLOW}Revolutionary AI Features:${NC}"
+    echo -e "  ${YELLOW}├─ Multi-Brain Architecture${NC}     (Tactical + Strategic AI)"
+    echo -e "  ${YELLOW}├─ Real-time AI Collaboration${NC}   (AI-to-AI Communication)"
+    echo -e "  ${YELLOW}├─ Opponent Psychological Profiling${NC} (Adaptive Strategy)"
+    echo -e "  ${YELLOW}├─ Uncertainty-Guided Decisions${NC}  (Smart Exploration)"
+    echo -e "  ${YELLOW}└─ Emergency Coordination${NC}       (< 50ms Crisis Response)"
+    echo ""
     echo -e "  ${YELLOW}Logs Directory:${NC}   $SCRIPT_DIR/logs/"
     echo -e "  ${YELLOW}Stop Services:${NC}    ./port-manager.sh cleanup"
     echo -e "  ${YELLOW}Service Status:${NC}   ./port-manager.sh status"
@@ -283,7 +502,7 @@ show_summary() {
     echo ""
     
     if [[ "$START_FRONTEND" == "true" ]]; then
-        echo -e "${GREEN}Ready to play Connect Four!${NC} Open http://localhost:3001 in your browser."
+        echo -e "${GREEN}🧠 Revolutionary AI System Ready!${NC} Open http://localhost:3001 to experience the future of Connect Four AI!"
     fi
 }
 
@@ -314,7 +533,10 @@ main() {
     install_dependencies
     cleanup_ports
     
-    # Start services
+    # Start services in correct order (ML services first, then backend, then frontend)
+    start_ml_service
+    start_ml_inference
+    start_ai_coordination
     start_backend
     start_frontend
     
@@ -345,10 +567,28 @@ while [[ $# -gt 0 ]]; do
             ;;
         --backend-only)
             START_FRONTEND=false
+            START_ML_SERVICE=false
+            START_ML_INFERENCE=false
             shift
             ;;
         --frontend-only)
             START_BACKEND=false
+            START_ML_SERVICE=false
+            START_ML_INFERENCE=false
+            shift
+            ;;
+        --ml-only)
+            START_BACKEND=false
+            START_FRONTEND=false
+            shift
+            ;;
+        --no-ml)
+            START_ML_SERVICE=false
+            START_ML_INFERENCE=false
+            shift
+            ;;
+        --no-ml-inference)
+            START_ML_INFERENCE=false
             shift
             ;;
         --production)
@@ -372,16 +612,27 @@ OPTIONS:
   --interactive-cleanup Prompt before killing each process
   --backend-only        Start only the backend service
   --frontend-only       Start only the frontend service
+  --ml-only             Start only ML services (ml-service + ml-inference)
+  --no-ml               Skip ML services (backend + frontend only)
+  --no-ml-inference     Skip ML inference service (keep ml-service)
   --production          Start in production mode
   --follow-logs, -f     Follow logs after startup
   --help, -h            Show this help message
 
 EXAMPLES:
-  $0                        # Start all services with auto cleanup (default)
+  $0                        # Start all services (default)
   $0 --interactive-cleanup  # Start with interactive cleanup prompts
   $0 --backend-only -f      # Start only backend and follow logs
-  $0 --production           # Start in production mode
-  $0 --no-cleanup           # Start without any port cleanup
+  $0 --no-ml               # Start without ML services
+  $0 --ml-only             # Start only ML services
+  $0 --production          # Start in production mode
+  $0 --no-cleanup          # Start without any port cleanup
+
+SERVICES:
+  Backend:       http://localhost:3000 (Node.js API)
+  Frontend:      http://localhost:3001 (React App)
+  ML Service:    http://localhost:8000 (FastAPI ML API)
+  ML Inference:  http://localhost:8001 (PyTorch Inference)
 
 EOF
             exit 0
