@@ -4,23 +4,16 @@ import { CellValue, legalMoves } from '../ai/connect4AI';
 import { minimax, mcts } from '../ai/connect4AI';
 import { AiProfileService } from './ai-profile.service';
 import { MlClientService } from '../ml/ml-client.service';
-import { MLInferenceClient } from '../ai/MLInferenceClient';
 
 @Injectable()
 export class GameAIService {
   private readonly logger = new Logger(GameAIService.name);
   private cache = new Map<string, number>();
-  private readonly enhancementClient: MLInferenceClient;
 
   constructor(
     private readonly aiProfileService: AiProfileService,
     private readonly mlClientService: MlClientService,
-  ) {
-    this.enhancementClient = new MLInferenceClient({
-      baseUrl: process.env.ML_SERVICE_URL || 'http://localhost:8001',
-      timeoutMs: 1000, // Shorter timeout for enhancement calls
-    });
-  }
+  ) { }
 
   /**
    * Dynamically selects the AI's next move based on its current adaptive level.
@@ -28,7 +21,7 @@ export class GameAIService {
    * Levels 1-3: Minimax with increasing depth.
    * Levels 4-6: MCTS with increasing iterations.
    * Levels 7-8: ML-guided MCTS.
-   * Level 9+: Full ML model via ml-inference-service.
+   * Level 9+: Full ML model via ml-service.
    */
   async getNextMove(
     board: CellValue[][],
@@ -56,7 +49,7 @@ export class GameAIService {
       const depth = aiLevel + 1; // Level 1 -> depth 2, Level 2 -> depth 3, etc.
       this.logger.log(`Using Minimax with depth ${depth}, enhanced by ML.`);
       try {
-        const { probs } = await this.enhancementClient.predict({ board });
+        const { probs } = await this.mlClientService.getPrediction(board);
         const result = minimax(board, depth, -Infinity, Infinity, true, aiDisc, probs);
         move = result.column ?? this.getRandomMove(board);
       } catch (error) {
@@ -70,7 +63,7 @@ export class GameAIService {
       const timeMs = 500 + (aiLevel - 4) * 500; // 500ms, 1000ms, 1500ms
       this.logger.log(`Using MCTS with time ${timeMs}ms, enhanced by ML.`);
       try {
-        const { probs } = await this.enhancementClient.predict({ board });
+        const { probs } = await this.mlClientService.getPrediction(board);
         move = mcts(board, aiDisc, timeMs, probs);
       } catch (error) {
         this.logger.warn(`MCTS enhancement failed: ${error.message}. Falling back to standard MCTS.`);
