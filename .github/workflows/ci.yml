@@ -46,7 +46,6 @@ jobs:
       backend: ${{ steps.changes.outputs.backend || 'false' }}
       frontend: ${{ steps.changes.outputs.frontend || 'false' }}
       ml: ${{ steps.changes.outputs.ml || 'false' }}
-      cpp: ${{ steps.changes.outputs.cpp || 'false' }}
       workflows: ${{ steps.changes.outputs.workflows || 'false' }}
       docs: ${{ steps.changes.outputs.docs || 'false' }}
     steps:
@@ -71,10 +70,6 @@ jobs:
               - 'backend/src/ml/**'
               - 'ml_service/**'
               - 'models/**'
-            cpp:
-              - 'c_cpp/**'
-              - 'CMakeLists.txt'
-              - 'Makefile'
             workflows:
               - '.github/workflows/**'
             docs:
@@ -326,85 +321,6 @@ jobs:
           retention-days: 30
 
   # ==========================================
-  # 🔧 C++ Build & Test
-  # ==========================================
-  cpp-ci:
-    name: "🔧 C++ CI"
-    runs-on: ubuntu-latest
-    needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.cpp == 'true' || needs.detect-changes.outputs.workflows == 'true' }}
-    
-    strategy:
-      matrix:
-        compiler: [gcc, clang]
-        build-type: [Debug, Release]
-        include:
-          - compiler: gcc
-            cc: gcc
-            cxx: g++
-          - compiler: clang
-            cc: clang
-            cxx: clang++
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake clang-format cppcheck valgrind
-
-      - name: Cache CMake build
-        uses: actions/cache@v4
-        with:
-          path: c_cpp/build
-          key: ${{ runner.os }}-cmake-${{ matrix.compiler }}-${{ matrix.build-type }}-${{ hashFiles('c_cpp/CMakeLists.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-cmake-${{ matrix.compiler }}-${{ matrix.build-type }}-
-
-      - name: Configure CMake
-        working-directory: c_cpp
-        run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_C_COMPILER=${{ matrix.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
-        env:
-          CC: ${{ matrix.cc }}
-          CXX: ${{ matrix.cxx }}
-
-      - name: Build C++ project
-        working-directory: c_cpp
-        run: cmake --build build --config ${{ matrix.build-type }} -j$(nproc)
-
-      - name: Run C++ tests
-        if: ${{ !inputs.skip_tests }}
-        working-directory: c_cpp
-        run: |
-          cd build
-          ctest --output-on-failure --parallel $(nproc)
-
-      - name: Code formatting check
-        if: matrix.compiler == 'gcc' && matrix.build-type == 'Debug'
-        working-directory: c_cpp
-        run: |
-          find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
-
-      - name: Static analysis (cppcheck)
-        if: matrix.compiler == 'gcc' && matrix.build-type == 'Debug'
-        working-directory: c_cpp
-        run: |
-          cppcheck --enable=all --inconclusive --xml --xml-version=2 src/ 2> cppcheck-report.xml || true
-
-      - name: Upload C++ artifacts
-        if: matrix.compiler == 'gcc' && matrix.build-type == 'Debug'
-        uses: actions/upload-artifact@v4
-        with:
-          name: cpp-artifacts
-          path: |
-            c_cpp/build/
-            c_cpp/cppcheck-report.xml
-          retention-days: 30
-
-  # ==========================================
   # 🧪 Integration Tests
   # ==========================================
   integration-tests:
@@ -591,7 +507,7 @@ jobs:
   ci-summary:
     name: "📋 CI Summary"
     runs-on: ubuntu-latest
-    needs: [detect-changes, backend-ci, frontend-ci, ml-service-ci, cpp-ci, integration-tests, security-analysis]
+    needs: [detect-changes, backend-ci, frontend-ci, ml-service-ci, integration-tests, security-analysis]
     if: always()
     
     steps:
@@ -603,7 +519,6 @@ jobs:
           echo "| Backend | ${{ needs.backend-ci.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Frontend | ${{ needs.frontend-ci.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| ML Service | ${{ needs.ml-service-ci.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| C++ Build | ${{ needs.cpp-ci.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Integration Tests | ${{ needs.integration-tests.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Security Analysis | ${{ needs.security-analysis.result }} |" >> $GITHUB_STEP_SUMMARY
           
@@ -611,12 +526,11 @@ jobs:
           echo "- Backend: ${{ needs.detect-changes.outputs.backend }}" >> $GITHUB_STEP_SUMMARY
           echo "- Frontend: ${{ needs.detect-changes.outputs.frontend }}" >> $GITHUB_STEP_SUMMARY
           echo "- ML: ${{ needs.detect-changes.outputs.ml }}" >> $GITHUB_STEP_SUMMARY
-          echo "- C++: ${{ needs.detect-changes.outputs.cpp }}" >> $GITHUB_STEP_SUMMARY
           echo "- Workflows: ${{ needs.detect-changes.outputs.workflows }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Check overall status
         run: |
-          if [[ "${{ needs.backend-ci.result }}" == "failure" || "${{ needs.frontend-ci.result }}" == "failure" || "${{ needs.ml-service-ci.result }}" == "failure" || "${{ needs.cpp-ci.result }}" == "failure" ]]; then
+          if [[ "${{ needs.backend-ci.result }}" == "failure" || "${{ needs.frontend-ci.result }}" == "failure" || "${{ needs.ml-service-ci.result }}" == "failure" ]]; then
             echo "❌ CI Pipeline failed!"
             exit 1
           else
