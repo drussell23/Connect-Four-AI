@@ -52,6 +52,10 @@ export class GameService {
     return gameId;
   }
 
+  getGame(gameId: string): GameState | undefined {
+    return this.games.get(gameId);
+  }
+
   async joinGame(
     gameId: string,
     playerId: string,
