@@ -2,9 +2,9 @@
 > connect-four-frontend@1.0.0 start
 > PORT=3002 react-scripts start
 
-(node:38086) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(node:60192) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
 (Use `node --trace-deprecation ...` to show where the warning was created)
-(node:38086) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(node:60192) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
 Starting the development server...
 
 Compiled successfully!
@@ -12,7 +12,7 @@ Compiled successfully!
 You can now view connect-four-frontend in the browser.
 
   Local:            http://localhost:3002
-  On Your Network:  http://192.168.2.64:3002
+  On Your Network:  http://172.16.42.85:3002
 
 Note that the development build is not optimized.
 To create a production build, use npm run build.
@@ -20,116 +20,4 @@ To create a production build, use npm run build.
 webpack compiled successfully
 Files successfully emitted, waiting for typecheck results...
 Issues checking in progress...
-No issues found.
-Compiling...
-Compiled successfully!
-webpack compiled successfully
-Compiling...
-No issues found.
-Compiled successfully!
-webpack compiled successfully
-No issues found.
-Compiling...
-Compiled successfully!
-webpack compiled successfully
-Compiling...
-Files successfully emitted, waiting for typecheck results...
-Issues checking in progress...
-Compiled successfully!
-webpack compiled successfully
-No issues found.
-Compiling...
-Compiled successfully!
-webpack compiled successfully
-Compiling...
-No issues found.
-Compiled successfully!
-webpack compiled successfully
-No issues found.
-Compiling...
-Failed to compile.
-
-Module not found: Error: Can't resolve './Sidebar.css' in '/Users/derekjrussell/Documents/repos/ConnectFourGame/frontend/src/components'
-ERROR in ./src/components/Sidebar.tsx 8:0-23
-Module not found: Error: Can't resolve './Sidebar.css' in '/Users/derekjrussell/Documents/repos/ConnectFourGame/frontend/src/components'
-
-webpack compiled with 1 error
-Compiling...
-Files successfully emitted, waiting for typecheck results...
-Issues checking in progress...
-Failed to compile.
-
-Module not found: Error: Can't resolve './Sidebar.css' in '/Users/derekjrussell/Documents/repos/ConnectFourGame/frontend/src/components'
-ERROR in ./src/components/Sidebar.tsx 8:0-23
-Module not found: Error: Can't resolve './Sidebar.css' in '/Users/derekjrussell/Documents/repos/ConnectFourGame/frontend/src/components'
-
-webpack compiled with 1 error
-Files successfully emitted, waiting for typecheck results...
-Issues checking in progress...
-No issues found.
-Compiling...
-Compiled successfully!
-webpack compiled successfully
-Compiling...
-No issues found.
-Compiled successfully!
-webpack compiled successfully
-No issues found.
-Compiling...
-Compiled successfully!
-webpack compiled successfully
-Compiling...
-No issues found.
-Compiled successfully!
-webpack compiled successfully
-No issues found.
-Compiling...
-Compiled successfully!
-webpack compiled successfully
-Compiling...
-No issues found.
-Compiled successfully!
-webpack compiled successfully
-No issues found.
-Compiling...
-Compiled successfully!
-webpack compiled successfully
-Compiling...
-No issues found.
-Compiled successfully!
-webpack compiled successfully
-No issues found.
-Compiling...
-Compiled successfully!
-webpack compiled successfully
-No issues found.
-Compiling...
-Compiled successfully!
-webpack compiled successfully
-Compiling...
-No issues found.
-Compiled successfully!
-webpack compiled successfully
-Compiling...
-No issues found.
-Compiled successfully!
-webpack compiled successfully
-No issues found.
-Compiling...
-Compiled successfully!
-webpack compiled successfully
-Compiling...
-No issues found.
-Compiled successfully!
-webpack compiled successfully
-Files successfully emitted, waiting for typecheck results...
-Issues checking in progress...
-No issues found.
-Compiling...
-Compiled successfully!
-webpack compiled successfully
-No issues found.
-Compiling...
-Compiled successfully!
-webpack compiled successfully
 No issues found.

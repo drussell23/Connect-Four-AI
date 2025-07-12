@@ -12,6 +12,11 @@ import { Connect4CNN, networkManager } from "./networks/cnnNetworks";
 import { Connect4ResNet } from "./networks/residualNetwork";
 import { Connect4AttentionNetwork } from "./networks/attentionNetwork";
 
+// Import optimizers
+import { AdamWOptimizer, AdamWConfig, AdamWPresets } from "./optimizers/adamW";
+import { EntropyRegularizer, EntropyRegularizerConfig, EntropyRegularizerPresets } from "./optimizers/entropyRegularizer";
+import { LearningRateScheduler, LearningRateSchedulerConfig, LearningRateSchedulerPresets } from "./optimizers/learningRateScheduler";
+
 // 1) A 6 × 7 heatmap: central & lower cells matter most
 const CELL_WEIGHTS: number[][] = [
   [3, 4, 5, 7, 5, 4, 3],
@@ -1418,6 +1423,31 @@ export interface UltimateAIConfig {
     memoryLimit: number;
     gpuAcceleration: boolean;
   };
+
+  // Optimizer Configuration
+  optimizers: {
+    adamW: {
+      enabled: boolean;
+      preset: 'neuralNetwork' | 'reinforcementLearning' | 'fineTuning' | 'highPerformance' | 'custom';
+      config: Partial<AdamWConfig>;
+    };
+    entropyRegularizer: {
+      enabled: boolean;
+      preset: 'policyGradient' | 'continuousControl' | 'highExploration' | 'lowExploration' | 'custom';
+      config: Partial<EntropyRegularizerConfig>;
+    };
+    learningRateScheduler: {
+      enabled: boolean;
+      preset: 'neuralNetwork' | 'cosineAnnealing' | 'oneCycle' | 'adaptive' | 'custom';
+      config: Partial<LearningRateSchedulerConfig>;
+    };
+    integration: {
+      adaptiveOptimization: boolean;
+      crossOptimizerLearning: boolean;
+      performanceMonitoring: boolean;
+      autoTuning: boolean;
+    };
+  };
 }
 
 export interface AIDecision {
@@ -1479,6 +1509,11 @@ export class UltimateConnect4AI {
   private resNetNetwork: Connect4ResNet | null = null;
   private attentionNetwork: Connect4AttentionNetwork | null = null;
 
+  // Optimizers
+  private adamWOptimizer: AdamWOptimizer | null = null;
+  private entropyRegularizer: EntropyRegularizer | null = null;
+  private learningRateScheduler: LearningRateScheduler | null = null;
+
   // Performance tracking
   private gameHistory: Array<{
     board: CellValue[][];
@@ -1537,6 +1572,29 @@ export class UltimateConnect4AI {
         memoryLimit: 1024,
         gpuAcceleration: false
       },
+      optimizers: {
+        adamW: {
+          enabled: true,
+          preset: 'neuralNetwork',
+          config: {}
+        },
+        entropyRegularizer: {
+          enabled: true,
+          preset: 'policyGradient',
+          config: {}
+        },
+        learningRateScheduler: {
+          enabled: true,
+          preset: 'neuralNetwork',
+          config: {}
+        },
+        integration: {
+          adaptiveOptimization: true,
+          crossOptimizerLearning: true,
+          performanceMonitoring: true,
+          autoTuning: true
+        }
+      },
       ...config
     };
 
@@ -1545,6 +1603,9 @@ export class UltimateConnect4AI {
 
   private async initializeAI(): Promise<void> {
     console.log('🚀 Initializing Ultimate Connect Four AI...');
+
+    // Initialize optimizers
+    await this.initializeOptimizers();
 
     // Initialize neural networks
     await this.initializeNeuralNetworks();
@@ -1556,6 +1617,150 @@ export class UltimateConnect4AI {
     await this.initializeAlphaZero();
 
     console.log('✅ Ultimate AI initialized successfully!');
+  }
+
+  private async initializeOptimizers(): Promise<void> {
+    const { optimizers } = this.config;
+
+    // Initialize AdamW Optimizer
+    if (optimizers.adamW.enabled) {
+      let config: Partial<AdamWConfig>;
+
+      switch (optimizers.adamW.preset) {
+        case 'neuralNetwork':
+          config = AdamWPresets.neuralNetwork();
+          break;
+        case 'reinforcementLearning':
+          config = AdamWPresets.reinforcementLearning();
+          break;
+        case 'fineTuning':
+          config = AdamWPresets.fineTuning();
+          break;
+        case 'highPerformance':
+          config = AdamWPresets.highPerformance();
+          break;
+        case 'custom':
+          config = optimizers.adamW.config;
+          break;
+        default:
+          config = AdamWPresets.neuralNetwork();
+      }
+
+      // Override with custom config
+      config = { ...config, ...optimizers.adamW.config };
+
+      this.adamWOptimizer = new AdamWOptimizer(config);
+      console.log(`🔧 AdamW optimizer initialized with ${optimizers.adamW.preset} preset`);
+    }
+
+    // Initialize Entropy Regularizer
+    if (optimizers.entropyRegularizer.enabled) {
+      let config: Partial<EntropyRegularizerConfig>;
+
+      switch (optimizers.entropyRegularizer.preset) {
+        case 'policyGradient':
+          config = EntropyRegularizerPresets.policyGradient();
+          break;
+        case 'continuousControl':
+          config = EntropyRegularizerPresets.continuousControl();
+          break;
+        case 'highExploration':
+          config = EntropyRegularizerPresets.highExploration();
+          break;
+        case 'lowExploration':
+          config = EntropyRegularizerPresets.lowExploration();
+          break;
+        case 'custom':
+          config = optimizers.entropyRegularizer.config;
+          break;
+        default:
+          config = EntropyRegularizerPresets.policyGradient();
+      }
+
+      // Override with custom config
+      config = { ...config, ...optimizers.entropyRegularizer.config };
+
+      this.entropyRegularizer = new EntropyRegularizer(config);
+      console.log(`🎯 Entropy regularizer initialized with ${optimizers.entropyRegularizer.preset} preset`);
+    }
+
+    // Initialize Learning Rate Scheduler
+    if (optimizers.learningRateScheduler.enabled) {
+      let config: Partial<LearningRateSchedulerConfig>;
+
+      switch (optimizers.learningRateScheduler.preset) {
+        case 'neuralNetwork':
+          config = LearningRateSchedulerPresets.neuralNetwork();
+          break;
+        case 'cosineAnnealing':
+          config = LearningRateSchedulerPresets.cosineAnnealing();
+          break;
+        case 'oneCycle':
+          config = LearningRateSchedulerPresets.oneCycle();
+          break;
+        case 'adaptive':
+          config = LearningRateSchedulerPresets.adaptive();
+          break;
+        case 'custom':
+          config = optimizers.learningRateScheduler.config;
+          break;
+        default:
+          config = LearningRateSchedulerPresets.neuralNetwork();
+      }
+
+      // Override with custom config
+      config = { ...config, ...optimizers.learningRateScheduler.config };
+
+      this.learningRateScheduler = new LearningRateScheduler(config);
+      console.log(`📈 Learning rate scheduler initialized with ${optimizers.learningRateScheduler.preset} preset`);
+    }
+
+    // Initialize cross-optimizer integration
+    if (optimizers.integration.crossOptimizerLearning) {
+      this.initializeCrossOptimizerIntegration();
+    }
+
+    console.log('⚙️  All optimizers initialized successfully!');
+  }
+
+  private initializeCrossOptimizerIntegration(): void {
+    // Set up communication between optimizers
+    if (this.adamWOptimizer && this.learningRateScheduler) {
+      // Link AdamW with learning rate scheduler
+      const originalStep = this.adamWOptimizer.step.bind(this.adamWOptimizer);
+      this.adamWOptimizer.step = (gradients: Map<string, number[]>, loss?: number) => {
+        // Update learning rate scheduler
+        const newLr = this.learningRateScheduler!.step(loss);
+
+        // Update AdamW learning rate
+        this.adamWOptimizer!.updateConfig({ learningRate: newLr });
+
+        // Perform original step
+        return originalStep(gradients, loss);
+      };
+    }
+
+    if (this.entropyRegularizer && this.learningRateScheduler) {
+      // Link entropy regularizer with learning rate scheduler
+      const originalUpdateCoefficient = this.entropyRegularizer.updateCoefficient.bind(this.entropyRegularizer);
+      this.entropyRegularizer.updateCoefficient = () => {
+        originalUpdateCoefficient();
+
+        // Adapt entropy based on learning rate phase
+        const phase = this.learningRateScheduler!.getCurrentPhase();
+        if (phase === 'warmup') {
+          // Higher exploration during warmup
+          this.entropyRegularizer!.updateConfig({
+            schedule: { ...this.entropyRegularizer!.getMetrics().config.schedule, type: 'linear' }
+          });
+        } else if (phase === 'cooldown') {
+          // Lower exploration during cooldown
+          this.entropyRegularizer!.updateConfig({
+            schedule: { ...this.entropyRegularizer!.getMetrics().config.schedule, type: 'exponential' }
+          });
+        }
+      };
+    }
   }
 
   private async initializeNeuralNetworks(): Promise<void> {
@@ -2147,14 +2352,491 @@ export class UltimateConnect4AI {
    * Dispose of all AI resources
    */
   dispose(): void {
-    this.dqnAgent?.dispose();
-    this.doubleDqnAgent?.dispose();
-    this.duelingDqnAgent?.dispose();
-    this.rainbowDqnAgent?.dispose();
-    this.alphaZeroAgent?.dispose();
-    this.cnnNetwork?.dispose();
-    this.resNetNetwork?.dispose();
-    this.attentionNetwork?.dispose();
-    networkManager.dispose();
+    // Dispose of AI agents
+    if (this.dqnAgent) {
+      this.dqnAgent.dispose();
+      this.dqnAgent = null;
+    }
+    if (this.doubleDqnAgent) {
+      this.doubleDqnAgent.dispose();
+      this.doubleDqnAgent = null;
+    }
+    if (this.duelingDqnAgent) {
+      this.duelingDqnAgent.dispose();
+      this.duelingDqnAgent = null;
+    }
+    if (this.rainbowDqnAgent) {
+      this.rainbowDqnAgent.dispose();
+      this.rainbowDqnAgent = null;
+    }
+    if (this.alphaZeroAgent) {
+      this.alphaZeroAgent.dispose();
+      this.alphaZeroAgent = null;
+    }
+
+    // Dispose of optimizers
+    if (this.adamWOptimizer) {
+      this.adamWOptimizer.dispose();
+      this.adamWOptimizer = null;
+    }
+    if (this.entropyRegularizer) {
+      this.entropyRegularizer.dispose();
+      this.entropyRegularizer = null;
+    }
+    if (this.learningRateScheduler) {
+      this.learningRateScheduler.dispose();
+      this.learningRateScheduler = null;
+    }
+
+    // Dispose of neural networks
+    if (this.cnnNetwork) {
+      this.cnnNetwork.dispose();
+      this.cnnNetwork = null;
+    }
+    if (this.resNetNetwork) {
+      this.resNetNetwork.dispose();
+      this.resNetNetwork = null;
+    }
+    if (this.attentionNetwork) {
+      this.attentionNetwork.dispose();
+      this.attentionNetwork = null;
+    }
+
+    // Clear game history
+    this.gameHistory = [];
+
+    // Clear global network manager
+    if (typeof networkManager !== 'undefined') {
+      networkManager.dispose();
+    }
+  }
+
+  /**
+   * Optimize neural network training using integrated optimizers
+   */
+  async optimizeNeuralNetwork(
+    network: 'cnn' | 'resnet' | 'attention' | 'all',
+    trainingData: Array<{
+      board: CellValue[][];
+      targetPolicy: number[];
+      targetValue: number;
+    }>,
+    batchSize: number = 32
+  ): Promise<{
+    loss: number;
+    optimizerMetrics: {
+      adamW?: any;
+      entropyRegularizer?: any;
+      learningRateScheduler?: any;
+    };
+  }> {
+    const optimizerMetrics: any = {};
+    let totalLoss = 0;
+    let batches = 0;
+
+    // Process training data in batches
+    for (let i = 0; i < trainingData.length; i += batchSize) {
+      const batch = trainingData.slice(i, i + batchSize);
+      const batchGradients = new Map<string, number[]>();
+      let batchLoss = 0;
+
+      // Process each sample in the batch
+      for (const sample of batch) {
+        const { board, targetPolicy, targetValue } = sample;
+
+        // Get network predictions
+        let prediction: { policy: number[]; value: number; confidence: number };
+
+        switch (network) {
+          case 'cnn':
+            if (this.cnnNetwork) {
+              prediction = await this.cnnNetwork.predict(board);
+            } else {
+              continue;
+            }
+            break;
+          case 'resnet':
+            if (this.resNetNetwork) {
+              prediction = await this.resNetNetwork.predict(board);
+            } else {
+              continue;
+            }
+            break;
+          case 'attention':
+            if (this.attentionNetwork) {
+              prediction = await this.attentionNetwork.predict(board);
+            } else {
+              continue;
+            }
+            break;
+          case 'all':
+            // Use ensemble prediction
+            prediction = await this.getEnsemblePrediction(board);
+            break;
+          default:
+            continue;
+        }
+
+        // Calculate loss
+        const policyLoss = this.calculateCrossEntropyLoss(prediction.policy, targetPolicy);
+        const valueLoss = Math.pow(prediction.value - targetValue, 2);
+        let sampleLoss = policyLoss + valueLoss;
+
+        // Add entropy regularization if enabled
+        if (this.entropyRegularizer) {
+          const entropyLoss = this.entropyRegularizer.calculateEntropyLoss(prediction.policy, 'categorical');
+          sampleLoss += entropyLoss.loss;
+          this.entropyRegularizer.updateCoefficient();
+        }
+
+        batchLoss += sampleLoss;
+
+        // Calculate gradients (simplified - in real implementation, use backpropagation)
+        const gradients = this.calculateGradients(prediction, targetPolicy, targetValue);
+
+        // Accumulate gradients
+        for (const [paramName, grad] of gradients) {
+          if (!batchGradients.has(paramName)) {
+            batchGradients.set(paramName, new Array(grad.length).fill(0));
+          }
+          const accGrad = batchGradients.get(paramName)!;
+          for (let j = 0; j < grad.length; j++) {
+            accGrad[j] += grad[j];
+          }
+        }
+      }
+
+      // Average gradients over batch
+      for (const [paramName, grad] of batchGradients) {
+        for (let j = 0; j < grad.length; j++) {
+          grad[j] /= batch.length;
+        }
+      }
+
+      // Apply optimizer updates
+      if (this.adamWOptimizer) {
+        this.adamWOptimizer.step(batchGradients, batchLoss);
+        optimizerMetrics.adamW = this.adamWOptimizer.getMetrics();
+      }
+
+      if (this.learningRateScheduler) {
+        const gradientNorm = this.calculateGradientNorm(batchGradients);
+        this.learningRateScheduler.step(batchLoss, gradientNorm);
+        optimizerMetrics.learningRateScheduler = this.learningRateScheduler.getMetrics();
+      }
+
+      if (this.entropyRegularizer) {
+        optimizerMetrics.entropyRegularizer = this.entropyRegularizer.getMetrics();
+      }
+
+      totalLoss += batchLoss;
+      batches++;
+    }
+
+    return {
+      loss: totalLoss / batches,
+      optimizerMetrics
+    };
+  }
+
+  /**
+   * Optimize reinforcement learning agent training
+   */
+  async optimizeRLAgent(
+    agent: 'dqn' | 'double_dqn' | 'dueling_dqn' | 'rainbow_dqn',
+    experienceReplay: Array<{
+      state: CellValue[][];
+      action: number;
+      reward: number;
+      nextState: CellValue[][];
+      done: boolean;
+    }>,
+    batchSize: number = 32
+  ): Promise<{
+    loss: number;
+    optimizerMetrics: {
+      adamW?: any;
+      entropyRegularizer?: any;
+      learningRateScheduler?: any;
+    };
+  }> {
+    const optimizerMetrics: any = {};
+    let totalLoss = 0;
+    let batches = 0;
+
+    // Get the appropriate agent
+    let rlAgent: any;
+    switch (agent) {
+      case 'dqn':
+        rlAgent = this.dqnAgent;
+        break;
+      case 'double_dqn':
+        rlAgent = this.doubleDqnAgent;
+        break;
+      case 'dueling_dqn':
+        rlAgent = this.duelingDqnAgent;
+        break;
+      case 'rainbow_dqn':
+        rlAgent = this.rainbowDqnAgent;
+        break;
+      default:
+        throw new Error(`Unknown RL agent: ${agent}`);
+    }
+
+    if (!rlAgent) {
+      throw new Error(`${agent} agent not initialized`);
+    }
+
+    // Process experience replay in batches
+    for (let i = 0; i < experienceReplay.length; i += batchSize) {
+      const batch = experienceReplay.slice(i, i + batchSize);
+      const batchGradients = new Map<string, number[]>();
+      let batchLoss = 0;
+
+      for (const experience of batch) {
+        const { state, action, reward, nextState, done } = experience;
+
+        // Get current Q-values
+        const currentQValues = await rlAgent.getQValues(state);
+        const nextQValues = done ? Array(7).fill(0) : await rlAgent.getQValues(nextState);
+
+        // Calculate target Q-value
+        const targetQValue = reward + (done ? 0 : 0.99 * Math.max(...nextQValues));
+
+        // Calculate loss
+        const sampleLoss = Math.pow(currentQValues[action] - targetQValue, 2);
+        batchLoss += sampleLoss;
+
+        // Add entropy regularization for exploration
+        if (this.entropyRegularizer) {
+          const actionProbs = this.softmax(currentQValues);
+          const entropyLoss = this.entropyRegularizer.calculateEntropyLoss(actionProbs, 'categorical');
+          batchLoss += entropyLoss.loss;
+        }
+
+        // Calculate gradients (simplified)
+        const gradients = this.calculateRLGradients(currentQValues, action, targetQValue);
+
+        // Accumulate gradients
+        for (const [paramName, grad] of gradients) {
+          if (!batchGradients.has(paramName)) {
+            batchGradients.set(paramName, new Array(grad.length).fill(0));
+          }
+          const accGrad = batchGradients.get(paramName)!;
+          for (let j = 0; j < grad.length; j++) {
+            accGrad[j] += grad[j];
+          }
+        }
+      }
+
+      // Average gradients over batch
+      for (const [paramName, grad] of batchGradients) {
+        for (let j = 0; j < grad.length; j++) {
+          grad[j] /= batch.length;
+        }
+      }
+
+      // Apply optimizer updates
+      if (this.adamWOptimizer) {
+        this.adamWOptimizer.step(batchGradients, batchLoss);
+        optimizerMetrics.adamW = this.adamWOptimizer.getMetrics();
+      }
+
+      if (this.learningRateScheduler) {
+        const gradientNorm = this.calculateGradientNorm(batchGradients);
+        this.learningRateScheduler.step(batchLoss, gradientNorm);
+        optimizerMetrics.learningRateScheduler = this.learningRateScheduler.getMetrics();
+      }
+
+      if (this.entropyRegularizer) {
+        this.entropyRegularizer.updateCoefficient();
+        optimizerMetrics.entropyRegularizer = this.entropyRegularizer.getMetrics();
+      }
+
+      totalLoss += batchLoss;
+      batches++;
+    }
+
+    return {
+      loss: totalLoss / batches,
+      optimizerMetrics
+    };
+  }
+
+  /**
+   * Helper methods for optimizer integration
+   */
+  private calculateCrossEntropyLoss(predicted: number[], target: number[]): number {
+    let loss = 0;
+    for (let i = 0; i < predicted.length; i++) {
+      loss -= target[i] * Math.log(Math.max(predicted[i], 1e-8));
+    }
+    return loss;
+  }
+
+  private calculateGradients(
+    prediction: { policy: number[]; value: number; confidence: number },
+    targetPolicy: number[],
+    targetValue: number
+  ): Map<string, number[]> {
+    const gradients = new Map<string, number[]>();
+
+    // Simplified gradient calculation
+    // In real implementation, use automatic differentiation
+    const policyGradient = prediction.policy.map((p, i) => p - targetPolicy[i]);
+    const valueGradient = [2 * (prediction.value - targetValue)];
+
+    gradients.set('policy_weights', policyGradient);
+    gradients.set('value_weights', valueGradient);
+
+    return gradients;
+  }
+
+  private calculateRLGradients(
+    currentQValues: number[],
+    action: number,
+    targetQValue: number
+  ): Map<string, number[]> {
+    const gradients = new Map<string, number[]>();
+
+    // Simplified Q-learning gradient calculation
+    const qGradient = currentQValues.map((q, i) =>
+      i === action ? 2 * (q - targetQValue) : 0
+    );
+
+    gradients.set('q_weights', qGradient);
+
+    return gradients;
+  }
+
+  private calculateGradientNorm(gradients: Map<string, number[]>): number {
+    let norm = 0;
+    for (const grad of gradients.values()) {
+      for (const g of grad) {
+        norm += g * g;
+      }
+    }
+    return Math.sqrt(norm);
+  }
+
+  private softmax(values: number[]): number[] {
+    const maxVal = Math.max(...values);
+    const exp = values.map(v => Math.exp(v - maxVal));
+    const sum = exp.reduce((a, b) => a + b, 0);
+    return exp.map(e => e / sum);
+  }
+
+  private async getEnsemblePrediction(board: CellValue[][]): Promise<{ policy: number[]; value: number; confidence: number }> {
+    const predictions: Array<{ policy: number[]; value: number; confidence: number }> = [];
+
+    if (this.cnnNetwork) {
+      predictions.push(await this.cnnNetwork.predict(board));
+    }
+
+    if (this.resNetNetwork) {
+      predictions.push(await this.resNetNetwork.predict(board));
+    }
+
+    if (this.attentionNetwork) {
+      predictions.push(await this.attentionNetwork.predict(board));
+    }
+
+    if (predictions.length === 0) {
+      throw new Error('No neural networks available for ensemble prediction');
+    }
+
+    // Average predictions
+    const avgPolicy = Array(7).fill(0);
+    let avgValue = 0;
+    let avgConfidence = 0;
+
+    for (const pred of predictions) {
+      for (let i = 0; i < avgPolicy.length; i++) {
+        avgPolicy[i] += pred.policy[i];
+      }
+      avgValue += pred.value;
+      avgConfidence += pred.confidence;
+    }
+
+    for (let i = 0; i < avgPolicy.length; i++) {
+      avgPolicy[i] /= predictions.length;
+    }
+    avgValue /= predictions.length;
+    avgConfidence /= predictions.length;
+
+    return { policy: avgPolicy, value: avgValue, confidence: avgConfidence };
+  }
+
+  /**
+   * Get comprehensive optimizer metrics
+   */
+  getOptimizerMetrics(): {
+    adamW?: any;
+    entropyRegularizer?: any;
+    learningRateScheduler?: any;
+    integration?: {
+      crossOptimizerLearning: boolean;
+      performanceMonitoring: boolean;
+      autoTuning: boolean;
+    };
+  } {
+    const metrics: any = {};
+
+    if (this.adamWOptimizer) {
+      metrics.adamW = this.adamWOptimizer.getMetrics();
+    }
+
+    if (this.entropyRegularizer) {
+      metrics.entropyRegularizer = this.entropyRegularizer.getMetrics();
+    }
+
+    if (this.learningRateScheduler) {
+      metrics.learningRateScheduler = this.learningRateScheduler.getMetrics();
+    }
+
+    metrics.integration = {
+      crossOptimizerLearning: this.config.optimizers.integration.crossOptimizerLearning,
+      performanceMonitoring: this.config.optimizers.integration.performanceMonitoring,
+      autoTuning: this.config.optimizers.integration.autoTuning
+    };
+
+    return metrics;
+  }
+
+  /**
+   * Update optimizer configurations
+   */
+  updateOptimizerConfig(newConfig: Partial<UltimateAIConfig['optimizers']>): void {
+    this.config.optimizers = { ...this.config.optimizers, ...newConfig };
+
+    // Update optimizer instances
+    if (newConfig.adamW && this.adamWOptimizer) {
+      this.adamWOptimizer.updateConfig(newConfig.adamW.config || {});
+    }
+
+    if (newConfig.entropyRegularizer && this.entropyRegularizer) {
+      this.entropyRegularizer.updateConfig(newConfig.entropyRegularizer.config || {});
+    }
+
+    if (newConfig.learningRateScheduler && this.learningRateScheduler) {
+      this.learningRateScheduler.updateConfig(newConfig.learningRateScheduler.config || {});
+    }
+  }
+
+  /**
+   * Reset all optimizers
+   */
+  resetOptimizers(): void {
+    if (this.adamWOptimizer) {
+      this.adamWOptimizer.reset();
+    }
+
+    if (this.entropyRegularizer) {
+      this.entropyRegularizer.reset();
+    }
+
+    if (this.learningRateScheduler) {
+      this.learningRateScheduler.reset();
+    }
   }
 }

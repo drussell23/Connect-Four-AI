@@ -11,11 +11,149 @@ export interface Move {
   row: number;
   /** True if this move results in an immediate win for the current player. */
   isWinning: boolean;
-  /** True if this move blocks an opponent’s winning threat. */
+  /** True if this move blocks an opponent's winning threat. */
   isBlocking: boolean;
-  /** Heuristic score: 1000=win, 900=block, 800−=center bias. */
-  priority: number;
+  /** Number of future threats this move creates for the opponent. */
+  futureThreats: number;
+  /** Heuristic score: positive favors current player. */
+  score: number;
 }
+
+/**
+ * Configuration for AI abilities and personality traits.
+ */
+export interface AIAbilityConfig {
+  specialAbilities: string[];
+  playerPatterns: {
+    favoriteColumns: number[];
+    weaknessesExploited: string[];
+    threatRecognitionSpeed: number;
+    endgameStrength: number;
+  };
+  personality: {
+    aggressiveness: number;
+    patience: number;
+  };
+  level: number;
+}
+
+/**
+ * Configuration for the Ultimate Connect4 AI system.
+ */
+export interface UltimateAIConfig {
+  // AI Strategy Selection
+  primaryStrategy: 'minimax' | 'mcts' | 'dqn' | 'alphazero' | 'hybrid' | 'ensemble';
+
+  // Deep Learning Configuration
+  neuralNetwork: {
+    type: 'cnn' | 'resnet' | 'attention' | 'ensemble';
+    enableTraining: boolean;
+    trainingFrequency: number;
+    batchSize: number;
+    learningRate: number;
+  };
+
+  // Reinforcement Learning
+  reinforcementLearning: {
+    algorithm: 'dqn' | 'double_dqn' | 'dueling_dqn' | 'rainbow_dqn';
+    experienceReplay: boolean;
+    targetUpdateFreq: number;
+    exploration: {
+      strategy: 'epsilon_greedy' | 'noisy_networks' | 'ucb';
+      initialValue: number;
+      decayRate: number;
+      finalValue: number;
+    };
+  };
+
+  // MCTS Configuration
+  mcts: {
+    simulations: number;
+    timeLimit: number;
+    explorationConstant: number;
+    progressiveWidening: boolean;
+    parallelization: boolean;
+  };
+
+  // Advanced Features
+  advanced: {
+    multiAgent: boolean;
+    metaLearning: boolean;
+    curriculumLearning: boolean;
+    populationTraining: boolean;
+    explainableAI: boolean;
+    realTimeAdaptation: boolean;
+  };
+
+  // Performance Settings
+  performance: {
+    maxThinkingTime: number;
+    multiThreading: boolean;
+    memoryLimit: number;
+    gpuAcceleration: boolean;
+  };
+
+  // Optimizer Configuration
+  optimizers: {
+    adamW: {
+      enabled: boolean;
+      preset: 'neuralNetwork' | 'reinforcementLearning' | 'fineTuning' | 'highPerformance' | 'custom';
+      config: any; // Partial<AdamWConfig>
+    };
+    entropyRegularizer: {
+      enabled: boolean;
+      preset: 'policyGradient' | 'continuousControl' | 'highExploration' | 'lowExploration' | 'custom';
+      config: any; // Partial<EntropyRegularizerConfig>
+    };
+    learningRateScheduler: {
+      enabled: boolean;
+      preset: 'neuralNetwork' | 'cosineAnnealing' | 'oneCycle' | 'adaptive' | 'custom';
+      config: any; // Partial<LearningRateSchedulerConfig>
+    };
+    integration: {
+      adaptiveOptimization: boolean;
+      crossOptimizerLearning: boolean;
+      performanceMonitoring: boolean;
+      autoTuning: boolean;
+    };
+  };
+}
+
+/**
+ * AI decision result with comprehensive metadata.
+ */
+export interface AIDecision {
+  move: number;
+  confidence: number;
+  reasoning: string;
+  alternativeMoves: Array<{
+    move: number;
+    score: number;
+    reasoning: string;
+  }>;
+  thinkingTime: number;
+  nodesExplored: number;
+  strategy: string;
+  metadata: {
+    neuralNetworkEvaluation?: {
+      policy: number[];
+      value: number;
+      confidence: number;
+    };
+    mctsStatistics?: {
+      simulations: number;
+      averageDepth: number;
+      bestLine: number[];
+    };
+    reinforcementLearning?: {
+      qValues: number[];
+      exploration: boolean;
+      epsilonValue: number;
+    };
+  };
+}
+
+// ===== BASIC FUNCTIONS =====
 
 /**
  * Compute the row index where a disc would land if dropped in a column.
@@ -26,8 +164,7 @@ export interface Move {
 export function getDropRow(board: CellValue[][], col: number): number | null;
 
 /**
- * Generate all legal moves sorted by priority:
- * 1000 = immediate win; 900 = block; 800–0 = center bias.
+ * Generate all legal moves sorted by priority.
  * @param board Current game board
  * @param currentPlayer 'Red' or 'Yellow' whose turn it is
  * @returns Array of Move objects sorted descending by priority
@@ -54,6 +191,8 @@ export function tryDrop(
   disc: CellValue
 ): { board: CellValue[][]; row: number };
 
+// ===== BITBOARD FUNCTIONS =====
+
 /**
  * Convert the board into separate red and yellow bitboards.
  * @param board Current game board
@@ -76,6 +215,8 @@ export function getBits(board: CellValue[][], disc: CellValue): bigint;
  */
 export function bitboardCheckWin(bb: bigint): boolean;
 
+// ===== EVALUATION FUNCTIONS =====
+
 /**
  * Evaluate a window of 4 cells for static board scoring.
  * @param cells Array of 4 CellValue entries
@@ -88,9 +229,26 @@ export function evaluateWindow(cells: CellValue[], aiDisc: CellValue): number;
  * Static evaluation of the entire board for a given AI disc.
  * @param board Current game board
  * @param aiDisc 'Red' or 'Yellow'
+ * @param moveProbabilities Optional neural network move probabilities
+ * @param lastMove Optional last move played
  * @returns Heuristic score: positive favors AI, negative favors opponent
  */
-export function evaluateBoard(board: CellValue[][], aiDisc: CellValue): number;
+export function evaluateBoard(
+  board: CellValue[][],
+  aiDisc: CellValue,
+  moveProbabilities?: number[],
+  lastMove?: number
+): number;
+
+/**
+ * Position evaluation with detailed analysis.
+ * @param board Current game board
+ * @param aiDisc 'Red' or 'Yellow'
+ * @returns Positional score
+ */
+export function evaluatePosition(board: CellValue[][], aiDisc: CellValue): number;
+
+// ===== TRANSPOSITION TABLE =====
 
 /** Flags for transposition table entries. */
 export enum EntryFlag { Exact, LowerBound, UpperBound }
@@ -99,13 +257,9 @@ export enum EntryFlag { Exact, LowerBound, UpperBound }
  * A stored entry in the transposition table.
  */
 export interface TranspositionEntry {
-  /** Evaluated score of the position. */
   score: number;
-  /** Depth at which this score was computed. */
   depth: number;
-  /** Best column index found, or null. */
   column: number | null;
-  /** Type of bound: Exact, LowerBound, or UpperBound. */
   flag: EntryFlag;
 }
 
@@ -124,17 +278,32 @@ export function getEntry(hash: bigint): TranspositionEntry | undefined;
 /** Store or update an entry in the transposition table. */
 export function storeEntry(hash: bigint, entry: TranspositionEntry): void;
 
+// ===== SEARCH ALGORITHMS =====
+
 /** Result of a minimax search node. */
-interface Node { score: number; column: number | null; }
+export interface Node {
+  score: number;
+  column: number | null;
+}
 
 /**
- * Minimax search with α–β pruning, null-move pruning, history heuristic, and transposition.
+ * Check if position is noisy and requires quiescence search.
+ * @param board Current game board
+ * @param aiDisc AI's disc color
+ * @returns True if position has tactical complexity
+ */
+export function isPositionNoisy(board: CellValue[][], aiDisc: CellValue): boolean;
+
+/**
+ * Minimax search with α–β pruning, quiescence search, and transposition table.
  * @param board Current game board
  * @param depth Search depth
  * @param alpha Alpha bound
  * @param beta Beta bound
  * @param maximizingPlayer True if maximizing (AI's turn)
  * @param aiDisc 'Red' or 'Yellow' for the AI
+ * @param moveProbabilities Optional neural network move probabilities
+ * @param lastMove Optional last move played
  * @returns Node with best score and chosen column
  */
 export function minimax(
@@ -143,8 +312,27 @@ export function minimax(
   alpha: number,
   beta: number,
   maximizingPlayer: boolean,
-  aiDisc: CellValue
+  aiDisc: CellValue,
+  moveProbabilities?: number[],
+  lastMove?: number
 ): Node;
+
+/**
+ * Iterative deepening minimax with time control.
+ * @param board Current game board
+ * @param aiDisc AI's disc color
+ * @param timeLimitMs Time limit in milliseconds
+ * @param moveProbabilities Optional neural network move probabilities
+ * @returns Best column to play
+ */
+export function iterativeDeepeningMinimax(
+  board: CellValue[][],
+  aiDisc: CellValue,
+  timeLimitMs: number,
+  moveProbabilities?: number[]
+): number;
+
+// ===== MCTS =====
 
 /** Data structure for Monte Carlo Tree Search nodes. */
 export interface MCTSNode {
@@ -155,71 +343,220 @@ export interface MCTSNode {
   parent: MCTSNode | null;
   children: MCTSNode[];
   move: number | null;
+  priorProb: number;
 }
 
 /** Deep-clone a board. */
 export function cloneBoard(board: CellValue[][]): CellValue[][];
 
-/** Compute softmax probabilities over an array of scores. */
-export function softmax(scores: number[], temperature: number): number[];
-
-/** Choose a move index based on weighted probabilities. */
-export function chooseWeighted(moves: number[], weights: number[]): number;
-
-/**
- * Run a playout (simulation) from a starting position until game over.
- * @param startBoard Initial game board
- * @param startingPlayer 'Red' or 'Yellow' who moves first in simulation
- * @param aiDisc AI's disc color
- * @returns Winner disc ('Red' | 'Yellow') or 'Empty' for draw
- */
-export function playout(
-  startBoard: CellValue[][],
-  startingPlayer: CellValue,
-  aiDisc: CellValue
-): CellValue;
-
-/** Select the most promising MCTS child via UCT formula. */
-export function select(node: MCTSNode): MCTSNode;
-
-/** Expand a leaf node by generating all children moves. */
-export function expand(node: MCTSNode): void;
-
-/** Backpropagate simulation results up the MCTS tree. */
-export function backpropagate(
-  node: MCTSNode,
-  winner: CellValue,
-  aiDisc: CellValue
-): void;
-
 /**
  * Monte Carlo Tree Search entrypoint.
- * @param board Current game board
+ * @param rootBoard Current game board
  * @param aiDisc 'Red' or 'Yellow'
  * @param timeMs Time budget in milliseconds
+ * @param moveProbabilities Optional neural network move probabilities
  * @returns Selected column index
  */
 export function mcts(
-  board: CellValue[][],
+  rootBoard: CellValue[][],
   aiDisc: CellValue,
-  timeMs: number
+  timeMs: number,
+  moveProbabilities?: number[]
 ): number;
+
+// ===== THREAT DETECTION =====
+
+/** Check if player has immediate win. */
+export function hasImmediateWin(board: CellValue[][], disc: CellValue): boolean;
+
+/** Count all opponent open-three fork threats. */
+export function countOpenThree(board: CellValue[][], player: CellValue): number;
 
 /** Detect and return the column for an opponent's open-three fork block. */
 export function findOpenThreeBlock(
   board: CellValue[][],
-  opp: CellValue
+  oppDisc: CellValue
 ): number | null;
 
-/** Count all opponent open-three fork threats. */
-export function countOpenThree(
+/** Count two-step fork potential. */
+export function countTwoStepForks(
   board: CellValue[][],
-  opp: CellValue
+  aiDisc: CellValue
 ): number;
 
-/** Revised getBestAIMove integrating immediate logic, search, and MCTS. */
+/** Block floating diagonal threats. */
+export function blockFloatingOpenThreeDiagonal(
+  board: CellValue[][],
+  oppDisc: CellValue
+): number | null;
+
+// ===== AI MOVE SELECTION =====
+
+/**
+ * Get best AI move using multiple strategies.
+ * @param board Current game board
+ * @param aiDisc AI's disc color
+ * @param timeMs Time budget in milliseconds
+ * @param moveProbabilities Optional neural network move probabilities
+ * @param abilityConfig Optional AI ability configuration
+ * @returns Best column to play
+ */
 export function getBestAIMove(
   board: CellValue[][],
   aiDisc: CellValue,
-  timeMs: number
+  timeMs?: number,
+  moveProbabilities?: number[],
+  abilityConfig?: AIAbilityConfig
 ): number;
+
+/**
+ * Enhanced AI move selection with advanced features.
+ * @param board Current game board
+ * @param aiDisc AI's disc color
+ * @param timeMs Time budget in milliseconds
+ * @param moveProbabilities Optional neural network move probabilities
+ * @param abilityConfig Optional AI ability configuration
+ * @returns Best column to play
+ */
+export function getEnhancedAIMove(
+  board: CellValue[][],
+  aiDisc: CellValue,
+  timeMs?: number,
+  moveProbabilities?: number[],
+  abilityConfig?: AIAbilityConfig
+): number;
+
+// ===== ULTIMATE AI CLASS =====
+
+/**
+ * Ultimate Connect Four AI - The Most Advanced AI System
+ * 
+ * Features multiple AI paradigms, neural networks, optimizers, and real-time adaptation.
+ */
+export class UltimateConnect4AI {
+  constructor(config?: Partial<UltimateAIConfig>);
+
+  /**
+   * Get the best move using the configured AI strategy.
+   * @param board Current game board
+   * @param aiDisc AI's disc color
+   * @param timeMs Time budget in milliseconds
+   * @param abilityConfig Optional AI ability configuration
+   * @returns Promise resolving to AI decision with metadata
+   */
+  getBestMove(
+    board: CellValue[][],
+    aiDisc: CellValue,
+    timeMs?: number,
+    abilityConfig?: AIAbilityConfig
+  ): Promise<AIDecision>;
+
+  /**
+   * Optimize neural network training using integrated optimizers.
+   * @param network Network type to optimize
+   * @param trainingData Training data samples
+   * @param batchSize Batch size for training
+   * @returns Promise resolving to training results and optimizer metrics
+   */
+  optimizeNeuralNetwork(
+    network: 'cnn' | 'resnet' | 'attention' | 'all',
+    trainingData: Array<{
+      board: CellValue[][];
+      targetPolicy: number[];
+      targetValue: number;
+    }>,
+    batchSize?: number
+  ): Promise<{
+    loss: number;
+    optimizerMetrics: any;
+  }>;
+
+  /**
+   * Optimize reinforcement learning agent training.
+   * @param agent RL agent type
+   * @param experienceReplay Experience replay buffer
+   * @param batchSize Batch size for training
+   * @returns Promise resolving to training results and optimizer metrics
+   */
+  optimizeRLAgent(
+    agent: 'dqn' | 'double_dqn' | 'dueling_dqn' | 'rainbow_dqn',
+    experienceReplay: Array<{
+      state: CellValue[][];
+      action: number;
+      reward: number;
+      nextState: CellValue[][];
+      done: boolean;
+    }>,
+    batchSize?: number
+  ): Promise<{
+    loss: number;
+    optimizerMetrics: any;
+  }>;
+
+  /**
+   * Get comprehensive AI metrics including performance and optimizer statistics.
+   * @returns Object containing strategy, performance, agents, and network information
+   */
+  getAIMetrics(): {
+    strategy: string;
+    performance: {
+      gamesPlayed: number;
+      winRate: number;
+      averageThinkingTime: number;
+      totalTrainingTime: number;
+      lastUpdateTime: number;
+    };
+    agents: any;
+    neuralNetworks: {
+      type: string;
+      active: string[];
+    };
+  };
+
+  /**
+   * Get optimizer-specific metrics.
+   * @returns Optimizer metrics and integration status
+   */
+  getOptimizerMetrics(): {
+    adamW?: any;
+    entropyRegularizer?: any;
+    learningRateScheduler?: any;
+    integration?: any;
+  };
+
+  /**
+   * Update optimizer configurations.
+   * @param newConfig New optimizer configuration
+   */
+  updateOptimizerConfig(newConfig: Partial<UltimateAIConfig['optimizers']>): void;
+
+  /**
+   * Reset all optimizers to initial state.
+   */
+  resetOptimizers(): void;
+
+  /**
+   * Update AI configuration.
+   * @param newConfig New configuration to merge
+   */
+  updateConfig(newConfig: Partial<UltimateAIConfig>): void;
+
+  /**
+   * Save AI state to storage.
+   * @param basePath Base path for saving files
+   * @returns Promise that resolves when save is complete
+   */
+  saveAI(basePath: string): Promise<void>;
+
+  /**
+   * Load AI state from storage.
+   * @param basePath Base path for loading files
+   * @returns Promise that resolves when load is complete
+   */
+  loadAI(basePath: string): Promise<void>;
+
+  /**
+   * Dispose of all AI resources.
+   */
+  dispose(): void;
+}
