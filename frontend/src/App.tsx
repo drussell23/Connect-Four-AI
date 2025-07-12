@@ -6,6 +6,7 @@ import Board from './components/Board';
 import Sidebar from './components/Sidebar';
 import LandingPage from './components/LandingPage';
 import VictoryModal from './components/VictoryModal';
+import LoadingProgress from './components/LoadingProgress';
 import apiSocket from './api/socket';
 import type { CellValue, PlayerStats, AIPersonalityData } from './declarations';
 
@@ -22,7 +23,7 @@ const App: React.FC = () => {
     Array.from({ length: 6 }, () => Array(7).fill('Empty'))
   );
   const [currentPlayer, setCurrentPlayer] = useState<CellValue>('Red');
-  const [status, setStatus] = useState<string>('Connecting…');
+  const [status, setStatus] = useState<string>('Ready to play');
   const [winningLine, setWinningLine] = useState<[number, number][]>([]);
   const [history, setHistory] = useState<Move[]>([]);
 
@@ -31,6 +32,8 @@ const App: React.FC = () => {
   const [started, setStarted] = useState<boolean>(false);
   const [showVictoryModal, setShowVictoryModal] = useState<boolean>(false);
   const [gameResult, setGameResult] = useState<'victory' | 'defeat' | 'draw' | null>(null);
+  const [showLoadingProgress, setShowLoadingProgress] = useState<boolean>(false);
+  const [isInitializing, setIsInitializing] = useState<boolean>(false);
 
   // AI and difficulty state
   const [aiLevel, setAILevel] = useState<number>(1);
@@ -322,15 +325,45 @@ const App: React.FC = () => {
     }
   }, [status]);
 
+  // Handler for when loading progress completes
+  const handleLoadingComplete = () => {
+    setShowLoadingProgress(false);
+    setIsInitializing(false);
+
+    // Set the appropriate game status after loading completes
+    if (gameId && currentPlayer) {
+      setStatus(
+        currentPlayer === 'Red'
+          ? 'Your turn (Red)'
+          : `${currentAI.name} AI is thinking…`
+      );
+    } else {
+      // If gameId isn't set yet, wait a bit more
+      setTimeout(() => {
+        if (gameId && currentPlayer) {
+          setStatus(
+            currentPlayer === 'Red'
+              ? 'Your turn (Red)'
+              : `${currentAI.name} AI is thinking…`
+          );
+        } else {
+          setStatus('Connection ready - click to start');
+        }
+      }, 1000);
+    }
+  };
+
   // Effect: establish connection & create game
   useEffect(() => {
     if (!started) return;
 
+    // Show loading progress when game starts
+    setShowLoadingProgress(true);
+    setIsInitializing(true);
     setSocket(apiSocket);
 
     apiSocket.on('connect', () => {
       console.log('🔗 connected, id=', apiSocket.id);
-      setStatus('Creating game…');
       apiSocket.emit(
         'createGame',
         { playerId: 'Red', difficulty: selectedDifficulty },
@@ -343,16 +376,15 @@ const App: React.FC = () => {
           if (!res.success) {
             console.error('createGame failed:', res.error);
             setStatus(res.error || 'Failed to create game');
+            setShowLoadingProgress(false);
+            setIsInitializing(false);
             return;
           }
           if (res.gameId && res.nextPlayer) {
             setGameId(res.gameId);
             setCurrentPlayer(res.nextPlayer);
-            setStatus(
-              res.nextPlayer === 'Red'
-                ? 'Your turn (Red)'
-                : `${currentAI.name} AI is thinking…`
-            );
+            // Loading progress will complete and set the status
+            console.log('✅ Game ready:', res.gameId, res.nextPlayer);
           }
         }
       );
@@ -361,6 +393,8 @@ const App: React.FC = () => {
     apiSocket.on('disconnect', () => {
       console.log('❌ disconnected');
       setStatus('Disconnected');
+      setShowLoadingProgress(false);
+      setIsInitializing(false);
     });
 
     apiSocket.on(
@@ -371,13 +405,8 @@ const App: React.FC = () => {
         setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
         setWinningLine([]);
         setHistory([]);
-        if (data.nextPlayer === 'Red') {
-          setStatus('Your turn (Red)');
-          setCurrentPlayer('Red');
-        } else {
-          setStatus(`${currentAI.name} AI is thinking…`);
-          setCurrentPlayer('Yellow');
-        }
+        // Loading progress will complete and set the status
+        console.log('✅ Game board ready:', data.gameId);
       }
     );
 
@@ -387,6 +416,26 @@ const App: React.FC = () => {
       apiSocket.off('gameCreated');
     };
   }, [started, selectedDifficulty]);
+
+  // Handler to start or restart game
+  const handlePlayAgain = () => {
+    setHistory([]);
+    setSidebarOpen(false);
+    setGameResult(null);
+
+    if (!socket) {
+      // If no socket, trigger the initialization
+      setShowLoadingProgress(true);
+      setIsInitializing(true);
+      return;
+    }
+
+    setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
+    setWinningLine([]);
+    setShowLoadingProgress(true);
+    setIsInitializing(true);
+    socket.emit('createGame', { playerId: 'Red', difficulty: selectedDifficulty });
+  };
 
   // Effect: listen for move events
   useEffect(() => {
@@ -469,20 +518,6 @@ const App: React.FC = () => {
     };
   }, [socket, currentAI.name]);
 
-  // Handler to start or restart game
-  const handlePlayAgain = () => {
-    setHistory([]);
-    setSidebarOpen(false);
-    setGameResult(null);
-
-    if (!socket) return;
-
-    setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
-    setWinningLine([]);
-    setStatus('Creating game…');
-    socket.emit('createGame', { playerId: 'Red', difficulty: selectedDifficulty });
-  };
-
   // Handler for when the human clicks a column
   function onColumnClick(col: number) {
     if (!socket || !gameId) return;
@@ -522,6 +557,12 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4"
       style={{ fontFamily: "'Poppins', sans-serif" }}>
+
+      {/* Loading Progress Overlay */}
+      <LoadingProgress
+        isVisible={showLoadingProgress}
+        onComplete={handleLoadingComplete}
+      />
 
       {/* Nightmare Mode Notification */}
       <AnimatePresence>

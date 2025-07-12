@@ -444,7 +444,7 @@ MongoDB: 6.0+ (optional)
 ## 🎯 Quick Start
 
 ### **Automated Setup Script**
-```bash
+   ```bash
 #!/bin/bash
 # setup.sh - Automated development environment setup
 
@@ -456,8 +456,8 @@ command -v python3 >/dev/null 2>&1 || { echo "Python 3 is required"; exit 1; }
 command -v git >/dev/null 2>&1 || { echo "Git is required"; exit 1; }
 
 # Clone repository
-git clone https://github.com/drussell23/Connect-Four.git
-cd Connect-Four
+   git clone https://github.com/drussell23/Connect-Four.git
+   cd Connect-Four
 
 # Install dependencies
 echo "📦 Installing dependencies..."
@@ -522,7 +522,7 @@ services:
       - "5432:5432"
 ```
 
-```bash
+   ```bash
 # Quick start with Docker
 curl -fsSL https://raw.githubusercontent.com/drussell23/Connect-Four/main/docker-compose.quick.yml -o docker-compose.yml
 docker-compose up -d
