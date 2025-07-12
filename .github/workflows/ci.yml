@@ -93,7 +93,7 @@ jobs:
             is-primary: true
           - node-version: 20
             is-primary: false
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

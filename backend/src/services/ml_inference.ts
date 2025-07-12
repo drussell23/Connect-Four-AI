@@ -22,8 +22,8 @@ export interface MLPredictionRequest {
 }
 
 export interface MLPredictionResponse {
-    move: number;
-    probs: number[];
+  move: number;
+  probs: number[];
     confidence?: number;
     uncertainty?: number[];
     value_estimate?: number;
@@ -230,7 +230,7 @@ function convertLayersToBoard(layers: number[][][]): string[][] {
                 board[row][col] = 'Red';
             } else if (yellowLayer[row][col] === 1) {
                 board[row][col] = 'Yellow';
-            } else {
+        } else {
                 board[row][col] = 'Empty';
             }
         }

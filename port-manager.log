@@ -454,3 +454,17 @@
 [2025-07-12 15:25:26] [SUCCESS] Cleaned up ports: 5000
 [2025-07-12 15:25:26] [INFO] Scanning ports: 3000 3001 3002 3003 3004 3005 3006 8000 8001 8080 8888 5000 5001 9000
 [2025-07-12 15:25:33] [INFO] Scanning ports: 3000 3001 3002 3003 3004 3005 3006 8000 8001 8080 8888 5000 5001 9000
+[2025-07-12 17:24:39] [INFO] Starting cleanup of development ports...
+[2025-07-12 17:24:39] [INFO] Found process on port 3000:
+[2025-07-12 17:24:39] [INFO] Attempting to kill process 85700 on port 3000...
+[2025-07-12 17:24:43] [SUCCESS] Process 85700 gracefully terminated
+[2025-07-12 17:24:45] [INFO] Found process on port 3001:
+[2025-07-12 17:24:45] [INFO] Attempting to kill process 85701 on port 3001...
+[2025-07-12 17:24:47] [SUCCESS] Process 85701 gracefully terminated
+[2025-07-12 17:24:48] [INFO] Found process on port 3002:
+[2025-07-12 17:24:48] [INFO] Attempting to kill process 95146 on port 3002...
+[2025-07-12 17:24:50] [SUCCESS] Process 95146 gracefully terminated
+[2025-07-12 17:24:54] [INFO] Found process on port 5000:
+[2025-07-12 17:24:54] [INFO] Attempting to kill process 94767 on port 5000...
+[2025-07-12 17:24:57] [SUCCESS] Process 94767 gracefully terminated
+[2025-07-12 17:24:58] [SUCCESS] Cleaned up ports: 3000 3001 3002 5000

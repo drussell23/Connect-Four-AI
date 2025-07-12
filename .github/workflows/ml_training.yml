@@ -103,7 +103,7 @@ jobs:
       data_version: ${{ steps.data.outputs.data_version }}
       run_training: ${{ steps.validation.outputs.run_training }}
       run_benchmarks: ${{ steps.validation.outputs.run_benchmarks }}
-      
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
