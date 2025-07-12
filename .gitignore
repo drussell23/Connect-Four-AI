@@ -1,54 +1,482 @@
-# .gitignore – files and directories to exclude from version control
+# 🎮 CONNECT FOUR PROJECT - ENHANCED .GITIGNORE
+# =================================================
+# Comprehensive ignore rules for multi-language project
+# Languages: TypeScript, Python, Shell, YAML
+# Platforms: Node.js, React, NestJS, FastAPI, PyTorch
 
-# macOS Finder files
+# -----------------------------------------------------------------------------
+# 🍎 MACOS SYSTEM FILES
+# -----------------------------------------------------------------------------
 .DS_Store
-# .gitignore – files and directories to exclude from version control
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# Node.js dependencies
-#  Store installed packages locally, not in source repo
-# Node.js dependencies
-#  Store installed packages locally, not in source repo
+# -----------------------------------------------------------------------------
+# 📦 NODE.JS & NPM
+# -----------------------------------------------------------------------------
+# Dependencies
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Compiled and build artifacts
-#  Remove any generated output to keep repo clean
-# Compiled and build artifacts
-#  Remove any generated output to keep repo clean
+# Package manager files
+package-lock.json.backup
+yarn.lock.backup
+.pnpm-debug.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# -----------------------------------------------------------------------------
+# 🐍 PYTHON & VIRTUAL ENVIRONMENTS
+# -----------------------------------------------------------------------------
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+.env/
+tfjs-env/
+ml_env/
+conda-env/
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pyenv
+.python-version
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# PyCharm
+.idea/
+
+# -----------------------------------------------------------------------------
+# 🧠 MACHINE LEARNING & AI
+# -----------------------------------------------------------------------------
+# Model files (keep only the best ones in Git LFS)
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.pb
+*.onnx
+*.tflite
+*.pkl
+*.pickle
+*.joblib
+*.model
+
+# Keep important models in LFS (commented out - uncomment to track)
+# !models/best_policy_net.pt
+# !models/current_policy_net.pt
+
+# TensorBoard logs
+logs/
+runs/
+tensorboard/
+events.out.tfevents.*
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# Jupyter Notebook outputs (optional - remove if you want to track outputs)
+*.ipynb
+
+# MLflow
+mlruns/
+mlflow.db
+
+# Weights & Biases
+wandb/
+
+# DVC (Data Version Control)
+.dvc/
+
+# Training data and datasets
+data/
+datasets/
+*.csv
+*.json.large
+replay_buffer.pkl
+
+# Experiment results
+experiments/
+results/
+outputs/
+
+# -----------------------------------------------------------------------------
+# 💻 BUILD OUTPUTS & COMPILED FILES
+# -----------------------------------------------------------------------------
+# TypeScript/JavaScript builds
 dist/
 build/
 out/
 bin/
+lib/
+*.tsbuildinfo
 
-# TensorFlow.js virtual environment
-#  Local Python environment for TF.js conversion
-tfjs-env/
+# Webpack
+.cache/
+.parcel-cache/
 
-# Python cache files
-#  Bytecode caches created by Python
-__pycache__/
-# Compiled Python files
-*.pyc
-# Ignore the ml_service compiled bytecode
-ml_service.cpython-310.pyc
-bin/
+# Next.js
+.next/
+out/
 
-# Ignore all ML data dumps
-backend/src/ml/data/*.json
+# Nuxt.js
+.nuxt/
+dist/
 
-# TensorFlow.js virtual environment
-#  Local Python environment for TF.js conversion
-tfjs-env/
+# Gatsby
+.cache/
+public/
 
-# Python cache files
-#  Bytecode caches created by Python
-__pycache__/
-# Compiled Python files
-*.pyc
-# Ignore the ml_service compiled bytecode
-ml_service.cpython-310.pyc
+# Storybook
+storybook-static/
 
-# IDE and editor settings
-#  Personal configuration files
-# IDE and editor settings
-#  Personal configuration files
+# -----------------------------------------------------------------------------
+# 🔧 DEVELOPMENT TOOLS & IDE
+# -----------------------------------------------------------------------------
+# Visual Studio Code
 .vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# WebStorm/IntelliJ
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# -----------------------------------------------------------------------------
+# 🌐 ENVIRONMENT & CONFIGURATION
+# -----------------------------------------------------------------------------
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Configuration files with secrets
+config.json
+secrets.json
+.secrets/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# -----------------------------------------------------------------------------
+# 📊 LOGS & TEMPORARY FILES
+# -----------------------------------------------------------------------------
+# Log files
+*.log
+logs/
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Process IDs
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary directories
+tmp/
+temp/
+.tmp/
+.temp/
+
+# OS temporary files
+Temporary Items
+.apdisk
+
+# -----------------------------------------------------------------------------
+# 🧪 TESTING & COVERAGE
+# -----------------------------------------------------------------------------
+# Test results
+test-results/
+coverage/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Jest
+jest_coverage/
+
+# Mocha
+.mocha/
+
+# -----------------------------------------------------------------------------
+# 📦 PACKAGE MANAGERS & DEPENDENCIES
+# -----------------------------------------------------------------------------
+# Yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# PNPM
+.pnpm-store/
+
+# Rush
+common/deploy/
+common/temp/
+
+# -----------------------------------------------------------------------------
+# 🔒 SECURITY & CERTIFICATES
+# -----------------------------------------------------------------------------
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+
+# GPG keys
+*.gpg
+*.asc
+
+# -----------------------------------------------------------------------------
+# 🚀 DEPLOYMENT & CI/CD
+# -----------------------------------------------------------------------------
+# Docker
+.dockerignore.backup
+Dockerfile.backup
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Serverless
+.serverless/
+
+# -----------------------------------------------------------------------------
+# 📱 MOBILE & NATIVE
+# -----------------------------------------------------------------------------
+# React Native
+.expo/
+.expo-shared/
+
+# -----------------------------------------------------------------------------
+# 🎯 PROJECT-SPECIFIC
+# -----------------------------------------------------------------------------
+# Port manager
+port-manager.log
+*.pid
+
+# ML service specific
+ml_service/logs/
+ml_service/data/eval_report.json
+ml_service/data/replay_buffer.pkl
+
+# Backend specific
+backend/src/ml/data/*.json
+backend/logs/
+
+# Frontend specific
+frontend/build/
+frontend/.env.local
+
+# Models directory (keep structure, ignore large files)
+models/*.pt
+models/*.pth
+!models/.gitkeep
+
+# Performance profiling
+*.prof
+*.profile
+
+# -----------------------------------------------------------------------------
+# 🔄 VERSION CONTROL HELPERS
+# -----------------------------------------------------------------------------
+# Backup files
+*.bak
+*.backup
+*.orig
+*.rej
+
+# Patch files
+*.patch
+*.diff
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# -----------------------------------------------------------------------------
+# 📚 DOCUMENTATION BUILD
+# -----------------------------------------------------------------------------
+# Sphinx documentation
+docs/_build/
+docs/build/
+
+# GitBook
+_book/
+
+# mdBook
+book/
+
+# VuePress
+.vuepress/dist
+
+# -----------------------------------------------------------------------------
+# 🎨 ASSETS & MEDIA (Optional - uncomment if needed)
+# -----------------------------------------------------------------------------
+# Uncomment these if you don't want to track large media files
+# *.jpg
+# *.jpeg
+# *.png
+# *.gif
+# *.svg
+# *.ico
+# *.mp4
+# *.mp3
+# *.wav
+
+# -----------------------------------------------------------------------------
+# 📋 DEVELOPMENT ARTIFACTS
+# -----------------------------------------------------------------------------
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettiercache
+
+# Stylelint cache
+.stylelintcache
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Turbo
+.turbo/
+
+# Vercel
+.vercel/
+
+# -----------------------------------------------------------------------------
+# 🎯 END OF ENHANCED .GITIGNORE
+# -----------------------------------------------------------------------------

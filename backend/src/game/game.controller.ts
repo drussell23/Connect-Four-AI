@@ -4,20 +4,24 @@ import { GameService } from "./game.service";
 import { MlClientService, LogGameDto } from "../ml/ml-client.service";
 import type { CellValue } from "../ai/connect4AI";
 
-interface CreateGameDto { playerId: string; clientId: string; }
-interface JoinGameDto   { playerId: string; clientId: string; }
-interface DropDiscDto   { playerId: string; column: number; }
+interface CreateGameDto {
+    playerId: string;
+    clientId: string;
+    startingPlayer?: CellValue;
+}
+interface JoinGameDto { playerId: string; clientId: string; }
+interface DropDiscDto { playerId: string; column: number; }
 
 @Controller('games')
 export class GameController {
     constructor(
         private readonly gameService: GameService,
         private readonly mlClient: MlClientService
-    ) {}
+    ) { }
 
     @Post() 
     async createGame(@Body() dto: CreateGameDto) {
-        const gameId = await this.gameService.createGame(dto.playerId, dto.clientId);
+        const gameId = await this.gameService.createGame(dto.playerId, dto.clientId, dto.startingPlayer);
         return { gameId };
     }
 

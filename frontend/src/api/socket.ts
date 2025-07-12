@@ -3,9 +3,10 @@
 // Import to ensure this file is treated as a module
 import io from 'socket.io-client';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+
 // Initialize Socket.IO client
-// hit your NestWS namespace on 3000
-const socket = io('http://localhost:3000/game', {
+const socket = io(`${API_URL}/game`, {
     transports: ['websocket'],
   });
 

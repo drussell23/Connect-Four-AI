@@ -1,0 +1,30 @@
+name: "CodeQL Configuration"
+
+# Disable default queries to use only security-focused queries
+disable-default-queries: false
+
+# Include additional queries for security analysis
+queries:
+  - name: security-extended
+    uses: security-extended
+  - name: security-and-quality
+    uses: security-and-quality
+
+# Paths to exclude from analysis
+paths-ignore:
+  - "**/*.test.ts"
+  - "**/*.test.js"
+  - "**/*.spec.ts"
+  - "**/*.spec.js"
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/coverage/**"
+  - "**/*.min.js"
+  - "**/*.bundle.js"
+
+# Paths to include in analysis
+paths:
+  - "backend/src"
+  - "frontend/src"
+  - "ml_service"
