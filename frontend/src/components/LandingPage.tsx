@@ -11,6 +11,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
   const [selectedDifficulty, setSelectedDifficulty] = useState(1);
   const [showDifficultySelector, setShowDifficultySelector] = useState(false);
 
+  // Load selected difficulty from localStorage on component mount
+  useEffect(() => {
+    const storedDifficulty = localStorage.getItem('selectedDifficulty');
+    if (storedDifficulty) {
+      const difficulty = parseInt(storedDifficulty, 10);
+      if (difficulty >= 1 && difficulty <= 25) {
+        setSelectedDifficulty(difficulty);
+      }
+    }
+  }, []);
+
   // Keyboard controls: Enter to start, Esc to close modals
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
