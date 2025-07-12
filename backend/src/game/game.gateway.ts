@@ -13,8 +13,8 @@ import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { GameAIService } from './game-ai.service';
 import { AiProfileService } from './ai-profile.service';
+import { MlClientService } from '../ml/ml-client.service';
 import type { CellValue } from '../ai/connect4AI';
-import { MLInferenceClient } from '../ai/MLInferenceClient';
 
 interface CreateGamePayload {
   playerId: string;
@@ -32,17 +32,11 @@ export class GameGateway
   private readonly AI_THINK_DELAY_MS = 500;
   private readonly AI_FIRST_MOVE_DELAY_MS = 200;
 
-  private readonly mlClient = new MLInferenceClient({
-    baseUrl: 'http://localhost:8000',
-    timeoutMs: 5000,
-    maxRetries: 3,
-    retryDelayMs: 200,
-  });
-
   constructor(
     private readonly gameService: GameService,
     private readonly gameAi: GameAIService,
     private readonly aiProfileService: AiProfileService,
+    private readonly mlClientService: MlClientService,
   ) { }
 
   afterInit(server: Server) {
@@ -193,9 +187,12 @@ export class GameGateway
 
       if (process.env.USE_ML_MODEL === 'true') {
         this.logger.log(`[${gameId}] ML override active`);
-        const mlRes = await this.mlClient.predict({ board: res.board });
-        aiColumn = mlRes.move;
-        this.logger.log(`ML selected column ${aiColumn}`);
+        try {
+          aiColumn = await this.mlClientService.getBestMove(res.board, 'Yellow');
+          this.logger.log(`ML selected column ${aiColumn}`);
+        } catch (error) {
+          this.logger.warn(`[${gameId}] ML prediction failed, using AI column ${aiColumn}: ${error.message}`);
+        }
       }
 
       const aiRes = await this.gameService.dropDisc(gameId, 'Yellow', aiColumn);
@@ -260,11 +257,10 @@ export class GameGateway
       if (process.env.USE_ML_MODEL === 'true') {
         this.logger.log(`[${gameId}] ML override active`);
         try {
-          const mlRes = await this.mlClient.predict({ board: game.board });
-          aiColumn = mlRes.move;
+          aiColumn = await this.mlClientService.getBestMove(game.board, 'Yellow');
           this.logger.log(`ML selected column ${aiColumn}`);
         } catch (error) {
-          this.logger.warn(`[${gameId}] ML prediction failed, using AI column ${aiColumn}`);
+          this.logger.warn(`[${gameId}] ML prediction failed, using AI column ${aiColumn}: ${error.message}`);
         }
       }
 
