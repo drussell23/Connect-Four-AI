@@ -16,7 +16,11 @@ import { AiProfileService } from './ai-profile.service';
 import type { CellValue } from '../ai/connect4AI';
 import { MLInferenceClient } from '../ai/MLInferenceClient';
 
-interface CreateGamePayload { playerId: string }
+interface CreateGamePayload {
+  playerId: string;
+  difficulty?: number;
+  startingPlayer?: CellValue;
+}
 interface JoinGamePayload { gameId: string; playerId: string }
 interface DropDiscPayload { gameId: string; playerId: string; column: number }
 
@@ -60,17 +64,21 @@ export class GameGateway
     @ConnectedSocket() client: Socket
   ): Promise<any> {
     try {
-      const { playerId } = payload;
+      const { playerId, difficulty, startingPlayer } = payload;
       if (!playerId) throw new Error('playerId is required');
-      const gameId = await this.gameService.createGame(playerId, client.id);
+
+      // Use the provided starting player or default to Red
+      const firstPlayer = startingPlayer || 'Red';
+
+      const gameId = await this.gameService.createGame(playerId, client.id, firstPlayer);
       client.join(gameId);
-      this.logger.log(`Game ${gameId} created by ${playerId}`);
+      this.logger.log(`Game ${gameId} created by ${playerId}, starting player: ${firstPlayer}, difficulty: ${difficulty}`);
 
       // Return the callback response that the frontend expects
       return {
         success: true,
         gameId,
-        nextPlayer: 'Red' as CellValue,
+        nextPlayer: firstPlayer,
       };
     } catch (error: any) {
       this.logger.error(`createGame error: ${error.message}`);

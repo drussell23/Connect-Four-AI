@@ -32,15 +32,19 @@ export class GameService {
     this.server = server;
   }
 
-  async createGame(playerId: string, _clientId: string): Promise<string> {
+  async createGame(playerId: string, _clientId: string, startingPlayer?: CellValue): Promise<string> {
     const gameId = this.generateGameId();
     const emptyBoard = Array.from(
       { length: GameService.ROWS },
       () => Array(GameService.COLS).fill('Empty' as CellValue)
     );
+
+    // Use the provided starting player or default to the player who created the game
+    const firstPlayer = startingPlayer || (playerId as CellValue);
+
     this.games.set(gameId, {
       board: emptyBoard,
-      currentPlayer: playerId as CellValue,
+      currentPlayer: firstPlayer,
       players: [playerId as CellValue, 'Yellow' as CellValue],
       moves: [],
       startTime: Date.now(),

@@ -7,6 +7,7 @@ import Sidebar from './components/Sidebar';
 import LandingPage from './components/LandingPage';
 import VictoryModal from './components/VictoryModal';
 import LoadingProgress from './components/LoadingProgress';
+import RockPaperScissors, { type RPSResult } from './components/RockPaperScissors';
 import apiSocket from './api/socket';
 import type { CellValue, PlayerStats, AIPersonalityData } from './declarations';
 
@@ -34,6 +35,12 @@ const App: React.FC = () => {
   const [gameResult, setGameResult] = useState<'victory' | 'defeat' | 'draw' | null>(null);
   const [showLoadingProgress, setShowLoadingProgress] = useState<boolean>(false);
   const [isInitializing, setIsInitializing] = useState<boolean>(false);
+
+  // Rock Paper Scissors state
+  const [showRPS, setShowRPS] = useState<boolean>(false);
+  const [rpsResult, setRpsResult] = useState<RPSResult | null>(null);
+  const [startingPlayer, setStartingPlayer] = useState<CellValue>('Red'); // Who goes first
+  const [rpsDifficulty, setRpsDifficulty] = useState<number>(1); // Difficulty for the RPS game
 
   // AI and difficulty state
   const [aiLevel, setAILevel] = useState<number>(1);
@@ -206,6 +213,68 @@ const App: React.FC = () => {
     navigator.vibrate?.([50, 100, 50, 100, 50]);
   };
 
+  // Rock Paper Scissors handlers
+  const handleRPSComplete = (winner: RPSResult) => {
+    setRpsResult(winner);
+    setShowRPS(false);
+
+    // Determine starting player based on RPS result
+    let firstPlayer: CellValue = 'Red'; // Default to player
+    if (winner === 'ai') {
+      firstPlayer = 'Yellow'; // AI goes first
+    } else {
+      firstPlayer = 'Red'; // Player goes first (for 'player' win or 'tie')
+    }
+
+    setStartingPlayer(firstPlayer);
+
+    // Create the game with the determined starting player using stored difficulty
+    createGameWithStartingPlayer(firstPlayer, rpsDifficulty);
+  };
+
+  const createGameWithStartingPlayer = (firstPlayer: CellValue, difficulty?: number) => {
+    if (!socket) {
+      console.error('No socket connection');
+      return;
+    }
+
+    const gameDifficulty = difficulty || selectedDifficulty;
+    setStatus('Creating game...');
+    socket.emit(
+      'createGame',
+      {
+        playerId: 'Red',
+        difficulty: gameDifficulty,
+        startingPlayer: firstPlayer
+      },
+      (res: {
+        success: boolean;
+        error?: string;
+        gameId?: string;
+        nextPlayer?: CellValue;
+      }) => {
+        if (!res.success) {
+          console.error('createGame failed:', res.error);
+          setStatus(res.error || 'Failed to create game');
+          return;
+        }
+        if (res.gameId && res.nextPlayer) {
+          setGameId(res.gameId);
+          setCurrentPlayer(res.nextPlayer);
+          setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
+          setWinningLine([]);
+          setHistory([]);
+          setStatus(
+            res.nextPlayer === 'Red'
+              ? 'Your turn (Red)'
+              : `${currentAI.name} AI is thinking…`
+          );
+          console.log('✅ Game ready with starting player:', firstPlayer, res.gameId, res.nextPlayer);
+        }
+      }
+    );
+  };
+
   // Enhanced victory/defeat handling
   const handleGameEnd = (winner: CellValue | 'Draw', movesPlayed: number) => {
     const isVictory = winner === 'Red';
@@ -289,12 +358,84 @@ const App: React.FC = () => {
     }
 
     setShowVictoryModal(false);
-    handlePlayAgain();
+
+    // Reset game state first
+    setGameResult(null);
+    setHistory([]);
+    setSidebarOpen(false);
+
+    // Determine starting player based on previous game result
+    // If player won previous level, they go first in next level
+    // If player lost, AI goes first
+    const previousGameResult = gameResult;
+    let nextStartingPlayer: CellValue;
+
+    if (previousGameResult === 'victory') {
+      nextStartingPlayer = 'Red'; // Player won, so they go first
+    } else if (previousGameResult === 'defeat') {
+      nextStartingPlayer = 'Yellow'; // Player lost, so AI goes first
+    } else {
+      // For draws or first game, use RPS
+      setRpsDifficulty(aiLevel + 1); // Next level difficulty
+      setShowRPS(true);
+      return;
+    }
+
+    setStartingPlayer(nextStartingPlayer);
+
+    // Create new game directly with determined starting player
+    if (socket) {
+      setStatus('Creating new game...');
+      socket.emit(
+        'createGame',
+        {
+          playerId: 'Red',
+          difficulty: aiLevel + 1,
+          startingPlayer: nextStartingPlayer
+        },
+        (res: {
+          success: boolean;
+          error?: string;
+          gameId?: string;
+          nextPlayer?: CellValue;
+        }) => {
+          if (!res.success) {
+            console.error('createGame failed:', res.error);
+            setStatus(res.error || 'Failed to create game');
+            return;
+          }
+          if (res.gameId && res.nextPlayer) {
+            setGameId(res.gameId);
+            setCurrentPlayer(res.nextPlayer);
+            setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
+            setWinningLine([]);
+            setHistory([]);
+            setStatus(
+              res.nextPlayer === 'Red'
+                ? 'Your turn (Red)'
+                : `${currentAI.name} AI is thinking…`
+            );
+            console.log('✅ Next level game ready:', res.gameId, res.nextPlayer);
+          }
+        }
+      );
+    } else {
+      // Fallback to full initialization if no socket
+      handlePlayAgain();
+    }
   };
 
   const handleReplayLevel = () => {
     setShowVictoryModal(false);
-    handlePlayAgain();
+
+    // Reset game state first
+    setGameResult(null);
+    setHistory([]);
+    setSidebarOpen(false);
+
+    // For replay, always use RPS to determine who goes first
+    setRpsDifficulty(aiLevel); // Current level difficulty
+    setShowRPS(true);
   };
 
   const handleQuitToMenu = () => {
@@ -361,37 +502,9 @@ const App: React.FC = () => {
       return;
     }
 
-    // Socket exists, just try to create the game
-    setStatus('Creating game...');
-    socket.emit(
-      'createGame',
-      { playerId: 'Red', difficulty: selectedDifficulty },
-      (res: {
-        success: boolean;
-        error?: string;
-        gameId?: string;
-        nextPlayer?: CellValue;
-      }) => {
-        if (!res.success) {
-          console.error('createGame failed:', res.error);
-          setStatus(res.error || 'Failed to create game');
-          return;
-        }
-        if (res.gameId && res.nextPlayer) {
-          setGameId(res.gameId);
-          setCurrentPlayer(res.nextPlayer);
-          setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
-          setWinningLine([]);
-          setHistory([]);
-          setStatus(
-            res.nextPlayer === 'Red'
-              ? 'Your turn (Red)'
-              : `${currentAI.name} AI is thinking…`
-          );
-          console.log('✅ Game ready:', res.gameId, res.nextPlayer);
-        }
-      }
-    );
+    // Socket exists, start with RPS to determine who goes first
+    setRpsDifficulty(selectedDifficulty); // Use current selected difficulty
+    setShowRPS(true);
   };
 
   // Effect: establish connection & create game
@@ -405,30 +518,10 @@ const App: React.FC = () => {
 
     apiSocket.on('connect', () => {
       console.log('🔗 connected, id=', apiSocket.id);
-      apiSocket.emit(
-        'createGame',
-        { playerId: 'Red', difficulty: selectedDifficulty },
-        (res: {
-          success: boolean;
-          error?: string;
-          gameId?: string;
-          nextPlayer?: CellValue;
-        }) => {
-          if (!res.success) {
-            console.error('createGame failed:', res.error);
-            setStatus(res.error || 'Failed to create game');
-            setShowLoadingProgress(false);
-            setIsInitializing(false);
-            return;
-          }
-          if (res.gameId && res.nextPlayer) {
-            setGameId(res.gameId);
-            setCurrentPlayer(res.nextPlayer);
-            // Loading progress will complete and set the status
-            console.log('✅ Game ready:', res.gameId, res.nextPlayer);
-          }
-        }
-      );
+      // Don't create game immediately - let loading complete first
+      setShowLoadingProgress(false);
+      setIsInitializing(false);
+      setStatus('Connection ready - click to start');
     });
 
     apiSocket.on('disconnect', () => {
@@ -603,6 +696,13 @@ const App: React.FC = () => {
       <LoadingProgress
         isVisible={showLoadingProgress}
         onComplete={handleLoadingComplete}
+      />
+
+      {/* Rock Paper Scissors */}
+      <RockPaperScissors
+        isVisible={showRPS}
+        onComplete={handleRPSComplete}
+        aiPersonality={currentAI.name}
       />
 
       {/* Nightmare Mode Notification */}

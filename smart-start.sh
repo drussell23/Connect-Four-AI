@@ -17,7 +17,7 @@ NC='\033[0m'
 
 # Configuration
 AUTO_CLEANUP=${AUTO_CLEANUP:-true}
-FORCE_CLEANUP=${FORCE_CLEANUP:-false}
+FORCE_CLEANUP=${FORCE_CLEANUP:-true}
 START_FRONTEND=${START_FRONTEND:-true}
 START_BACKEND=${START_BACKEND:-true}
 DEVELOPMENT_MODE=${DEVELOPMENT_MODE:-true}
@@ -124,7 +124,7 @@ cleanup_ports() {
             echo "$scan_result"
             
             if [[ "$FORCE_CLEANUP" == "true" ]]; then
-                log "Auto-cleaning conflicted ports..."
+                log "Automatically cleaning conflicted ports..."
                 "$PORT_MANAGER" cleanup-force
             else
                 echo -e "${YELLOW}Clean up conflicted ports? (y/N):${NC} "
@@ -339,6 +339,10 @@ while [[ $# -gt 0 ]]; do
             FORCE_CLEANUP=true
             shift
             ;;
+        --interactive-cleanup)
+            FORCE_CLEANUP=false
+            shift
+            ;;
         --backend-only)
             START_FRONTEND=false
             shift
@@ -363,19 +367,21 @@ USAGE:
   $0 [OPTIONS]
 
 OPTIONS:
-  --no-cleanup      Skip automatic port cleanup
-  --force-cleanup   Force cleanup without prompting
-  --backend-only    Start only the backend service
-  --frontend-only   Start only the frontend service
-  --production      Start in production mode
-  --follow-logs, -f Follow logs after startup
-  --help, -h        Show this help message
+  --no-cleanup          Skip automatic port cleanup
+  --force-cleanup       Force cleanup without prompting (default)
+  --interactive-cleanup Prompt before killing each process
+  --backend-only        Start only the backend service
+  --frontend-only       Start only the frontend service
+  --production          Start in production mode
+  --follow-logs, -f     Follow logs after startup
+  --help, -h            Show this help message
 
 EXAMPLES:
-  $0                    # Start all services with smart defaults
-  $0 --force-cleanup    # Force cleanup and start
-  $0 --backend-only -f  # Start only backend and follow logs
-  $0 --production       # Start in production mode
+  $0                        # Start all services with auto cleanup (default)
+  $0 --interactive-cleanup  # Start with interactive cleanup prompts
+  $0 --backend-only -f      # Start only backend and follow logs
+  $0 --production           # Start in production mode
+  $0 --no-cleanup           # Start without any port cleanup
 
 EOF
             exit 0
