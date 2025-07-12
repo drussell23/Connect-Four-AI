@@ -499,6 +499,47 @@ export interface Node {
 
 const NULL_MOVE_REDUCTION = 2;
 
+/** Check if a position requires quiescence search (has tactical instability) */
+export function isPositionNoisy(board: CellValue[][], aiDisc: CellValue): boolean {
+  const oppDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
+
+  // Check for immediate wins available
+  for (const col of legalMoves(board)) {
+    const { board: afterAI } = tryDrop(board, col, aiDisc);
+    if (bitboardCheckWin(getBits(afterAI, aiDisc))) {
+      return true; // Immediate win available
+    }
+
+    const { board: afterOpp } = tryDrop(board, col, oppDisc);
+    if (bitboardCheckWin(getBits(afterOpp, oppDisc))) {
+      return true; // Immediate threat needs to be blocked
+    }
+  }
+
+  // Check for multiple threats or forks
+  const aiThreats = countOpenThree(board, aiDisc);
+  const oppThreats = countOpenThree(board, oppDisc);
+
+  if (aiThreats > 0 || oppThreats > 0) {
+    return true; // Active threats present
+  }
+
+  // Check if any move creates new threats
+  for (const col of legalMoves(board)) {
+    const { board: afterAI } = tryDrop(board, col, aiDisc);
+    if (countOpenThree(afterAI, aiDisc) > aiThreats) {
+      return true; // Move creates new threats
+    }
+
+    const { board: afterOpp } = tryDrop(board, col, oppDisc);
+    if (countOpenThree(afterOpp, oppDisc) > oppThreats) {
+      return true; // Opponent could create threats
+    }
+  }
+
+  return false; // Position is quiet
+}
+
 export function minimax(
   board: CellValue[][],
   depth: number,
@@ -519,12 +560,34 @@ export function minimax(
   }
 
   const winner = bitboardCheckWin(getBits(board, aiDisc)) ? aiDisc : bitboardCheckWin(getBits(board, (aiDisc === 'Red' ? 'Yellow' : 'Red'))) ? (aiDisc === 'Red' ? 'Yellow' : 'Red') : null;
-  if (depth === 0 || winner) {
-    return { score: evaluateBoard(board, aiDisc, moveProbabilities, lastMove), column: null };
+
+  // Terminal position or depth limit reached
+  if (winner) {
+    const score = winner === aiDisc ? 1e7 : -1e7;
+    return { score, column: null };
+  }
+
+  if (depth === 0) {
+    // Intelligent quiescence search integration
+    const isNoisy = isPositionNoisy(board, aiDisc);
+
+    if (isNoisy) {
+      // Position has tactical elements - use quiescence search
+      const quiesceResult = quiesce(board, alpha, beta, aiDisc);
+      return { score: quiesceResult.score, column: quiesceResult.column };
+    } else {
+      // Position is quiet - use static evaluation
+      const staticScore = evaluateBoard(board, aiDisc, moveProbabilities, lastMove);
+      return { score: staticScore, column: null };
+    }
   }
 
   const moves = orderedMoves(board, maximizingPlayer ? aiDisc : (aiDisc === 'Red' ? 'Yellow' : 'Red'));
-  if (moves.length === 0) return { score: evaluateBoard(board, aiDisc, moveProbabilities, lastMove), column: null };
+  if (moves.length === 0) {
+    // No legal moves - should not happen in Connect 4 unless board is full
+    const staticScore = evaluateBoard(board, aiDisc, moveProbabilities, lastMove);
+    return { score: staticScore, column: null };
+  }
 
   let bestMove: number | null = moves[0].col;
   let bestScore = maximizingPlayer ? -Infinity : Infinity;
