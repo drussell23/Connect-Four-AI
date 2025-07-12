@@ -39,6 +39,9 @@ async function bootstrap() {
     );
     app.useWebSocketAdapter(new WSOnlyIoAdapter(app));
 
+    // Set global prefix for all API routes
+    app.setGlobalPrefix('api');
+
     // --- Static File Serving ---
     const httpAdapter = app.getHttpAdapter();
     const expressApp = httpAdapter.getInstance() as express.Application;
