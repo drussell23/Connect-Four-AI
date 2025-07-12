@@ -399,7 +399,7 @@ class ModelManager:
 
     def get_model_info(self) -> Dict[str, Any]:
         """Get information about loaded models"""
-        return {
+    return {
             "loaded_models": list(self.models.keys()),
             "metadata": self.model_metadata,
             "request_counts": self.request_counts,
@@ -515,7 +515,7 @@ class CacheManager:
                 for k in expired_keys:
                     del self.memory_cache[k]
 
-        except Exception as e:
+except Exception as e:
             logger.warning("Cache set error", error=str(e))
 
     def get_stats(self) -> Dict[str, Any]:
