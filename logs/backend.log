@@ -2,54 +2,54 @@
 > connect-four-backend@1.0.0 start:dev
 > nest start --watch
 
-c[[90m1:44:17 PM[0m] Starting compilation in watch mode...
+c[[90m3:25:32 PM[0m] Starting compilation in watch mode...
 
-[[90m1:44:29 PM[0m] Found 0 errors. Watching for file changes.
+[[90m3:26:10 PM[0m] Found 0 errors. Watching for file changes.
 
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:33 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:35 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +1758ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +110ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +6ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +2ms[39m
-{"timestamp":"2025-07-12T17:44:35.226Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8001","timeoutMs":1000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-{"timestamp":"2025-07-12T17:44:35.230Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8000","timeoutMs":5000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +13ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:35 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +9ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +1ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +1ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +0ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +9ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +12ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +8ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +6ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +4ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +1ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +7ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +3ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +14ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +27ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:36 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3000[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:44:39 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: 6RMKLTMrQlYCQAbCAAAB[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:45:59 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mGame 8yf50tu41 created by Red, starting player: Red, difficulty: 1[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:09 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[8yf50tu41] Human dropDisc by Red at column 3[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:10 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[8yf50tu41] Computing AI move via GameAIService[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:10 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:10 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-{"timestamp":"2025-07-12T17:46:10.257Z","level":"WARN","message":"Prediction attempt 1 failed","component":"MLInferenceClient","requestId":"req_1752342370201_ohsig0q4ip","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:10.523Z","level":"WARN","message":"Prediction attempt 2 failed","component":"MLInferenceClient","requestId":"req_1752342370201_ohsig0q4ip","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:10.931Z","level":"WARN","message":"Prediction attempt 3 failed","component":"MLInferenceClient","requestId":"req_1752342370201_ohsig0q4ip","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:10.933Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752342370201_ohsig0q4ip","error":"request to http://localhost:8001/predict failed, reason: ","latency":731.6044159999874}
-[33m[Nest] 69194  - [39m07/12/2025, 1:46:10 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
-  requestId: 'req_1752342370201_ohsig0q4ip',
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:14 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:15 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +1176ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:15 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +142ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:15 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +3ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:15 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +6ms[39m
+{"timestamp":"2025-07-12T19:26:15.382Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8001","timeoutMs":1000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
+{"timestamp":"2025-07-12T19:26:15.390Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8000","timeoutMs":5000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:15 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +21ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:15 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +13ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +2ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +1ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +1ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +24ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +53ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +26ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +10ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +7ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +40ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +29ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +8ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +24ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +59ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +25ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:19 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:20 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +90ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:20 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3000[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:21 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: dhOkl88ETUbZdkVEAAAB[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:53 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mGame 3orpdnwu1 created by Red, starting player: Red, difficulty: 1[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:55 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Human dropDisc by Red at column 0[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:56 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Computing AI move via GameAIService[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:56 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:56 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+{"timestamp":"2025-07-12T19:26:56.118Z","level":"WARN","message":"Prediction attempt 1 failed","component":"MLInferenceClient","requestId":"req_1752348416041_930iy9nbld","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:26:56.327Z","level":"WARN","message":"Prediction attempt 2 failed","component":"MLInferenceClient","requestId":"req_1752348416041_930iy9nbld","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:26:56.738Z","level":"WARN","message":"Prediction attempt 3 failed","component":"MLInferenceClient","requestId":"req_1752348416041_930iy9nbld","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:26:56.740Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752348416041_930iy9nbld","error":"request to http://localhost:8001/predict failed, reason: ","latency":697.0820000000022}
+[33m[Nest] 95490  - [39m07/12/2025, 3:26:56 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
+  requestId: 'req_1752348416041_930iy9nbld',
   error: FetchError: request to http://localhost:8001/predict failed, reason: 
       at ClientRequest.<anonymous> (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/node-fetch/lib/index.js:1501:11)
       at ClientRequest.emit (node:events:518:28)
@@ -64,18 +64,18 @@
     code: 'ECONNREFUSED'
   }
 }). Falling back to standard Minimax.[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:11 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 3[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:11 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 1223ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:14 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[8yf50tu41] Human dropDisc by Red at column 2[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:15 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[8yf50tu41] Computing AI move via GameAIService[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:15 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:15 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-{"timestamp":"2025-07-12T17:46:15.379Z","level":"WARN","message":"Prediction attempt 1 failed","component":"MLInferenceClient","requestId":"req_1752342375369_yu4fgtbe87","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:15.592Z","level":"WARN","message":"Prediction attempt 2 failed","component":"MLInferenceClient","requestId":"req_1752342375369_yu4fgtbe87","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:16.005Z","level":"WARN","message":"Prediction attempt 3 failed","component":"MLInferenceClient","requestId":"req_1752342375369_yu4fgtbe87","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:16.006Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752342375369_yu4fgtbe87","error":"request to http://localhost:8001/predict failed, reason: ","latency":637.6996249999938}
-[33m[Nest] 69194  - [39m07/12/2025, 1:46:16 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
-  requestId: 'req_1752342375369_yu4fgtbe87',
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:56 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 5[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:56 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 851ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:57 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Human dropDisc by Red at column 3[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:58 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Computing AI move via GameAIService[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:58 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:58 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+{"timestamp":"2025-07-12T19:26:58.231Z","level":"WARN","message":"Prediction attempt 1 failed","component":"MLInferenceClient","requestId":"req_1752348418224_frkth8ekqpp","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:26:58.440Z","level":"WARN","message":"Prediction attempt 2 failed","component":"MLInferenceClient","requestId":"req_1752348418224_frkth8ekqpp","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:26:58.847Z","level":"WARN","message":"Prediction attempt 3 failed","component":"MLInferenceClient","requestId":"req_1752348418224_frkth8ekqpp","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:26:58.848Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752348418224_frkth8ekqpp","error":"request to http://localhost:8001/predict failed, reason: ","latency":623.8214169999992}
+[33m[Nest] 95490  - [39m07/12/2025, 3:26:58 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
+  requestId: 'req_1752348418224_frkth8ekqpp',
   error: FetchError: request to http://localhost:8001/predict failed, reason: 
       at ClientRequest.<anonymous> (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/node-fetch/lib/index.js:1501:11)
       at ClientRequest.emit (node:events:518:28)
@@ -90,18 +90,18 @@
     code: 'ECONNREFUSED'
   }
 }). Falling back to standard Minimax.[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:18 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 4[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:18 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 2782ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:19 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[8yf50tu41] Human dropDisc by Red at column 2[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:19 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[8yf50tu41] Computing AI move via GameAIService[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:19 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:19 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-{"timestamp":"2025-07-12T17:46:19.717Z","level":"WARN","message":"Prediction attempt 1 failed","component":"MLInferenceClient","requestId":"req_1752342379700_efppj3aw5bg","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:19.926Z","level":"WARN","message":"Prediction attempt 2 failed","component":"MLInferenceClient","requestId":"req_1752342379700_efppj3aw5bg","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:20.332Z","level":"WARN","message":"Prediction attempt 3 failed","component":"MLInferenceClient","requestId":"req_1752342379700_efppj3aw5bg","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:20.332Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752342379700_efppj3aw5bg","error":"request to http://localhost:8001/predict failed, reason: ","latency":631.8497089999873}
-[33m[Nest] 69194  - [39m07/12/2025, 1:46:20 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
-  requestId: 'req_1752342379700_efppj3aw5bg',
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:58 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 3[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:58 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 717ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:26:59 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Human dropDisc by Red at column 3[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:00 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Computing AI move via GameAIService[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:00 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:00 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+{"timestamp":"2025-07-12T19:27:00.229Z","level":"WARN","message":"Prediction attempt 1 failed","component":"MLInferenceClient","requestId":"req_1752348420223_k7zqh65izo","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:27:00.443Z","level":"WARN","message":"Prediction attempt 2 failed","component":"MLInferenceClient","requestId":"req_1752348420223_k7zqh65izo","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:27:00.864Z","level":"WARN","message":"Prediction attempt 3 failed","component":"MLInferenceClient","requestId":"req_1752348420223_k7zqh65izo","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:27:00.864Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752348420223_k7zqh65izo","error":"request to http://localhost:8001/predict failed, reason: ","latency":641.023709000001}
+[33m[Nest] 95490  - [39m07/12/2025, 3:27:00 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
+  requestId: 'req_1752348420223_k7zqh65izo',
   error: FetchError: request to http://localhost:8001/predict failed, reason: 
       at ClientRequest.<anonymous> (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/node-fetch/lib/index.js:1501:11)
       at ClientRequest.emit (node:events:518:28)
@@ -116,18 +116,18 @@
     code: 'ECONNREFUSED'
   }
 }). Falling back to standard Minimax.[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:20 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 2[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:20 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 1182ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:23 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[8yf50tu41] Human dropDisc by Red at column 6[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:23 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[8yf50tu41] Computing AI move via GameAIService[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:23 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:23 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-{"timestamp":"2025-07-12T17:46:23.968Z","level":"WARN","message":"Prediction attempt 1 failed","component":"MLInferenceClient","requestId":"req_1752342383965_wcinwhwtyc","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:24.172Z","level":"WARN","message":"Prediction attempt 2 failed","component":"MLInferenceClient","requestId":"req_1752342383965_wcinwhwtyc","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:24.575Z","level":"WARN","message":"Prediction attempt 3 failed","component":"MLInferenceClient","requestId":"req_1752342383965_wcinwhwtyc","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:24.575Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752342383965_wcinwhwtyc","error":"request to http://localhost:8001/predict failed, reason: ","latency":610.1734160000051}
-[33m[Nest] 69194  - [39m07/12/2025, 1:46:24 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
-  requestId: 'req_1752342383965_wcinwhwtyc',
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:01 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 2[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:01 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 1035ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:03 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Human dropDisc by Red at column 3[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:04 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Computing AI move via GameAIService[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:04 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:04 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+{"timestamp":"2025-07-12T19:27:04.007Z","level":"WARN","message":"Prediction attempt 1 failed","component":"MLInferenceClient","requestId":"req_1752348424005_s3477zrki1","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:27:04.211Z","level":"WARN","message":"Prediction attempt 2 failed","component":"MLInferenceClient","requestId":"req_1752348424005_s3477zrki1","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:27:04.618Z","level":"WARN","message":"Prediction attempt 3 failed","component":"MLInferenceClient","requestId":"req_1752348424005_s3477zrki1","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:27:04.618Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752348424005_s3477zrki1","error":"request to http://localhost:8001/predict failed, reason: ","latency":613.5121250000011}
+[33m[Nest] 95490  - [39m07/12/2025, 3:27:04 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
+  requestId: 'req_1752348424005_s3477zrki1',
   error: FetchError: request to http://localhost:8001/predict failed, reason: 
       at ClientRequest.<anonymous> (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/node-fetch/lib/index.js:1501:11)
       at ClientRequest.emit (node:events:518:28)
@@ -142,19 +142,19 @@
     code: 'ECONNREFUSED'
   }
 }). Falling back to standard Minimax.[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:24 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 3[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:24 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 790ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:26 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[8yf50tu41] Human dropDisc by Red at column 6[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:26 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[8yf50tu41] Computing AI move via GameAIService[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:26 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:26 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-{"timestamp":"2025-07-12T17:46:26.530Z","level":"WARN","message":"Prediction attempt 1 failed","component":"MLInferenceClient","requestId":"req_1752342386528_yuen3fd71pg","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:26.735Z","level":"WARN","message":"Prediction attempt 2 failed","component":"MLInferenceClient","requestId":"req_1752342386528_yuen3fd71pg","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:27.140Z","level":"WARN","message":"Prediction attempt 3 failed","component":"MLInferenceClient","requestId":"req_1752342386528_yuen3fd71pg","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
-{"timestamp":"2025-07-12T17:46:27.141Z","level":"WARN","message":"Circuit breaker moved to OPEN","component":"MLInferenceClient","failureCount":5}
-{"timestamp":"2025-07-12T17:46:27.141Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752342386528_yuen3fd71pg","error":"request to http://localhost:8001/predict failed, reason: ","latency":613.2987080000021}
-[33m[Nest] 69194  - [39m07/12/2025, 1:46:27 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
-  requestId: 'req_1752342386528_yuen3fd71pg',
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:04 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 5[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:04 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 835ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:06 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Human dropDisc by Red at column 3[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:06 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Computing AI move via GameAIService[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:06 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:06 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+{"timestamp":"2025-07-12T19:27:06.796Z","level":"WARN","message":"Prediction attempt 1 failed","component":"MLInferenceClient","requestId":"req_1752348426792_rd1hyziqcw","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:27:06.999Z","level":"WARN","message":"Prediction attempt 2 failed","component":"MLInferenceClient","requestId":"req_1752348426792_rd1hyziqcw","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:27:07.402Z","level":"WARN","message":"Prediction attempt 3 failed","component":"MLInferenceClient","requestId":"req_1752348426792_rd1hyziqcw","error":"request to http://localhost:8001/predict failed, reason: ","url":"http://localhost:8001/predict"}
+{"timestamp":"2025-07-12T19:27:07.402Z","level":"WARN","message":"Circuit breaker moved to OPEN","component":"MLInferenceClient","failureCount":5}
+{"timestamp":"2025-07-12T19:27:07.402Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752348426792_rd1hyziqcw","error":"request to http://localhost:8001/predict failed, reason: ","latency":609.9264580000017}
+[33m[Nest] 95490  - [39m07/12/2025, 3:27:07 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
+  requestId: 'req_1752348426792_rd1hyziqcw',
   error: FetchError: request to http://localhost:8001/predict failed, reason: 
       at ClientRequest.<anonymous> (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/node-fetch/lib/index.js:1501:11)
       at ClientRequest.emit (node:events:518:28)
@@ -169,16 +169,16 @@
     code: 'ECONNREFUSED'
   }
 }). Falling back to standard Minimax.[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:27 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 3[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:27 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 806ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:29 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[8yf50tu41] Human dropDisc by Red at column 3[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:30 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[8yf50tu41] Computing AI move via GameAIService[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:30 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:30 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-{"timestamp":"2025-07-12T17:46:30.101Z","level":"WARN","message":"Circuit breaker moved to OPEN","component":"MLInferenceClient","failureCount":6}
-{"timestamp":"2025-07-12T17:46:30.101Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752342390101_4oq82mslpvf","error":"Circuit breaker is open","latency":0.8208750000048894}
-[33m[Nest] 69194  - [39m07/12/2025, 1:46:30 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
-  requestId: 'req_1752342390101_4oq82mslpvf',
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:07 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 3[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:07 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 622ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:09 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Human dropDisc by Red at column 0[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:10 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Computing AI move via GameAIService[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:10 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:10 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+{"timestamp":"2025-07-12T19:27:10.033Z","level":"WARN","message":"Circuit breaker moved to OPEN","component":"MLInferenceClient","failureCount":6}
+{"timestamp":"2025-07-12T19:27:10.034Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752348430033_bv0bu25sqz8","error":"Circuit breaker is open","latency":0.3489170000029844}
+[33m[Nest] 95490  - [39m07/12/2025, 3:27:10 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
+  requestId: 'req_1752348430033_bv0bu25sqz8',
   error: Error: Circuit breaker is open
       at MLInferenceClient.predict (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/ai/MLInferenceClient.ts:308:15)
       at GameAIService.getNextMove (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/game/game-ai.service.ts:59:56)
@@ -186,16 +186,16 @@
       at GameGateway.<anonymous> (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/context/ws-proxy.js:11:32)
       at WebSocketsController.pickResult (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/web-sockets-controller.js:96:24)
 }). Falling back to standard Minimax.[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:31 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 2[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:31 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 985ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:35 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[8yf50tu41] Human dropDisc by Red at column 6[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:36 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[8yf50tu41] Computing AI move via GameAIService[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:36 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:36 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-{"timestamp":"2025-07-12T17:46:36.143Z","level":"WARN","message":"Circuit breaker moved to OPEN","component":"MLInferenceClient","failureCount":7}
-{"timestamp":"2025-07-12T17:46:36.144Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752342396142_z4p6rgi0b1m","error":"Circuit breaker is open","latency":1.366374999997788}
-[33m[Nest] 69194  - [39m07/12/2025, 1:46:36 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
-  requestId: 'req_1752342396142_z4p6rgi0b1m',
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:10 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 5[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:10 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 214ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:12 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Human dropDisc by Red at column 5[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:12 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Computing AI move via GameAIService[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:12 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:12 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+{"timestamp":"2025-07-12T19:27:12.671Z","level":"WARN","message":"Circuit breaker moved to OPEN","component":"MLInferenceClient","failureCount":7}
+{"timestamp":"2025-07-12T19:27:12.671Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752348432671_ugq0kgsujy","error":"Circuit breaker is open","latency":0.2684579999986454}
+[33m[Nest] 95490  - [39m07/12/2025, 3:27:12 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
+  requestId: 'req_1752348432671_ugq0kgsujy',
   error: Error: Circuit breaker is open
       at MLInferenceClient.predict (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/ai/MLInferenceClient.ts:308:15)
       at GameAIService.getNextMove (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/game/game-ai.service.ts:59:56)
@@ -203,443 +203,277 @@
       at GameGateway.<anonymous> (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/context/ws-proxy.js:11:32)
       at WebSocketsController.pickResult (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/web-sockets-controller.js:96:24)
 }). Falling back to standard Minimax.[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:36 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 6[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:46:36 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 278ms[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:47:27 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient disconnected: 6RMKLTMrQlYCQAbCAAAB[39m
-[32m[Nest] 69194  - [39m07/12/2025, 1:47:29 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: yPKfgt2mY2h74Eu2AAAD[39m
-c[[90m1:52:44 PM[0m] File change detected. Starting incremental compilation...
-
-[[90m1:53:19 PM[0m] Found 0 errors. Watching for file changes.
-
-c[[90m1:53:19 PM[0m] File change detected. Starting incremental compilation...
-
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:22 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:23 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +914ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:23 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +80ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:23 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +2ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:23 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +2ms[39m
-{"timestamp":"2025-07-12T17:53:23.549Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8001","timeoutMs":1000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-{"timestamp":"2025-07-12T17:53:23.553Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8000","timeoutMs":5000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:23 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +11ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:23 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +5ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +2ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +1ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +0ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +7ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +12ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +9ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +4ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +4ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +0ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +10ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +4ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +6ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +5ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +23ms[39m
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:24 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3000[39m
-[96msrc/ai/connect4AI.ts[0m:[93m1558[0m:[93m5[0m - [91merror[0m[90m TS2322: [0mType '{ primaryStrategy: "minimax" | "mcts" | "dqn" | "alphazero" | "hybrid" | "ensemble"; neuralNetwork: { type: "ensemble" | "cnn" | "resnet" | "attention"; enableTraining: boolean; trainingFrequency: number; batchSize: number; learningRate: number; }; ... 5 more ...; drlTraining?: { ...; }; }' is not assignable to type 'UltimateAIConfig'.
-  Property 'drlTraining' is optional in type '{ primaryStrategy: "minimax" | "mcts" | "dqn" | "alphazero" | "hybrid" | "ensemble"; neuralNetwork: { type: "ensemble" | "cnn" | "resnet" | "attention"; enableTraining: boolean; trainingFrequency: number; batchSize: number; learningRate: number; }; ... 5 more ...; drlTraining?: { ...; }; }' but required in type 'UltimateAIConfig'.
-
-[7m1558[0m     this.config = {
-[7m    [0m [91m    ~~~~~~~~~~~[0m
-
-[[90m1:53:24 PM[0m] Found 1 error. Watching for file changes.
-
-[32m[Nest] 69872  - [39m07/12/2025, 1:53:26 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: o9HQmxGqdvTaqxyRAAAB[39m
-c[[90m1:53:34 PM[0m] File change detected. Starting incremental compilation...
-
-[96msrc/ai/connect4AI.ts[0m:[93m1565[0m:[93m5[0m - [91merror[0m[90m TS2322: [0mType '{ primaryStrategy: "minimax" | "mcts" | "dqn" | "alphazero" | "hybrid" | "ensemble"; neuralNetwork: { type: "ensemble" | "cnn" | "resnet" | "attention"; enableTraining: boolean; trainingFrequency: number; batchSize: number; learningRate: number; }; ... 5 more ...; drlTraining?: { ...; }; }' is not assignable to type 'UltimateAIConfig'.
-  Property 'drlTraining' is optional in type '{ primaryStrategy: "minimax" | "mcts" | "dqn" | "alphazero" | "hybrid" | "ensemble"; neuralNetwork: { type: "ensemble" | "cnn" | "resnet" | "attention"; enableTraining: boolean; trainingFrequency: number; batchSize: number; learningRate: number; }; ... 5 more ...; drlTraining?: { ...; }; }' but required in type 'UltimateAIConfig'.
-
-[7m1565[0m     this.config = {
-[7m    [0m [91m    ~~~~~~~~~~~[0m
-
-[[90m1:53:47 PM[0m] Found 1 error. Watching for file changes.
-
-c[[90m1:53:48 PM[0m] File change detected. Starting incremental compilation...
-
-[[90m1:53:53 PM[0m] Found 0 errors. Watching for file changes.
-
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:57 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:58 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +1028ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +158ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +2ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +3ms[39m
-{"timestamp":"2025-07-12T17:53:59.092Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8001","timeoutMs":1000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-{"timestamp":"2025-07-12T17:53:59.101Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8000","timeoutMs":5000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +17ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +7ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +1ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +1ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +0ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +4ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +10ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +4ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +3ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +0ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +3ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +3ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +9ms[39m
-[32m[Nest] 70084  - [39m07/12/2025, 1:53:59 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3000[39m
-c[[90m1:54:00 PM[0m] File change detected. Starting incremental compilation...
-
-[32m[Nest] 70084  - [39m07/12/2025, 1:54:02 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: 8jt9l_zSpTMMJySHAAAB[39m
-[96msrc/ai/connect4AI.ts[0m:[93m1682[0m:[93m18[0m - [91merror[0m[90m TS2339: [0mProperty 'initializeDRLTraining' does not exist on type 'UltimateConnect4AI'.
-
-[7m1682[0m       await this.initializeDRLTraining();
-[7m    [0m [91m                 ~~~~~~~~~~~~~~~~~~~~~[0m
-
-[[90m1:54:05 PM[0m] Found 1 error. Watching for file changes.
-
-c[[90m1:54:18 PM[0m] File change detected. Starting incremental compilation...
-
-[[90m1:54:32 PM[0m] Found 0 errors. Watching for file changes.
-
-c[[90m1:54:32 PM[0m] File change detected. Starting incremental compilation...
-
-[96msrc/ai/connect4AI.ts[0m:[93m2017[0m:[93m18[0m - [91merror[0m[90m TS2339: [0mProperty 'updateDRLTraining' does not exist on type 'UltimateConnect4AI'.
-
-[7m2017[0m       await this.updateDRLTraining(board, decision, aiDisc);
-[7m    [0m [91m                 ~~~~~~~~~~~~~~~~~[0m
-
-[[90m1:54:35 PM[0m] Found 1 error. Watching for file changes.
-
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:38 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:39 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +424ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +40ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +1ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +1ms[39m
-{"timestamp":"2025-07-12T17:54:39.183Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8001","timeoutMs":1000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-{"timestamp":"2025-07-12T17:54:39.186Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8000","timeoutMs":5000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:39 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +7ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:39 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +6ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +2ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +0ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +0ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +9ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +11ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +7ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +4ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +4ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +1ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +3ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +7ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +15ms[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:40 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3000[39m
-[32m[Nest] 70327  - [39m07/12/2025, 1:54:44 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: W1TI9AuoTjgqHV1DAAAB[39m
-c[[90m1:55:46 PM[0m] File change detected. Starting incremental compilation...
-
-[96msrc/ai/connect4AI.ts[0m:[93m2424[0m:[93m41[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ state: { board: CellValue[][]; currentPlayer: CellValue; moveHistory: any[]; gamePhase: "opening" | "midgame" | "endgame"; features: { threatCount: number; centerControl: number; connectivity: number; mobility: number; }; }; ... 4 more ...; metadata: { ...; }; }' is not assignable to parameter of type 'Connect4Experience'.
-  The types of 'nextState.currentPlayer' are incompatible between these types.
-    Type 'string' is not assignable to type 'CellValue'.
-
-[7m2424[0m       this.drlEnvironment.addExperience(experience);
-[7m    [0m [91m                                        ~~~~~~~~~~[0m
-
-[[90m1:56:03 PM[0m] Found 1 error. Watching for file changes.
-
-c[[90m1:56:03 PM[0m] File change detected. Starting incremental compilation...
-
-[[90m1:56:05 PM[0m] Found 0 errors. Watching for file changes.
-
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:09 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +913ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +76ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +1ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +1ms[39m
-{"timestamp":"2025-07-12T17:56:10.209Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8001","timeoutMs":1000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-{"timestamp":"2025-07-12T17:56:10.216Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8000","timeoutMs":5000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +16ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +4ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +1ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +0ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +1ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +6ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +9ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +4ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +5ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +3ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +0ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +7ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +5ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +10ms[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:10 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3000[39m
-[32m[Nest] 70596  - [39m07/12/2025, 1:56:15 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: WEQ3fQPcBVFwjbHvAAAB[39m
-c[[90m1:56:17 PM[0m] File change detected. Starting incremental compilation...
-
-[96msrc/ai/connect4AI.ts[0m:[93m2579[0m:[93m19[0m - [91merror[0m[90m TS2339: [0mProperty 'drlTraining' does not exist on type '{ strategy: "minimax" | "mcts" | "dqn" | "alphazero" | "hybrid" | "ensemble"; performance: { gamesPlayed: number; winRate: number; averageThinkingTime: number; totalTrainingTime: number; lastUpdateTime: number; }; agents: { ...; }; neuralNetworks: { ...; }; }'.
-
-[7m2579[0m       baseMetrics.drlTraining = {
-[7m    [0m [91m                  ~~~~~~~~~~~[0m
-
-[[90m1:56:28 PM[0m] Found 1 error. Watching for file changes.
-
-c[[90m1:56:29 PM[0m] File change detected. Starting incremental compilation...
-
-[[90m1:56:31 PM[0m] Found 0 errors. Watching for file changes.
-
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:34 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:35 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +807ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +103ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +3ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +1ms[39m
-{"timestamp":"2025-07-12T17:56:35.752Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8001","timeoutMs":1000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-{"timestamp":"2025-07-12T17:56:35.759Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8000","timeoutMs":5000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:35 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +16ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:35 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +80ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +33ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +9ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +4ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +71ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +154ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +7ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +9ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +5ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +1ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +5ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +8ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:36 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +13ms[39m
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:37 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3000[39m
-c[[90m1:56:38 PM[0m] File change detected. Starting incremental compilation...
-
-[32m[Nest] 70774  - [39m07/12/2025, 1:56:40 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: ycB1n8HbW3ChB-KaAAAB[39m
-[[90m1:56:40 PM[0m] Found 0 errors. Watching for file changes.
-
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:46 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:47 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +1681ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +109ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +2ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +2ms[39m
-{"timestamp":"2025-07-12T17:56:48.051Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8001","timeoutMs":1000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-{"timestamp":"2025-07-12T17:56:48.061Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8000","timeoutMs":5000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +23ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +4ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +2ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +1ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +1ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +18ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +17ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +11ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +9ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +4ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +1ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +6ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +6ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +4ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +5ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +10ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +22ms[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:48 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3000[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:56:54 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: KjoeAtOLVznqvaJSAAAB[39m
-c[[90m1:58:09 PM[0m] File change detected. Starting incremental compilation...
-
-[96msrc/ai/optimizerDemo.ts[0m:[93m514[0m:[93m25[0m - [91merror[0m[90m TS2739: [0mType '{ enabled: true; trackDiversity: true; }' is missing the following properties from type '{ enabled: boolean; logInterval: number; trackDiversity: boolean; trackConvergence: boolean; historySize: number; }': logInterval, trackConvergence, historySize
-
-[7m514[0m                         monitoring: { enabled: true, trackDiversity: true }
-[7m   [0m [91m                        ~~~~~~~~~~[0m
-
-  [96msrc/ai/optimizers/entropyRegularizer.ts[0m:[93m55[0m:[93m5[0m
-    [7m55[0m     monitoring: {
-    [7m  [0m [96m    ~~~~~~~~~~[0m
-    The expected type comes from property 'monitoring' which is declared here on type 'Partial<EntropyRegularizerConfig>'
-
-[96msrc/ai/optimizerDemo.ts[0m:[93m521[0m:[93m25[0m - [91merror[0m[90m TS2739: [0mType '{ enabled: true; trackMetrics: true; }' is missing the following properties from type '{ enabled: boolean; logInterval: number; trackMetrics: boolean; trackGradients: boolean; historySize: number; saveCheckpoints: boolean; }': logInterval, trackGradients, historySize, saveCheckpoints
-
-[7m521[0m                         monitoring: { enabled: true, trackMetrics: true }
-[7m   [0m [91m                        ~~~~~~~~~~[0m
-
-  [96msrc/ai/optimizers/learningRateScheduler.ts[0m:[93m106[0m:[93m5[0m
-    [7m106[0m     monitoring: {
-    [7m   [0m [96m    ~~~~~~~~~~[0m
-    The expected type comes from property 'monitoring' which is declared here on type 'Partial<LearningRateSchedulerConfig>'
-
-[96msrc/ai/optimizerDemo.ts[0m:[93m799[0m:[93m13[0m - [91merror[0m[90m TS2322: [0mType '"neuralNetwork"' is not assignable to type '"custom"'.
-
-[7m799[0m             baseConfig.adamW.preset = 'neuralNetwork';
-[7m   [0m [91m            ~~~~~~~~~~~~~~~~~~~~~~~[0m
-
-[96msrc/ai/optimizerDemo.ts[0m:[93m804[0m:[93m13[0m - [91merror[0m[90m TS2322: [0mType '"policyGradient"' is not assignable to type '"custom"'.
-
-[7m804[0m             baseConfig.entropyRegularizer.preset = 'policyGradient';
-[7m   [0m [91m            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-
-[96msrc/ai/optimizerDemo.ts[0m:[93m809[0m:[93m13[0m - [91merror[0m[90m TS2322: [0mType '"neuralNetwork"' is not assignable to type '"custom"'.
-
-[7m809[0m             baseConfig.learningRateScheduler.preset = 'neuralNetwork';
-[7m   [0m [91m            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-
-[96msrc/ai/optimizerDemo.ts[0m:[93m911[0m:[93m25[0m - [91merror[0m[90m TS2322: [0mType '{ enabled: true; steps: number; startFactor: number; endFactor: number; method: string; }' is not assignable to type '{ enabled: boolean; steps: number; initialLr: number; }'.
-  Object literal may only specify known properties, and 'startFactor' does not exist in type '{ enabled: boolean; steps: number; initialLr: number; }'.
-
-[7m911[0m                         startFactor: 0.1,
-[7m   [0m [91m                        ~~~~~~~~~~~~~~~~[0m
-
-  [96msrc/ai/optimizers/adamW.ts[0m:[93m35[0m:[93m5[0m
-    [7m35[0m     warmup: {
-    [7m  [0m [96m    ~~~~~~[0m
-    The expected type comes from property 'warmup' which is declared here on type 'Partial<AdamWConfig>'
-
-[96msrc/ai/optimizerDemo.ts[0m:[93m924[0m:[93m21[0m - [91merror[0m[90m TS2739: [0mType '{ type: "exponential"; decayRate: number; }' is missing the following properties from type '{ type: "adaptive" | "linear" | "constant" | "exponential" | "cosine"; startStep: number; endStep: number; minCoefficient: number; maxCoefficient: number; decayRate: number; }': startStep, endStep, minCoefficient, maxCoefficient
-
-[7m924[0m                     schedule: {
-[7m   [0m [91m                    ~~~~~~~~[0m
-
-  [96msrc/ai/optimizers/entropyRegularizer.ts[0m:[93m27[0m:[93m5[0m
-    [7m27[0m     schedule: {
-    [7m  [0m [96m    ~~~~~~~~[0m
-    The expected type comes from property 'schedule' which is declared here on type 'Partial<EntropyRegularizerConfig>'
-
-[96msrc/ai/optimizerDemo.ts[0m:[93m928[0m:[93m21[0m - [91merror[0m[90m TS2739: [0mType '{ enabled: true; targetKLDivergence: number; adaptationRate: number; }' is missing the following properties from type '{ enabled: boolean; targetKLDivergence: number; adaptationRate: number; windowSize: number; toleranceRange: number; }': windowSize, toleranceRange
-
-[7m928[0m                     adaptive: {
-[7m   [0m [91m                    ~~~~~~~~[0m
-
-  [96msrc/ai/optimizers/entropyRegularizer.ts[0m:[93m46[0m:[93m5[0m
-    [7m46[0m     adaptive: {
-    [7m  [0m [96m    ~~~~~~~~[0m
-    The expected type comes from property 'adaptive' which is declared here on type 'Partial<EntropyRegularizerConfig>'
-
-[96msrc/ai/optimizerDemo.ts[0m:[93m933[0m:[93m21[0m - [91merror[0m[90m TS2739: [0mType '{ enabled: true; trackDiversity: true; }' is missing the following properties from type '{ enabled: boolean; logInterval: number; trackDiversity: boolean; trackConvergence: boolean; historySize: number; }': logInterval, trackConvergence, historySize
-
-[7m933[0m                     monitoring: {
-[7m   [0m [91m                    ~~~~~~~~~~[0m
-
-  [96msrc/ai/optimizers/entropyRegularizer.ts[0m:[93m55[0m:[93m5[0m
-    [7m55[0m     monitoring: {
-    [7m  [0m [96m    ~~~~~~~~~~[0m
-    The expected type comes from property 'monitoring' which is declared here on type 'Partial<EntropyRegularizerConfig>'
-
-[96msrc/ai/optimizerDemo.ts[0m:[93m944[0m:[93m21[0m - [91merror[0m[90m TS2740: [0mType '{ type: "cosine"; cosineT0: number; cosineTMult: number; cosineEtaMin: number; }' is missing the following properties from type '{ type: "adaptive" | "exponential" | "cosine" | "plateau" | "step" | "polynomial" | "cyclic" | "one_cycle"; stepSize: number; stepGamma: number; exponentialGamma: number; cosineT0: number; ... 26 more ...; adaptiveMaxLr: number; }': stepSize, stepGamma, exponentialGamma, polynomialPower, and 24 more.
-
-[7m944[0m                     strategy: {
-[7m   [0m [91m                    ~~~~~~~~[0m
-
-  [96msrc/ai/optimizers/learningRateScheduler.ts[0m:[93m25[0m:[93m5[0m
-    [7m25[0m     strategy: {
-    [7m  [0m [96m    ~~~~~~~~[0m
-    The expected type comes from property 'strategy' which is declared here on type 'Partial<LearningRateSchedulerConfig>'
-
-[96msrc/ai/optimizerDemo.ts[0m:[93m957[0m:[93m21[0m - [91merror[0m[90m TS2739: [0mType '{ enabled: true; trackMetrics: true; }' is missing the following properties from type '{ enabled: boolean; logInterval: number; trackMetrics: boolean; trackGradients: boolean; historySize: number; saveCheckpoints: boolean; }': logInterval, trackGradients, historySize, saveCheckpoints
-
-[7m957[0m                     monitoring: {
-[7m   [0m [91m                    ~~~~~~~~~~[0m
-
-  [96msrc/ai/optimizers/learningRateScheduler.ts[0m:[93m106[0m:[93m5[0m
-    [7m106[0m     monitoring: {
-    [7m   [0m [96m    ~~~~~~~~~~[0m
-    The expected type comes from property 'monitoring' which is declared here on type 'Partial<LearningRateSchedulerConfig>'
-
-[[90m1:58:11 PM[0m] Found 11 errors. Watching for file changes.
-
-[32m[Nest] 70876  - [39m07/12/2025, 1:59:52 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient disconnected: KjoeAtOLVznqvaJSAAAB[39m
-[32m[Nest] 70876  - [39m07/12/2025, 1:59:53 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: jgaa3dHiFpMBaqlRAAAD[39m
-[32m[Nest] 70876  - [39m07/12/2025, 2:01:31 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient disconnected: jgaa3dHiFpMBaqlRAAAD[39m
-[32m[Nest] 70876  - [39m07/12/2025, 2:01:33 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: F-aVzi540GU8NNWvAAAF[39m
-c[[90m2:07:15 PM[0m] File change detected. Starting incremental compilation...
-
-[96msrc/ai/optimizerDemo.ts[0m:[93m924[0m:[93m25[0m - [91merror[0m[90m TS2322: [0mType '{ enabled: true; steps: number; startFactor: number; endFactor: number; method: string; }' is not assignable to type '{ enabled: boolean; steps: number; initialLr: number; }'.
-  Object literal may only specify known properties, and 'startFactor' does not exist in type '{ enabled: boolean; steps: number; initialLr: number; }'.
-
-[7m924[0m                         startFactor: 0.1,
-[7m   [0m [91m                        ~~~~~~~~~~~~~~~~[0m
-
-  [96msrc/ai/optimizers/adamW.ts[0m:[93m35[0m:[93m5[0m
-    [7m35[0m     warmup: {
-    [7m  [0m [96m    ~~~~~~[0m
-    The expected type comes from property 'warmup' which is declared here on type 'Partial<AdamWConfig>'
-
-[[90m2:07:16 PM[0m] Found 1 error. Watching for file changes.
-
-c[[90m2:07:37 PM[0m] File change detected. Starting incremental compilation...
-
-[[90m2:07:38 PM[0m] Found 0 errors. Watching for file changes.
-
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +337ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +26ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +0ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +1ms[39m
-{"timestamp":"2025-07-12T18:07:41.508Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8001","timeoutMs":1000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-{"timestamp":"2025-07-12T18:07:41.511Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8000","timeoutMs":5000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +6ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +3ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +0ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +0ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +0ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +2ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +5ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +1ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +4ms[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:41 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3000[39m
-[32m[Nest] 71851  - [39m07/12/2025, 2:07:42 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: dTxMlUUx6BOx6BQMAAAB[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:12 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 0[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:12 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 35ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:15 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Human dropDisc by Red at column 2[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:15 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Computing AI move via GameAIService[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:15 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:15 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+{"timestamp":"2025-07-12T19:27:15.658Z","level":"WARN","message":"Circuit breaker moved to OPEN","component":"MLInferenceClient","failureCount":8}
+{"timestamp":"2025-07-12T19:27:15.658Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752348435658_wbtyslrmug","error":"Circuit breaker is open","latency":0.28166699999565026}
+[33m[Nest] 95490  - [39m07/12/2025, 3:27:15 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
+  requestId: 'req_1752348435658_wbtyslrmug',
+  error: Error: Circuit breaker is open
+      at MLInferenceClient.predict (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/ai/MLInferenceClient.ts:308:15)
+      at GameAIService.getNextMove (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/game/game-ai.service.ts:59:56)
+      at GameGateway.handleDropDisc (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/game/game.gateway.ts:191:22)
+      at GameGateway.<anonymous> (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/context/ws-proxy.js:11:32)
+      at WebSocketsController.pickResult (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/web-sockets-controller.js:96:24)
+}). Falling back to standard Minimax.[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:15 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 0[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:15 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 115ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:18 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Human dropDisc by Red at column 2[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:19 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Computing AI move via GameAIService[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:19 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:19 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+{"timestamp":"2025-07-12T19:27:19.025Z","level":"WARN","message":"Circuit breaker moved to OPEN","component":"MLInferenceClient","failureCount":9}
+{"timestamp":"2025-07-12T19:27:19.025Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752348439025_505zs10ddrd","error":"Circuit breaker is open","latency":0.761832999996841}
+[33m[Nest] 95490  - [39m07/12/2025, 3:27:19 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
+  requestId: 'req_1752348439025_505zs10ddrd',
+  error: Error: Circuit breaker is open
+      at MLInferenceClient.predict (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/ai/MLInferenceClient.ts:308:15)
+      at GameAIService.getNextMove (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/game/game-ai.service.ts:59:56)
+      at GameGateway.handleDropDisc (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/game/game.gateway.ts:191:22)
+      at GameGateway.<anonymous> (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/context/ws-proxy.js:11:32)
+      at WebSocketsController.pickResult (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/web-sockets-controller.js:96:24)
+}). Falling back to standard Minimax.[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:19 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 2[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:19 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 60ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:23 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Human dropDisc by Red at column 1[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:23 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Computing AI move via GameAIService[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:23 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:23 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+{"timestamp":"2025-07-12T19:27:23.773Z","level":"WARN","message":"Circuit breaker moved to OPEN","component":"MLInferenceClient","failureCount":10}
+{"timestamp":"2025-07-12T19:27:23.773Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752348443772_08mzzeykglii","error":"Circuit breaker is open","latency":0.5240000000048894}
+[33m[Nest] 95490  - [39m07/12/2025, 3:27:23 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
+  requestId: 'req_1752348443772_08mzzeykglii',
+  error: Error: Circuit breaker is open
+      at MLInferenceClient.predict (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/ai/MLInferenceClient.ts:308:15)
+      at GameAIService.getNextMove (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/game/game-ai.service.ts:59:56)
+      at GameGateway.handleDropDisc (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/game/game.gateway.ts:191:22)
+      at GameGateway.<anonymous> (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/context/ws-proxy.js:11:32)
+      at WebSocketsController.pickResult (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/web-sockets-controller.js:96:24)
+}). Falling back to standard Minimax.[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:23 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 1[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:23 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 83ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:29 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Human dropDisc by Red at column 1[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:29 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Computing AI move via GameAIService[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:29 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:29 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+{"timestamp":"2025-07-12T19:27:29.571Z","level":"WARN","message":"Circuit breaker moved to OPEN","component":"MLInferenceClient","failureCount":11}
+{"timestamp":"2025-07-12T19:27:29.571Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752348449570_v5k8thsk25","error":"Circuit breaker is open","latency":0.21345799999835435}
+[33m[Nest] 95490  - [39m07/12/2025, 3:27:29 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
+  requestId: 'req_1752348449570_v5k8thsk25',
+  error: Error: Circuit breaker is open
+      at MLInferenceClient.predict (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/ai/MLInferenceClient.ts:308:15)
+      at GameAIService.getNextMove (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/game/game-ai.service.ts:59:56)
+      at GameGateway.handleDropDisc (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/game/game.gateway.ts:191:22)
+      at GameGateway.<anonymous> (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/context/ws-proxy.js:11:32)
+      at WebSocketsController.pickResult (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/web-sockets-controller.js:96:24)
+}). Falling back to standard Minimax.[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:29 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 0[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:29 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 164ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:31 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Human dropDisc by Red at column 0[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:31 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Computing AI move via GameAIService[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:31 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:31 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+{"timestamp":"2025-07-12T19:27:31.654Z","level":"WARN","message":"Circuit breaker moved to OPEN","component":"MLInferenceClient","failureCount":12}
+{"timestamp":"2025-07-12T19:27:31.654Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752348451654_8hldo51ejgk","error":"Circuit breaker is open","latency":0.2515419999981532}
+[33m[Nest] 95490  - [39m07/12/2025, 3:27:31 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
+  requestId: 'req_1752348451654_8hldo51ejgk',
+  error: Error: Circuit breaker is open
+      at MLInferenceClient.predict (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/ai/MLInferenceClient.ts:308:15)
+      at GameAIService.getNextMove (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/game/game-ai.service.ts:59:56)
+      at GameGateway.handleDropDisc (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/game/game.gateway.ts:191:22)
+      at GameGateway.<anonymous> (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/context/ws-proxy.js:11:32)
+      at WebSocketsController.pickResult (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/web-sockets-controller.js:96:24)
+}). Falling back to standard Minimax.[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:31 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 2[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:31 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 45ms[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:38 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Human dropDisc by Red at column 6[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:39 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[3orpdnwu1] Computing AI move via GameAIService[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:39 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:39 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+{"timestamp":"2025-07-12T19:27:39.255Z","level":"WARN","message":"Circuit breaker moved to OPEN","component":"MLInferenceClient","failureCount":13}
+{"timestamp":"2025-07-12T19:27:39.256Z","level":"ERROR","message":"Prediction failed","component":"MLInferenceClient","requestId":"req_1752348459255_9w3y2e2azge","error":"Circuit breaker is open","latency":0.41004199998860713}
+[33m[Nest] 95490  - [39m07/12/2025, 3:27:39 PM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: Unhandled error. ({
+  requestId: 'req_1752348459255_9w3y2e2azge',
+  error: Error: Circuit breaker is open
+      at MLInferenceClient.predict (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/ai/MLInferenceClient.ts:308:15)
+      at GameAIService.getNextMove (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/game/game-ai.service.ts:59:56)
+      at GameGateway.handleDropDisc (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/src/game/game.gateway.ts:191:22)
+      at GameGateway.<anonymous> (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/context/ws-proxy.js:11:32)
+      at WebSocketsController.pickResult (/Users/derekjrussell/Documents/repos/ConnectFourGame/backend/node_modules/@nestjs/websockets/web-sockets-controller.js:96:24)
+}). Falling back to standard Minimax.[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:39 PM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 1[39m
+[32m[Nest] 95490  - [39m07/12/2025, 3:27:39 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 17ms[39m
+c[[90m4:14:59 PM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/connect4AI.ts[0m:[93m476[0m:[93m14[0m - [91merror[0m[90m TS2304: [0mCannot find name 'ZOBRIST_TABLE'.
+
+[7m476[0m         h ^= ZOBRIST_TABLE[r][c][pieceIdx];
+[7m   [0m [91m             ~~~~~~~~~~~~~[0m
+
+[[90m4:15:40 PM[0m] Found 1 error. Watching for file changes.
+
+c[[90m4:15:40 PM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/connect4AI.ts[0m:[93m807[0m:[93m10[0m - [91merror[0m[90m TS2393: [0mDuplicate function implementation.
+
+[7m807[0m function select(node: MCTSNode, moveProbabilities?: number[]): MCTSNode {
+[7m   [0m [91m         ~~~~~~[0m
+
+[96msrc/ai/connect4AI.ts[0m:[93m3258[0m:[93m10[0m - [91merror[0m[90m TS2393: [0mDuplicate function implementation.
+
+[7m3258[0m function select(node: MCTSNode, moveProbabilities?: number[]): MCTSNode {
+[7m    [0m [91m         ~~~~~~[0m
+
+[[90m4:15:51 PM[0m] Found 2 errors. Watching for file changes.
+
+c[[90m4:16:14 PM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/connect4AI.ts[0m:[93m806[0m:[93m17[0m - [91merror[0m[90m TS2393: [0mDuplicate function implementation.
+
+[7m806[0m export function select(node: MCTSNode, moveProbabilities?: number[]): MCTSNode {
+[7m   [0m [91m                ~~~~~~[0m
+
+[96msrc/ai/connect4AI.ts[0m:[93m3256[0m:[93m10[0m - [91merror[0m[90m TS2393: [0mDuplicate function implementation.
+
+[7m3256[0m function select(node: MCTSNode, moveProbabilities?: number[]): MCTSNode {
+[7m    [0m [91m         ~~~~~~[0m
+
+[[90m4:16:37 PM[0m] Found 2 errors. Watching for file changes.
+
+c[[90m4:16:37 PM[0m] File change detected. Starting incremental compilation...
+
+[[90m4:16:41 PM[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:49 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:50 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +1321ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:50 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +77ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:50 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:50 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +2ms[39m
+{"timestamp":"2025-07-12T20:16:50.918Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8001","timeoutMs":1000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
+{"timestamp":"2025-07-12T20:16:50.929Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8000","timeoutMs":5000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:50 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +18ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:50 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:51 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:51 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +9ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:51 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +9ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:51 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +1ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:51 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:51 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +10ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:51 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +16ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +19ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +10ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +8ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +5ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +8ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +16ms[39m
+[31m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3000[39m[38;5;3m +11ms[39m
+[33m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3000 is in use. Trying next port...[39m
+[32m[Nest] 30476  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3001[39m
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          c[[90m4:14:58 PM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/connect4AI.ts[0m:[93m476[0m:[93m14[0m - [91merror[0m[90m TS2304: [0mCannot find name 'ZOBRIST_TABLE'.
+
+[7m476[0m         h ^= ZOBRIST_TABLE[r][c][pieceIdx];
+[7m   [0m [91m             ~~~~~~~~~~~~~[0m
+
+[[90m4:15:16 PM[0m] Found 1 error. Watching for file changes.
+
+c[[90m4:15:16 PM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/connect4AI.ts[0m:[93m476[0m:[93m14[0m - [91merror[0m[90m TS2304: [0mCannot find name 'ZOBRIST_TABLE'.
+
+[7m476[0m         h ^= ZOBRIST_TABLE[r][c][pieceIdx];
+[7m   [0m [91m             ~~~~~~~~~~~~~[0m
+
+[96msrc/ai/connect4AI.ts[0m:[93m803[0m:[93m10[0m - [91merror[0m[90m TS2393: [0mDuplicate function implementation.
+
+[7m803[0m function select(node: MCTSNode, moveProbabilities?: number[]): MCTSNode {
+[7m   [0m [91m         ~~~~~~[0m
+
+[96msrc/ai/connect4AI.ts[0m:[93m3254[0m:[93m10[0m - [91merror[0m[90m TS2393: [0mDuplicate function implementation.
+
+[7m3254[0m function select(node: MCTSNode, moveProbabilities?: number[]): MCTSNode {
+[7m    [0m [91m         ~~~~~~[0m
+
+[[90m4:15:44 PM[0m] Found 3 errors. Watching for file changes.
+
+c[[90m4:15:44 PM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/connect4AI.ts[0m:[93m807[0m:[93m10[0m - [91merror[0m[90m TS2393: [0mDuplicate function implementation.
+
+[7m807[0m function select(node: MCTSNode, moveProbabilities?: number[]): MCTSNode {
+[7m   [0m [91m         ~~~~~~[0m
+
+[96msrc/ai/connect4AI.ts[0m:[93m3258[0m:[93m10[0m - [91merror[0m[90m TS2393: [0mDuplicate function implementation.
+
+[7m3258[0m function select(node: MCTSNode, moveProbabilities?: number[]): MCTSNode {
+[7m    [0m [91m         ~~~~~~[0m
+
+[[90m4:15:47 PM[0m] Found 2 errors. Watching for file changes.
+
+c[[90m4:16:14 PM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/connect4AI.ts[0m:[93m806[0m:[93m17[0m - [91merror[0m[90m TS2393: [0mDuplicate function implementation.
+
+[7m806[0m export function select(node: MCTSNode, moveProbabilities?: number[]): MCTSNode {
+[7m   [0m [91m                ~~~~~~[0m
+
+[96msrc/ai/connect4AI.ts[0m:[93m3256[0m:[93m10[0m - [91merror[0m[90m TS2393: [0mDuplicate function implementation.
+
+[7m3256[0m function select(node: MCTSNode, moveProbabilities?: number[]): MCTSNode {
+[7m    [0m [91m         ~~~~~~[0m
+
+[[90m4:16:39 PM[0m] Found 2 errors. Watching for file changes.
+
+c[[90m4:16:39 PM[0m] File change detected. Starting incremental compilation...
+
+[[90m4:16:45 PM[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:49 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:50 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +1322ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:50 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +78ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:50 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:50 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +1ms[39m
+{"timestamp":"2025-07-12T20:16:50.921Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8001","timeoutMs":1000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
+{"timestamp":"2025-07-12T20:16:50.927Z","level":"INFO","message":"Advanced ML Inference Client initialized","component":"MLInferenceClient","config":{"baseUrl":"http://localhost:8000","timeoutMs":5000,"maxRetries":3,"retryDelayMs":200,"enableCircuitBreaker":true,"enableConnectionPooling":true,"enableCaching":true,"enableMetrics":true,"enableHealthChecks":true,"enableSecurity":false,"circuitBreaker":{"failureThreshold":5,"recoveryTimeMs":30000,"monitoringWindowMs":60000,"minimumRequests":10},"connectionPool":{"maxConnections":10,"keepAliveMs":30000,"idleTimeoutMs":60000},"cache":{"enablePositionCache":true,"maxEntries":10000,"ttlMs":300000,"enablePredictiveCache":true},"model":{"version":"latest","enableABTesting":false,"fallbackModel":"stable","enableEnsemble":false},"security":{"enableRateLimiting":false,"rateLimitRpm":1000,"enableRequestSigning":false},"monitoring":{"enableMetrics":true,"enableLogging":true,"logLevel":"info"}},"features":["circuit-breaker","connection-pooling","caching","metrics","health-checks"]}
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:50 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +16ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:50 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:51 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:51 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +14ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:51 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +13ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:51 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +1ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:51 PM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +1ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:51 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +10ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:51 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +20ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +12ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +7ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +7ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +6ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +7ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +8ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +16ms[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:52 PM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3000[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:16:56 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: 99Mog3vgYK3cm_XCAAAB[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:17:49 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient disconnected: 99Mog3vgYK3cm_XCAAAB[39m
+[32m[Nest] 30498  - [39m07/12/2025, 4:17:51 PM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: MmYauw827ICStV91AAAD[39m

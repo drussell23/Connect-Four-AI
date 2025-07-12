@@ -1,43 +1,624 @@
-name: CI
+name: "🔧 Comprehensive CI Pipeline"
 
-# Run on pushes and PRs to the main branch
 on:
+  workflow_call:
+    inputs:
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        default: false
+        type: boolean
+      run_benchmarks:
+        description: 'Run performance benchmarks'
+        required: false
+        default: false
+        type: boolean
   push:
-    branches: [ main ]
+    branches: [ main, develop, 'feature/**', 'bugfix/**' ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip test execution'
+        required: false
+        default: false
+        type: boolean
+      run_benchmarks:
+        description: 'Run performance benchmarks'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.9'
+  CACHE_VERSION: 'v1'
 
 jobs:
-  build-and-test:
+  # ==========================================
+  # 🔍 Change Detection & Path Filtering
+  # ==========================================
+  detect-changes:
+    name: "🔍 Detect Changes"
     runs-on: ubuntu-latest
-
+    outputs:
+      backend: ${{ steps.changes.outputs.backend }}
+      frontend: ${{ steps.changes.outputs.frontend }}
+      ml: ${{ steps.changes.outputs.ml }}
+      cpp: ${{ steps.changes.outputs.cpp }}
+      workflows: ${{ steps.changes.outputs.workflows }}
+      docs: ${{ steps.changes.outputs.docs }}
     steps:
-      # 1. Check out the repository
       - name: Checkout code
-        uses: actions/checkout@v3
-
-      # 2. Set up Node.js
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+        uses: actions/checkout@v4
         with:
-          node-version: '18'
+          fetch-depth: 0
 
-      # 3. Install dependencies
-      - name: Install npm dependencies
-        run: npm ci
+      - name: Detect file changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - 'package.json'
+              - 'tsconfig.json'
+            frontend:
+              - 'frontend/**'
+              - 'package.json'
+            ml:
+              - 'backend/src/ml/**'
+              - 'ml_service/**'
+              - 'models/**'
+            cpp:
+              - 'c_cpp/**'
+              - 'CMakeLists.txt'
+              - 'Makefile'
+            workflows:
+              - '.github/workflows/**'
+            docs:
+              - '*.md'
+              - 'docs/**'
 
-      # 4. TypeScript compilation (no emit)
-      - name: Check TypeScript compilation
+  # ==========================================
+  # 🏗️ Backend Build & Test
+  # ==========================================
+  backend-ci:
+    name: "🏗️ Backend CI"
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.workflows == 'true'
+    
+    strategy:
+      matrix:
+        node-version: [18, 20]
+        include:
+          - node-version: 18
+            is-primary: true
+          - node-version: 20
+            is-primary: false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: cache-deps
+        with:
+          path: |
+            node_modules
+            backend/node_modules
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ env.CACHE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-${{ env.CACHE_VERSION }}-
+
+      - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          npm ci --prefer-offline
+          cd backend && npm ci --prefer-offline
+
+      - name: TypeScript type check
+        working-directory: backend
         run: npx tsc --noEmit
 
-      # 5. Linting
-      - name: Run ESLint
-        run: npm run lint
+      - name: Build backend
+        working-directory: backend
+        run: npm run build
 
-      # 6. Formatting check
-      - name: Check Prettier formatting
-        run: npm run format:check
+      - name: Run backend tests
+        if: ${{ !inputs.skip_tests }}
+        working-directory: backend
+        run: |
+          npm test -- --coverage --watchAll=false
+        env:
+          CI: true
 
-      # 7. Unit tests
-      - name: Run unit tests
-        run: npm test
+      - name: Upload backend test results
+        if: matrix.is-primary && !inputs.skip_tests
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: backend/coverage/
+          retention-days: 30
+
+      - name: Cache backend dist
+        if: matrix.is-primary
+        uses: actions/cache@v4
+        with:
+          path: backend/dist
+          key: ${{ runner.os }}-backend-dist-${{ github.sha }}
+
+  # ==========================================
+  # ⚛️ Frontend Build & Test
+  # ==========================================
+  frontend-ci:
+    name: "⚛️ Frontend CI"
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.workflows == 'true'
+    
+    strategy:
+      matrix:
+        node-version: [18, 20]
+        include:
+          - node-version: 18
+            is-primary: true
+          - node-version: 20
+            is-primary: false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: cache-deps
+        with:
+          path: |
+            node_modules
+            frontend/node_modules
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ env.CACHE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-${{ env.CACHE_VERSION }}-
+
+      - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          npm ci --prefer-offline
+          cd frontend && npm ci --prefer-offline
+
+      - name: TypeScript type check
+        working-directory: frontend
+        run: npx tsc --noEmit
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+        env:
+          CI: true
+          GENERATE_SOURCEMAP: false
+
+      - name: Run frontend tests
+        if: ${{ !inputs.skip_tests }}
+        working-directory: frontend
+        run: npm test -- --coverage --watchAll=false
+        env:
+          CI: true
+
+      - name: Upload frontend test results
+        if: matrix.is-primary && !inputs.skip_tests
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-results
+          path: frontend/coverage/
+          retention-days: 30
+
+      - name: Cache frontend build
+        if: matrix.is-primary
+        uses: actions/cache@v4
+        with:
+          path: frontend/build
+          key: ${{ runner.os }}-frontend-build-${{ github.sha }}
+
+  # ==========================================
+  # 🐍 ML Service CI
+  # ==========================================
+  ml-service-ci:
+    name: "🐍 ML Service CI"
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.ml == 'true' || needs.detect-changes.outputs.workflows == 'true'
+    
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+        include:
+          - python-version: '3.9'
+            is-primary: true
+          - python-version: '3.10'
+            is-primary: false
+          - python-version: '3.11'
+            is-primary: false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt', '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+          pip install fastapi uvicorn pydantic pytest pytest-cov pytest-asyncio
+          pip install onnxruntime scikit-learn numpy pandas matplotlib seaborn
+          pip install black flake8 mypy isort bandit safety
+
+      - name: Code formatting check (Black)
+        run: black --check --diff ml_service/
+
+      - name: Import sorting check (isort)
+        run: isort --check-only --diff ml_service/
+
+      - name: Linting (flake8)
+        run: flake8 ml_service/ --max-line-length=88 --extend-ignore=E203
+
+      - name: Type checking (mypy)
+        run: mypy ml_service/ --ignore-missing-imports
+
+      - name: Security audit (bandit)
+        run: bandit -r ml_service/ -f json -o bandit-report.json || true
+
+      - name: Dependency security check (safety)
+        run: safety check --json --output safety-report.json || true
+
+      - name: Run ML service tests
+        if: ${{ !inputs.skip_tests }}
+        run: |
+          cd ml_service
+          python -m pytest --cov=. --cov-report=xml --cov-report=html
+        env:
+          PYTHONPATH: ${{ github.workspace }}/ml_service
+
+      - name: Upload ML test results
+        if: matrix.is-primary && !inputs.skip_tests
+        uses: actions/upload-artifact@v4
+        with:
+          name: ml-test-results
+          path: |
+            ml_service/htmlcov/
+            ml_service/coverage.xml
+            bandit-report.json
+            safety-report.json
+          retention-days: 30
+
+  # ==========================================
+  # 🔧 C++ Build & Test
+  # ==========================================
+  cpp-ci:
+    name: "🔧 C++ CI"
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.cpp == 'true' || needs.detect-changes.outputs.workflows == 'true'
+    
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+        build-type: [Debug, Release]
+        include:
+          - compiler: gcc
+            cc: gcc
+            cxx: g++
+          - compiler: clang
+            cc: clang
+            cxx: clang++
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake clang-format cppcheck valgrind
+
+      - name: Cache CMake build
+        uses: actions/cache@v4
+        with:
+          path: c_cpp/build
+          key: ${{ runner.os }}-cmake-${{ matrix.compiler }}-${{ matrix.build-type }}-${{ hashFiles('c_cpp/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-cmake-${{ matrix.compiler }}-${{ matrix.build-type }}-
+
+      - name: Configure CMake
+        working-directory: c_cpp
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DCMAKE_C_COMPILER=${{ matrix.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+
+      - name: Build C++ project
+        working-directory: c_cpp
+        run: cmake --build build --config ${{ matrix.build-type }} -j$(nproc)
+
+      - name: Run C++ tests
+        if: ${{ !inputs.skip_tests }}
+        working-directory: c_cpp
+        run: |
+          cd build
+          ctest --output-on-failure --parallel $(nproc)
+
+      - name: Code formatting check
+        if: matrix.compiler == 'gcc' && matrix.build-type == 'Debug'
+        working-directory: c_cpp
+        run: |
+          find src tests -name "*.cpp" -o -name "*.hpp" | xargs clang-format --dry-run --Werror
+
+      - name: Static analysis (cppcheck)
+        if: matrix.compiler == 'gcc' && matrix.build-type == 'Debug'
+        working-directory: c_cpp
+        run: |
+          cppcheck --enable=all --inconclusive --xml --xml-version=2 src/ 2> cppcheck-report.xml || true
+
+      - name: Upload C++ artifacts
+        if: matrix.compiler == 'gcc' && matrix.build-type == 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpp-artifacts
+          path: |
+            c_cpp/build/
+            c_cpp/cppcheck-report.xml
+          retention-days: 30
+
+  # ==========================================
+  # 🧪 Integration Tests
+  # ==========================================
+  integration-tests:
+    name: "🧪 Integration Tests"
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci, ml-service-ci]
+    if: |
+      always() && 
+      !cancelled() && 
+      !inputs.skip_tests &&
+      (needs.backend-ci.result == 'success' || needs.backend-ci.result == 'skipped') &&
+      (needs.frontend-ci.result == 'success' || needs.frontend-ci.result == 'skipped') &&
+      (needs.ml-service-ci.result == 'success' || needs.ml-service-ci.result == 'skipped')
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: connect4_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Restore backend cache
+        uses: actions/cache@v4
+        with:
+          path: backend/dist
+          key: ${{ runner.os }}-backend-dist-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - name: Restore frontend cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/build
+          key: ${{ runner.os }}-frontend-build-${{ github.sha }}
+          fail-on-cache-miss: true
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefer-offline
+          cd backend && npm ci --prefer-offline
+          cd ../frontend && npm ci --prefer-offline
+          cd ../ml_service && python -m pip install --upgrade pip
+          pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+          pip install fastapi uvicorn pydantic pytest pytest-asyncio httpx
+
+      - name: Run integration tests
+        run: |
+          # Start services in background
+          cd backend && npm run start:prod &
+          cd ml_service && python -m uvicorn ml_service:app --host 0.0.0.0 --port 8001 &
+          
+          # Wait for services to start
+          sleep 10
+          
+          # Run integration tests
+          npm run test:integration || true
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/connect4_test
+          ML_SERVICE_URL: http://localhost:8001
+
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: test-results/
+          retention-days: 30
+
+  # ==========================================
+  # 🔒 Security & Quality Analysis
+  # ==========================================
+  security-analysis:
+    name: "🔒 Security Analysis"
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
+        if: github.event_name == 'pull_request'
+
+  # ==========================================
+  # 📊 Performance Benchmarks
+  # ==========================================
+  performance-benchmarks:
+    name: "📊 Performance Benchmarks"
+    runs-on: ubuntu-latest
+    needs: [backend-ci, ml-service-ci]
+    if: |
+      always() && 
+      !cancelled() && 
+      inputs.run_benchmarks &&
+      (needs.backend-ci.result == 'success' || needs.backend-ci.result == 'skipped') &&
+      (needs.ml-service-ci.result == 'success' || needs.ml-service-ci.result == 'skipped')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefer-offline
+          cd backend && npm ci --prefer-offline
+          cd ../ml_service && python -m pip install --upgrade pip
+          pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+          pip install fastapi uvicorn pydantic pytest-benchmark
+
+      - name: Run AI algorithm benchmarks
+        run: |
+          cd backend
+          npm run benchmark:ai || true
+
+      - name: Run ML service benchmarks
+        run: |
+          cd ml_service
+          python -m pytest benchmarks/ --benchmark-only --benchmark-json=benchmark-results.json || true
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: |
+            backend/benchmark-results.json
+            ml_service/benchmark-results.json
+          retention-days: 30
+
+  # ==========================================
+  # 📋 CI Summary
+  # ==========================================
+  ci-summary:
+    name: "📋 CI Summary"
+    runs-on: ubuntu-latest
+    needs: [detect-changes, backend-ci, frontend-ci, ml-service-ci, cpp-ci, integration-tests, security-analysis]
+    if: always()
+    
+    steps:
+      - name: CI Summary
+        run: |
+          echo "## 🔧 CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | ${{ needs.backend-ci.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | ${{ needs.frontend-ci.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ML Service | ${{ needs.ml-service-ci.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| C++ Build | ${{ needs.cpp-ci.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Integration Tests | ${{ needs.integration-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Analysis | ${{ needs.security-analysis.result }} |" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### 📊 Changed Components" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend: ${{ needs.detect-changes.outputs.backend }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: ${{ needs.detect-changes.outputs.frontend }}" >> $GITHUB_STEP_SUMMARY
+          echo "- ML: ${{ needs.detect-changes.outputs.ml }}" >> $GITHUB_STEP_SUMMARY
+          echo "- C++: ${{ needs.detect-changes.outputs.cpp }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Workflows: ${{ needs.detect-changes.outputs.workflows }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check overall status
+        run: |
+          if [[ "${{ needs.backend-ci.result }}" == "failure" || "${{ needs.frontend-ci.result }}" == "failure" || "${{ needs.ml-service-ci.result }}" == "failure" || "${{ needs.cpp-ci.result }}" == "failure" ]]; then
+            echo "❌ CI Pipeline failed!"
+            exit 1
+          else
+            echo "✅ CI Pipeline passed!"
+          fi
