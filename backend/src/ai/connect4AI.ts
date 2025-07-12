@@ -466,12 +466,6 @@ export interface TranspositionEntry {
 const MAX_ENTRIES = 1_000_000;
 const transposition = new Map<bigint, TranspositionEntry>();
 
-function rand64(): bigint {
-  const a = BigInt(Math.floor(Math.random() * 0xffffffff));
-  const b = BigInt(Math.floor(Math.random() * 0xffffffff));
-  return (a << 32n) | b;
-}
-
 const ZOBRIST_TABLE: bigint[][][] = Array.from({ length: 6 }, () =>
   Array.from({ length: 7 }, () => [rand64(), rand64(), rand64()])
 );
@@ -806,11 +800,10 @@ export interface MCTSNode {
 }
 
 export function cloneBoard(board: CellValue[][]): CellValue[][] {
-  return board.map(row => [...row]);
+  return board.map((row) => [...row]);
 }
 
-// Selects a node to expand using the PUCT formula (UCT with prior probabilities)
-function select(node: MCTSNode, moveProbabilities?: number[]): MCTSNode {
+export function select(node: MCTSNode, moveProbabilities?: number[]): MCTSNode {
   let currentNode = node;
   while (currentNode.children.length > 0) {
     let bestChild: MCTSNode | null = null;
@@ -838,7 +831,7 @@ function select(node: MCTSNode, moveProbabilities?: number[]): MCTSNode {
 }
 
 // Expands a node by creating all possible child nodes
-function expand(node: MCTSNode, moveProbabilities?: number[]): void {
+export function expand(node: MCTSNode, moveProbabilities?: number[]): void {
   const moves = legalMoves(node.board);
   const uniformProb = 1 / moves.length;
 
@@ -861,7 +854,7 @@ function expand(node: MCTSNode, moveProbabilities?: number[]): void {
 }
 
 // Simulates a random playout from a node until a terminal state is reached
-function playout(node: MCTSNode, aiDisc: CellValue): CellValue {
+export function playout(node: MCTSNode, aiDisc: CellValue): CellValue {
   let board = cloneBoard(node.board);
   let player = node.player;
 
@@ -880,7 +873,7 @@ function playout(node: MCTSNode, aiDisc: CellValue): CellValue {
 }
 
 // Backpropagates the result of a playout up the tree
-function backpropagate(node: MCTSNode, winner: CellValue): void {
+export function backpropagate(node: MCTSNode, winner: CellValue): void {
   let current: MCTSNode | null = node;
   while (current) {
     current.visits++;
@@ -892,7 +885,6 @@ function backpropagate(node: MCTSNode, winner: CellValue): void {
     current = current.parent;
   }
 }
-
 
 // Main MCTS function
 export function mcts(
@@ -3149,4 +3141,114 @@ export class UltimateConnect4AI {
       this.learningRateScheduler.reset();
     }
   }
+}
+
+// Export functions needed for testing
+export function rand64(): bigint {
+  const a = BigInt(Math.floor(Math.random() * 0xffffffff));
+  const b = BigInt(Math.floor(Math.random() * 0xffffffff));
+  return (a << 32n) | b;
+}
+
+// Add missing utility functions for testing
+export function softmax(values: number[]): number[] {
+  const maxVal = Math.max(...values);
+  const expValues = values.map(v => Math.exp(v - maxVal));
+  const sumExp = expValues.reduce((sum, exp) => sum + exp, 0);
+  return expValues.map(exp => exp / sumExp);
+}
+
+export function chooseWeighted(items: number[], weights: number[]): number {
+  const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+  let random = Math.random() * totalWeight;
+
+  for (let i = 0; i < items.length; i++) {
+    random -= weights[i];
+    if (random <= 0) {
+      return items[i];
+    }
+  }
+
+  return items[items.length - 1];
+}
+
+export function blockVerticalThreeIfAny(
+  board: CellValue[][],
+  aiDisc: CellValue
+): number | null {
+  const oppDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
+  const rows = board.length;
+  const cols = board[0].length;
+
+  // Check for vertical three-in-a-row threats
+  for (let c = 0; c < cols; c++) {
+    for (let r = 0; r <= rows - 4; r++) {
+      let oppCount = 0;
+      let emptyCount = 0;
+      let emptyRow = -1;
+
+      // Check 4-cell window vertically
+      for (let i = 0; i < 4; i++) {
+        if (board[r + i][c] === oppDisc) {
+          oppCount++;
+        } else if (board[r + i][c] === 'Empty') {
+          emptyCount++;
+          emptyRow = r + i;
+        }
+      }
+
+      // If opponent has 3 in vertical line with 1 empty, block it
+      if (oppCount === 3 && emptyCount === 1) {
+        // Check if we can actually drop in this column (empty row should be droppable)
+        const dropRow = getDropRow(board, c);
+        if (dropRow !== null && dropRow === emptyRow) {
+          return c;
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+export function blockFloatingOpenThree(
+  board: CellValue[][],
+  aiDisc: CellValue
+): number | null {
+  const oppDisc = aiDisc === 'Red' ? 'Yellow' : 'Red';
+  const rows = board.length;
+  const cols = board[0].length;
+
+  let bestBlock = null;
+  let bestDepth = -1;
+
+  // Check horizontal floating threats
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c <= cols - 4; c++) {
+      const window = board[r].slice(c, c + 4);
+      const oppCount = window.filter(cell => cell === oppDisc).length;
+      const emptyCount = window.filter(cell => cell === 'Empty').length;
+
+      if (oppCount === 3 && emptyCount === 1) {
+        // Find the empty position
+        for (let i = 0; i < 4; i++) {
+          if (window[i] === 'Empty') {
+            const blockCol = c + i;
+            const dropRow = getDropRow(board, blockCol);
+
+            // Check if this is a floating threat (empty cell is supported)
+            if (dropRow !== null && dropRow < r) {
+              // This is deeper than what we found before
+              if (r > bestDepth) {
+                bestDepth = r;
+                bestBlock = blockCol;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return bestBlock;
 }
