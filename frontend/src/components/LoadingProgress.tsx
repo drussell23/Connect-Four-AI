@@ -185,8 +185,8 @@ const LoadingProgress: React.FC<LoadingProgressProps> = ({ isVisible, onComplete
                                     )}
                                 </div>
                                 <span className={`${step.status === 'complete' ? 'text-green-300' :
-                                        step.status === 'loading' ? 'text-blue-300' :
-                                            'text-gray-400'
+                                    step.status === 'loading' ? 'text-blue-300' :
+                                        'text-gray-400'
                                     }`}>
                                     {step.label}
                                 </span>

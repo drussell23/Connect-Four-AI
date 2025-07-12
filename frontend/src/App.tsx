@@ -353,6 +353,47 @@ const App: React.FC = () => {
     }
   };
 
+  // Handler for when user clicks "Connection ready - click to start"
+  const handleStartGame = () => {
+    if (!socket) {
+      // If no socket, fall back to full initialization
+      handlePlayAgain();
+      return;
+    }
+
+    // Socket exists, just try to create the game
+    setStatus('Creating game...');
+    socket.emit(
+      'createGame',
+      { playerId: 'Red', difficulty: selectedDifficulty },
+      (res: {
+        success: boolean;
+        error?: string;
+        gameId?: string;
+        nextPlayer?: CellValue;
+      }) => {
+        if (!res.success) {
+          console.error('createGame failed:', res.error);
+          setStatus(res.error || 'Failed to create game');
+          return;
+        }
+        if (res.gameId && res.nextPlayer) {
+          setGameId(res.gameId);
+          setCurrentPlayer(res.nextPlayer);
+          setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
+          setWinningLine([]);
+          setHistory([]);
+          setStatus(
+            res.nextPlayer === 'Red'
+              ? 'Your turn (Red)'
+              : `${currentAI.name} AI is thinking…`
+          );
+          console.log('✅ Game ready:', res.gameId, res.nextPlayer);
+        }
+      }
+    );
+  };
+
   // Effect: establish connection & create game
   useEffect(() => {
     if (!started) return;
@@ -663,9 +704,18 @@ const App: React.FC = () => {
         animate={{ scale: status.includes('thinking') ? [1, 1.05, 1] : 1 }}
         transition={{ duration: 1, repeat: status.includes('thinking') ? Infinity : 0 }}
       >
-        <div className="text-xl font-semibold text-white bg-black bg-opacity-30 px-6 py-2 rounded-full">
-          {status}
-        </div>
+        {status === 'Connection ready - click to start' ? (
+          <button
+            onClick={handleStartGame}
+            className="text-xl font-semibold text-white bg-green-600 hover:bg-green-700 px-6 py-2 rounded-full transition-all duration-200 hover:scale-105 cursor-pointer"
+          >
+            {status}
+          </button>
+        ) : (
+          <div className="text-xl font-semibold text-white bg-black bg-opacity-30 px-6 py-2 rounded-full">
+            {status}
+          </div>
+        )}
       </motion.div>
 
       {/* Game Board */}
