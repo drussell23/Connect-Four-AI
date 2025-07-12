@@ -534,5 +534,9 @@ async def get_coordination_stats():
     }
 
 if __name__ == "__main__":
+    import os
     import uvicorn
-    uvicorn.run("ai_coordination_hub:app", host="0.0.0.0", port=8002, reload=False) 
+    # Use environment variable for host binding, defaulting to localhost for security
+    host = os.environ.get("AI_COORDINATION_HOST", "127.0.0.1")
+    port = int(os.environ.get("AI_COORDINATION_PORT", "8002"))
+    uvicorn.run("ai_coordination_hub:app", host=host, port=port, reload=False) 
