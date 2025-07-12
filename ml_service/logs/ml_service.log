@@ -2642,3 +2642,15 @@ FileNotFoundError: [Errno 2] No such file or directory: '/Users/derekjrussell/Do
 2025-07-10 20:24:35,181 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net.onnx'}
 2025-07-10 20:24:35,181 INFO: Using device: cpu
 2025-07-10 20:24:35,326 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt
+2025-07-11 21:22:10,460 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net.onnx'}
+2025-07-11 21:22:10,461 INFO: Using device: cpu
+2025-07-11 21:22:10,491 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt
+2025-07-11 21:22:34,855 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net.onnx'}
+2025-07-11 21:22:34,856 INFO: Using device: cpu
+2025-07-11 21:22:34,892 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt
+2025-07-11 21:25:41,321 INFO: Model paths: {'model_dir': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models', 'ckpt': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt', 'ts_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net_ts.pt', 'onnx_model': '/Users/derekjrussell/Documents/repos/ConnectFourGame/models/policy_net.onnx'}
+2025-07-11 21:25:41,323 INFO: Using device: cpu
+2025-07-11 21:25:41,349 INFO: Loaded model checkpoint from /Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt
+2025-07-11 21:27:54,973 INFO: Incoming request: POST http://localhost:8000/predict
+2025-07-11 21:27:55,012 INFO: Predicted move: 3 with probs: [0.0034953923895955086, 0.026883170008659363, 0.17079992592334747, 0.46243542432785034, 0.27917516231536865, 0.04538682848215103, 0.011824238114058971]
+2025-07-11 21:27:55,012 INFO: Response status: 200
