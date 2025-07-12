@@ -30,6 +30,7 @@ export class GameGateway
   @WebSocketServer() private server!: Server;
   private readonly logger = new Logger(GameGateway.name);
   private readonly AI_THINK_DELAY_MS = 500;
+  private readonly AI_FIRST_MOVE_DELAY_MS = 200;
 
   private readonly mlClient = new MLInferenceClient({
     baseUrl: 'http://localhost:8000',
@@ -73,6 +74,15 @@ export class GameGateway
       const gameId = await this.gameService.createGame(playerId, client.id, firstPlayer);
       client.join(gameId);
       this.logger.log(`Game ${gameId} created by ${playerId}, starting player: ${firstPlayer}, difficulty: ${difficulty}`);
+
+      // If AI is starting, trigger the first AI move immediately
+      if (firstPlayer === 'Yellow') {
+        this.logger.log(`[${gameId}] AI is starting - triggering first move`);
+        // Use a short delay to ensure the frontend has processed the game creation
+        setTimeout(async () => {
+          await this.triggerAIMove(gameId, playerId);
+        }, 200);
+      }
 
       // Return the callback response that the frontend expects
       return {
@@ -217,6 +227,71 @@ export class GameGateway
     } catch (error: any) {
       this.logger.error(`leaveGame error: ${error.message}`);
       client.emit('error', { event: 'leaveGame', message: error.message });
+    }
+  }
+
+  /**
+   * Trigger an AI move for the given game (optimized for first move)
+   */
+  private async triggerAIMove(gameId: string, playerId: string): Promise<void> {
+    try {
+      this.logger.log(`[${gameId}] Triggering AI first move`);
+
+      // Emit AI thinking status
+      this.server.to(gameId).emit('aiThinking');
+
+      // Shorter delay for first move since board is empty
+      await new Promise(r => setTimeout(r, this.AI_FIRST_MOVE_DELAY_MS));
+
+      // Get the current game state
+      const game = this.gameService.getGame(gameId);
+      if (!game) {
+        this.logger.error(`[${gameId}] Game not found for AI move`);
+        return;
+      }
+
+      // Generate AI move
+      this.logger.log(`[${gameId}] Computing AI move via GameAIService`);
+      const startLogic = Date.now();
+      let aiColumn = await this.gameAi.getNextMove(game.board, 'Yellow', playerId);
+      this.logger.log(`AI logic time: ${Date.now() - startLogic}ms`);
+
+      // Check for ML model override
+      if (process.env.USE_ML_MODEL === 'true') {
+        this.logger.log(`[${gameId}] ML override active`);
+        try {
+          const mlRes = await this.mlClient.predict({ board: game.board });
+          aiColumn = mlRes.move;
+          this.logger.log(`ML selected column ${aiColumn}`);
+        } catch (error) {
+          this.logger.warn(`[${gameId}] ML prediction failed, using AI column ${aiColumn}`);
+        }
+      }
+
+      // Execute the AI move
+      const aiRes = await this.gameService.dropDisc(gameId, 'Yellow', aiColumn);
+      if (!aiRes.success) {
+        this.logger.error(`[${gameId}] AI move failed: ${aiRes.error}`);
+        return;
+      }
+
+      // Emit the AI move to clients
+      this.server.to(gameId).emit('aiMove', {
+        board: aiRes.board,
+        lastMove: { column: aiColumn, playerId: 'Yellow' as CellValue },
+        winner: aiRes.winner,
+        draw: aiRes.draw,
+        nextPlayer: aiRes.nextPlayer,
+      });
+
+      this.logger.log(`[${gameId}] AI played column ${aiColumn}`);
+
+    } catch (error: any) {
+      this.logger.error(`[${gameId}] Error in AI move: ${error.message}`);
+      this.server.to(gameId).emit('error', {
+        event: 'aiMove',
+        message: 'AI move failed'
+      });
     }
   }
 }
