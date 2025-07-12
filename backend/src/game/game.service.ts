@@ -4,10 +4,19 @@ import { getBestAIMove } from '../ai/connect4AI';
 import type { CellValue } from '../ai/connect4AI';
 import { getAIMoveViaAPI } from '../services/ml_inference';
 
+export interface GameMove {
+  playerId: string;
+  column: number;
+  row: number;
+  timestamp: number;
+}
+
 export interface GameState {
   board: CellValue[][];
   currentPlayer: CellValue;
   players: string[];
+  moves: GameMove[];
+  startTime: number;
 }
 
 @Injectable()
@@ -23,18 +32,28 @@ export class GameService {
     this.server = server;
   }
 
-  async createGame(playerId: string, _clientId: string): Promise<string> {
+  async createGame(playerId: string, _clientId: string, startingPlayer?: CellValue): Promise<string> {
     const gameId = this.generateGameId();
     const emptyBoard = Array.from(
       { length: GameService.ROWS },
       () => Array(GameService.COLS).fill('Empty' as CellValue)
     );
+
+    // Use the provided starting player or default to the player who created the game
+    const firstPlayer = startingPlayer || (playerId as CellValue);
+
     this.games.set(gameId, {
       board: emptyBoard,
-      currentPlayer: playerId as CellValue,
+      currentPlayer: firstPlayer,
       players: [playerId as CellValue, 'Yellow' as CellValue],
+      moves: [],
+      startTime: Date.now(),
     });
     return gameId;
+  }
+
+  getGame(gameId: string): GameState | undefined {
+    return this.games.get(gameId);
   }
 
   async joinGame(
@@ -79,6 +98,14 @@ export class GameService {
       }
     }
     if (placedRow === -1) return { success: false, error: 'Column is full.' };
+
+    // Record the move
+    game.moves.push({
+      playerId,
+      column,
+      row: placedRow,
+      timestamp: Date.now(),
+    });
 
     // Check for win / draw
     const color = game.board[placedRow][column];
@@ -229,5 +256,36 @@ export class GameService {
       if (count >= 4) return true;
     }
     return false;
+  }
+
+  // Helper methods for AI profile tracking
+  getPlayerMoves(gameId: string, playerId: string): number[] {
+    const game = this.games.get(gameId);
+    if (!game) return [];
+
+    return game.moves
+      .filter(move => move.playerId === playerId)
+      .map(move => move.column);
+  }
+
+  getGameLength(gameId: string): number {
+    const game = this.games.get(gameId);
+    if (!game) return 0;
+
+    return Date.now() - game.startTime;
+  }
+
+  getTotalMoves(gameId: string): number {
+    const game = this.games.get(gameId);
+    if (!game) return 0;
+
+    return game.moves.length;
+  }
+
+  getGameMoves(gameId: string): GameMove[] {
+    const game = this.games.get(gameId);
+    if (!game) return [];
+
+    return [...game.moves]; // Return a copy
   }
 }

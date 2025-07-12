@@ -1,0 +1,523 @@
+.victory-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+}
+
+.victory-modal-container {
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    border-radius: 24px;
+    padding: 40px;
+    position: relative;
+    overflow-y: auto;
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    border: 3px solid #3b82f6;
+    box-shadow: 0 0 50px rgba(59, 130, 246, 0.4);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.victory-modal-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.victory-modal-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.victory-modal-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.victory-modal-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.victory-modal-container::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    border-radius: 24px;
+    z-index: -1;
+    animation: borderShine 3s linear infinite;
+}
+
+@keyframes borderShine {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.victory-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.victory-particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ffd700;
+    box-shadow: 0 0 10px currentColor;
+}
+
+.victory-modal-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+}
+
+/* Result Header */
+.result-header {
+    margin-bottom: 30px;
+}
+
+.result-emoji {
+    font-size: 4rem;
+    margin-bottom: 15px;
+    display: block;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+}
+
+.result-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    margin-bottom: 10px;
+    background: linear-gradient(45deg, #ffffff, #f0f0f0);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+    animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+    0% {
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    }
+
+    100% {
+        text-shadow: 0 0 40px rgba(255, 255, 255, 0.8);
+    }
+}
+
+.result-subtitle {
+    font-size: 1.2rem;
+    color: #cbd5e1;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+/* Level Information */
+.level-info-section {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 25px;
+    margin: 25px 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.current-level-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.level-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #3b82f6;
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.6);
+    animation: levelBadgePulse 2s ease-in-out infinite;
+}
+
+@keyframes levelBadgePulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 25px rgba(59, 130, 246, 0.6);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 35px rgba(59, 130, 246, 0.8);
+    }
+}
+
+.level-number {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: white;
+    line-height: 1;
+}
+
+.level-label {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.threat-level-info {
+    text-align: left;
+}
+
+.threat-level-name {
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    text-shadow: 0 0 15px currentColor;
+}
+
+.ai-personality {
+    font-size: 1rem;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.unlock-text {
+    font-size: 0.9rem;
+    color: #10b981;
+    font-weight: 700;
+    letter-spacing: 1px;
+    animation: unlockPulse 1s ease-in-out infinite;
+}
+
+@keyframes unlockPulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Level Progression */
+.level-progression {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.progression-arrow {
+    font-size: 2rem;
+    color: #10b981;
+    font-weight: 900;
+    animation: arrowBounce 1s ease-in-out infinite;
+}
+
+@keyframes arrowBounce {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    50% {
+        transform: translateX(10px);
+    }
+}
+
+.next-level-display {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Stats Display */
+.stats-display {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 16px;
+    padding: 20px;
+    margin: 25px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stats-display h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 15px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 900;
+    margin-bottom: 5px;
+    text-shadow: 0 0 10px currentColor;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.action-button {
+    padding: 15px 25px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+
+.action-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.action-button:hover::before {
+    left: 100%;
+}
+
+.next-level-button {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #10b981;
+    animation: nextLevelGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes nextLevelGlow {
+    0% {
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+    }
+
+    100% {
+        box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+    }
+}
+
+.replay-button {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: #f59e0b;
+}
+
+.quit-button {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    border-color: #6b7280;
+}
+
+.button-text {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 3px;
+}
+
+.button-subtitle {
+    display: block;
+    font-size: 0.8rem;
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+/* Motivational Message */
+.motivational-message {
+    margin-top: 25px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border-left: 4px solid #3b82f6;
+}
+
+.motivational-message p {
+    font-size: 1rem;
+    color: #cbd5e1;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.motivational-message p:last-child {
+    margin-bottom: 0;
+}
+
+.bonus-message {
+    color: #fbbf24 !important;
+    font-weight: 600;
+    animation: bonusGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes bonusGlow {
+    0% {
+        text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+    }
+
+    100% {
+        text-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+    }
+}
+
+.nightmare-message {
+    color: #ef4444 !important;
+    font-weight: 700;
+    animation: nightmareFlicker 1.5s ease-in-out infinite;
+}
+
+@keyframes nightmareFlicker {
+
+    0%,
+    100% {
+        opacity: 1;
+        text-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+    }
+
+    50% {
+        opacity: 0.7;
+        text-shadow: 0 0 25px rgba(239, 68, 68, 1);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .victory-modal-container {
+        padding: 25px;
+        margin: 10px;
+    }
+
+    .result-title {
+        font-size: 2rem;
+    }
+
+    .result-emoji {
+        font-size: 3rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .current-level-display,
+    .level-progression {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .progression-arrow {
+        transform: rotate(90deg);
+        font-size: 1.5rem;
+    }
+
+    .level-badge {
+        width: 60px;
+        height: 60px;
+    }
+
+    .level-number {
+        font-size: 1.4rem;
+    }
+
+    .threat-level-name {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .victory-modal-container {
+        padding: 20px;
+    }
+
+    .result-title {
+        font-size: 1.5rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-button {
+        padding: 12px 20px;
+    }
+
+    .button-text {
+        font-size: 1rem;
+    }
+}

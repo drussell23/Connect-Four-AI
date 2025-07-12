@@ -23,40 +23,63 @@ class WSOnlyIoAdapter extends IoAdapter {
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
-  console.log('🚀 bootstrap() start');
+  try {
+    logger.log('🚀 Initializing application...');
 
-  // Initialize NestJS application
-  const app = await NestFactory.create(AppModule, {
-    logger: ['log', 'warn', 'error'],
-  });
+    const app = await NestFactory.create(AppModule, {
+      logger: ['log', 'warn', 'error'],
+    });
 
-  console.log('✅ NestFactory.create complete');
+    logger.log('✅ Application initialized.');
 
-  // Enable CORS for all origins
-  app.enableCors({ origin: '*', methods: ['GET', 'POST'], credentials: true });
+    // --- Middleware and Configuration ---
+    app.enableCors({ origin: '*', methods: ['GET', 'POST'], credentials: true });
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
+    );
+    app.useWebSocketAdapter(new WSOnlyIoAdapter(app));
 
-  // Global validation pipe
-  app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
-  );
+    // Set global prefix for all API routes
+    app.setGlobalPrefix('api');
 
-  // Use custom WebSocket adapter
-  app.useWebSocketAdapter(new WSOnlyIoAdapter(app));
+    // --- Static File Serving ---
+    const httpAdapter = app.getHttpAdapter();
+    const expressApp = httpAdapter.getInstance() as express.Application;
+    const distPath = join(__dirname, '..', '..', 'frontend', 'build');
+    expressApp.use(express.static(distPath));
+    expressApp.use((req, res, next) => {
+      if (req.url.startsWith('/socket.io') || req.url.startsWith('/api')) {
+        return next();
+      }
+      res.sendFile(join(distPath, 'index.html'));
+    });
 
-  // Serve React build output
-  const httpAdapter = app.getHttpAdapter();
-  const expressApp = httpAdapter.getInstance() as express.Application;
-  const distPath = join(__dirname, '..', '..', 'frontend', 'build');
-  expressApp.use(express.static(distPath));
-  expressApp.use((req, res, next) => {
-    if (req.url.startsWith('/socket.io')) {
-      return next();
-    }
-    res.sendFile(join(distPath, 'index.html'));
-  });
+    // --- Robust Port Handling & Server Start ---
+    const startServer = async () => {
+      let port = parseInt(process.env.PORT, 10) || 3000;
+      const maxRetries = 10;
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          await app.listen(port);
+          logger.log(`🚀 Server is running on http://localhost:${port}`);
+          return; // Success
+        } catch (error) {
+          if (error.code === 'EADDRINUSE') {
+            logger.warn(`Port ${port} is in use. Trying next port...`);
+            port++;
+          } else {
+            throw error; // Re-throw other errors
+          }
+        }
+      }
+      throw new Error(`Could not find an open port after ${maxRetries} retries.`);
+    };
 
-  const port = parseInt(process.env.PORT, 10) || 3000;
-  await app.listen(port);
-  logger.log(`🚀 Server is running on http://localhost:${port}`);
+    await startServer();
+
+  } catch (error) {
+    logger.error('❌ Failed to bootstrap the application.', error.stack);
+    process.exit(1);
+  }
 }
 bootstrap();

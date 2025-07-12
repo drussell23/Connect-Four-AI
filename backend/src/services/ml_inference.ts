@@ -1,212 +1,351 @@
-import { EventEmitter } from 'events';
-
-// Set up custom logging via EventEmitter
-export const logger = new EventEmitter();
-logger.on('info', (...args) => console.log('[AI API INFO]', ...args));
-logger.on('warn', (...args) => console.warn('[AI API WARN]', ...args));
-logger.on('error', (...args) => console.error('[AI API ERROR]', ...args));
-logger.on('debug', (...args) => console.debug('[AI API DEBUG]', ...args));
-
 /**
- * Two-channel Connect4 board mask: shape [2][6][7]
+ * 🧠 ML INFERENCE SERVICE
+ * =======================
+ * 
+ * Service to communicate with the enhanced Connect4 ML service.
+ * Provides intelligent move suggestions via HTTP API calls.
  */
-export type Board2CH = number[][][];
 
-/**
- * AI Prediction Service response shape
- */
-export interface AIPrediction {
+import { Logger } from '@nestjs/common';
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
+
+// Configure ML service connection
+const ML_SERVICE_BASE_URL = process.env.ML_SERVICE_URL || 'http://localhost:8001';
+const ML_SERVICE_TIMEOUT = parseInt(process.env.ML_SERVICE_TIMEOUT || '5000');
+const ML_API_KEY = process.env.ML_API_KEY; // Optional API key
+
+export interface MLPredictionRequest {
+    board: number[][][] | string[][];
+    model_type?: 'lightweight' | 'standard' | 'heavyweight' | 'legacy';
+    include_uncertainty?: boolean;
+    game_id?: string;
+}
+
+export interface MLPredictionResponse {
   move: number;
   probs: number[];
+    confidence?: number;
+    uncertainty?: number[];
+    value_estimate?: number;
+    model_type: string;
+    model_version: string;
+    inference_time_ms: number;
+    timestamp: number;
+    request_id?: string;
+    cache_hit: boolean;
+    alternatives?: Array<{
+        move: number;
+        probability: number;
+    }>;
+}
+
+export interface MLServiceError {
+    error: {
+        code: number;
+        message: string;
+        timestamp: number;
+        path: string;
+    };
 }
 
 /**
- * Options for requests to the ML service
+ * ML Inference Client for Connect4 AI predictions
  */
-export interface FetchOptions {
-  baseUrl?: string;        // ML service base URL
-  timeoutMs?: number;      // request timeout in ms
-  maxRetries?: number;     // retry attempts on failure
-  retryDelayMs?: number;   // initial retry delay
-}
+class MLInferenceClient {
+    private readonly logger = new Logger(MLInferenceClient.name);
+    private readonly httpClient: AxiosInstance;
+    private isHealthy = false;
+    private lastHealthCheck = 0;
+    private readonly HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
 
-/**
- * Validate a two-channel 2×6×7 board mask
- */
-function validateBoard2CH(board: unknown): asserts board is Board2CH {
-  if (!Array.isArray(board) || board.length !== 2) {
-    throw new TypeError('Board must be an array of length 2 (channels)');
-  }
-  board.forEach((plane, pi) => {
-    if (!Array.isArray(plane) || plane.length !== 6) {
-      throw new TypeError(`Channel ${pi} must have 6 rows`);
-    }
-    plane.forEach((row, ri) => {
-      if (!Array.isArray(row) || row.length !== 7) {
-        throw new TypeError(`Row ${ri} in channel ${pi} must have 7 columns`);
-      }
-      row.forEach(cell => {
-        if (typeof cell !== 'number' || ![0, 1].includes(cell)) {
-          throw new TypeError(`Cell values must be 0 or 1, got ${cell}`);
-        }
-      });
-    });
-  });
-}
+    constructor() {
+        this.httpClient = axios.create({
+            baseURL: ML_SERVICE_BASE_URL,
+            timeout: ML_SERVICE_TIMEOUT,
+            headers: {
+                'Content-Type': 'application/json',
+                ...(ML_API_KEY && { 'Authorization': `Bearer ${ML_API_KEY}` })
+            }
+        });
 
-function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
- * Fetch with timeout support
- */
-async function fetchWithTimeout(
-  url: string,
-  options: RequestInit,
-  timeoutMs: number
-): Promise<Response> {
-  const controller = new AbortController();      // ← global
-  const id = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    logger.emit('debug', `fetchWithTimeout url=${url}`, options);
-    return await fetch(url, { ...options, signal: controller.signal });
-  } finally {
-    clearTimeout(id);
-  }
-}
-
-
-/**
- * Client for ML Prediction Service
- */
-export class MLInferenceClient {
-  private baseUrl: string;
-  private timeoutMs: number;
-  private maxRetries: number;
-  private retryDelayMs: number;
-
-  constructor(options: FetchOptions = {}) {
-    this.baseUrl = options.baseUrl ?? process.env.ML_SERVICE_URL ?? 'http://localhost:8000';
-    this.timeoutMs = options.timeoutMs ?? 5000;
-    this.maxRetries = options.maxRetries ?? 3;
-    this.retryDelayMs = options.retryDelayMs ?? 200;
-    console.group(`[AI API CLIENT] Initialized`);
-    logger.emit('info', 'Configuration:', {
-      baseUrl: this.baseUrl,
-      timeoutMs: this.timeoutMs,
-      maxRetries: this.maxRetries,
-      retryDelayMs: this.retryDelayMs
-    });
-    console.groupEnd();
-  }
-
-  /**
-   * Request AI move via POST /predict with retries
-   */
-  async getAIMove(board2ch: Board2CH): Promise<AIPrediction> {
-    console.group(`[AI API] getAIMove start`);
-    logger.emit('info', 'Input board2CH:', board2ch);
-
-    validateBoard2CH(board2ch);
-    logger.emit('debug', 'Board validation passed');
-
-    const url = `${this.baseUrl}/predict`;
-    const payload = JSON.stringify({ board: board2ch });
-    logger.emit('debug', 'Serialized payload:', payload);
-
-    let lastErr: unknown;
-
-    for (let attempt = 1; attempt <= this.maxRetries + 1; attempt++) {
-      const startTime = Date.now();
-      console.groupCollapsed(`[AI API] Attempt ${attempt} POST ${url}`);
-      logger.emit('info', `Starting attempt ${attempt}`);
-
-      try {
-        const res = await fetchWithTimeout(
-          url,
-          { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload },
-          this.timeoutMs
+        // Response interceptor for error handling
+        this.httpClient.interceptors.response.use(
+            (response) => response,
+            (error) => {
+                this.logger.error(
+                    `ML service error: ${error.message}`,
+                    error.response?.data || error
+                );
+                return Promise.reject(error);
+            }
         );
-        logger.emit('debug', `HTTP status: ${res.status}`);
 
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`HTTP ${res.status}: ${text}`);
+        // Initial health check
+        this.checkHealth();
+    }
+
+    /**
+     * Check if ML service is healthy
+     */
+    async checkHealth(): Promise<boolean> {
+        const now = Date.now();
+
+        // Skip if recent check
+        if (now - this.lastHealthCheck < this.HEALTH_CHECK_INTERVAL && this.isHealthy) {
+            return this.isHealthy;
         }
 
-        const data = (await res.json()) as AIPrediction;
-        logger.emit('debug', 'Response JSON:', data);
+        try {
+            const response = await this.httpClient.get('/health', { timeout: 3000 });
+            this.isHealthy = response.status === 200 && response.data.status === 'healthy';
+            this.lastHealthCheck = now;
 
-        if (typeof data.move !== 'number' || !Array.isArray(data.probs)) {
-          throw new Error(`Invalid response structure: ${JSON.stringify(data)}`);
+            if (this.isHealthy) {
+                this.logger.debug(`ML service healthy: ${response.data.device}, models: ${response.data.models_loaded?.join(', ')}`);
+            }
+        } catch (error: any) {
+            this.isHealthy = false;
+            this.logger.warn(`ML service health check failed: ${error.message}`);
         }
 
-        const elapsed = Date.now() - startTime;
-        logger.emit('info', `Success in ${elapsed}ms → move=${data.move}`, `probs=[${data.probs.join(', ')}]`);
-        console.groupEnd();
-        console.groupEnd();
-        return data;
-      } catch (err: any) {
-        const elapsed = Date.now() - startTime;
-        lastErr = err;
-        if (err.name === 'AbortError') {
-          logger.emit('warn', `Request aborted after ${elapsed}ms`);
+        return this.isHealthy;
+    }
+
+    /**
+     * Get AI move prediction from ML service
+     */
+    async predict(request: MLPredictionRequest): Promise<MLPredictionResponse> {
+        try {
+            // Health check
+            await this.checkHealth();
+            if (!this.isHealthy) {
+                throw new Error('ML service is not healthy');
+            }
+
+            // Make prediction request
+            const startTime = Date.now();
+            const response: AxiosResponse<MLPredictionResponse> = await this.httpClient.post('/predict', request);
+            const totalTime = Date.now() - startTime;
+
+            this.logger.debug(
+                `ML prediction: move=${response.data.move}, ` +
+                `confidence=${response.data.confidence?.toFixed(3)}, ` +
+                `inference=${response.data.inference_time_ms.toFixed(1)}ms, ` +
+                `total=${totalTime}ms, ` +
+                `cache_hit=${response.data.cache_hit}`
+            );
+
+            return response.data;
+        } catch (error: any) {
+            // Enhanced error handling
+            if (error.response) {
+                // ML service returned an error response
+                const mlError: MLServiceError = error.response.data;
+                this.logger.error(
+                    `ML service error ${mlError.error.code}: ${mlError.error.message}`
+                );
+                throw new Error(`ML service error: ${mlError.error.message}`);
+            } else if (error.request) {
+                // Network error
+                this.logger.error('ML service unreachable', error.message);
+                throw new Error('ML service unreachable');
+            } else {
+                // Other error
+                this.logger.error('ML prediction failed', error.message);
+                throw new Error(`ML prediction failed: ${error.message}`);
+            }
+        }
+    }
+
+    /**
+     * Get batch predictions for multiple boards
+     */
+    async batchPredict(requests: MLPredictionRequest[]): Promise<MLPredictionResponse[]> {
+        try {
+            await this.checkHealth();
+            if (!this.isHealthy) {
+                throw new Error('ML service is not healthy');
+            }
+
+            const batchRequest = {
+                boards: requests,
+                batch_id: `batch_${Date.now()}`
+            };
+
+            const response = await this.httpClient.post('/predict/batch', batchRequest);
+
+            this.logger.debug(
+                `Batch prediction: ${response.data.successful_count}/${requests.length} successful, ` +
+                `total_time=${response.data.total_time_ms.toFixed(1)}ms`
+            );
+
+            return response.data.results.filter((result: any) => !result.error);
+        } catch (error: any) {
+            this.logger.error('Batch prediction failed', error.message);
+            throw new Error(`Batch prediction failed: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get available models information
+     */
+    async getModels(): Promise<any> {
+        try {
+            const response = await this.httpClient.get('/models');
+            return response.data;
+        } catch (error: any) {
+            this.logger.error('Failed to get models info', error.message);
+            throw new Error(`Failed to get models: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get service statistics
+     */
+    async getStats(): Promise<any> {
+        try {
+            const response = await this.httpClient.get('/stats');
+            return response.data;
+        } catch (error: any) {
+            this.logger.error('Failed to get stats', error.message);
+            throw new Error(`Failed to get stats: ${error.message}`);
+        }
+    }
+}
+
+// Singleton instance
+const mlClient = new MLInferenceClient();
+
+/**
+ * Convert board layers to string format for better API compatibility
+ */
+function convertLayersToBoard(layers: number[][][]): string[][] {
+    const [redLayer, yellowLayer] = layers;
+    const board: string[][] = [];
+
+    for (let row = 0; row < 6; row++) {
+        board[row] = [];
+        for (let col = 0; col < 7; col++) {
+            if (redLayer[row][col] === 1) {
+                board[row][col] = 'Red';
+            } else if (yellowLayer[row][col] === 1) {
+                board[row][col] = 'Yellow';
         } else {
-          logger.emit('warn', `Error on attempt ${attempt}:`, err.message);
+                board[row][col] = 'Empty';
+            }
         }
-
-        if (attempt <= this.maxRetries) {
-          const delay = this.retryDelayMs * 2 ** (attempt - 1);
-          logger.emit('info', `Retrying in ${delay}ms`);
-          await sleep(delay);
-        }
-        console.groupEnd();
-      }
     }
 
-    logger.emit('error', `All ${this.maxRetries + 1} attempts failed`, lastErr);
-    console.groupEnd();
-    throw lastErr;
-  }
-
-  /**
-   * HEAD /predict health check
-   */
-  async healthCheck(): Promise<boolean> {
-    console.group(`[AI API] healthCheck`);
-    const url = `${this.baseUrl}/predict`;
-
-    try {
-      logger.emit('info', `Health check (HEAD) ${url}`);
-      const res = await fetchWithTimeout(url, { method: 'HEAD' }, this.timeoutMs);
-      logger.emit('info', `Health check status: ${res.status}`);
-      console.groupEnd();
-      return res.ok;
-    } catch (err) {
-      logger.emit('error', 'Health check failed:', err);
-      console.groupEnd();
-      return false;
-    }
-  }
+    return board;
 }
 
 /**
- * Convenience function for game.service.ts
- * Wraps MLInferenceClient.getAIMove and returns only the move index.
+ * Legacy function for backward compatibility
+ * 
+ * @param layers - 2×6×7 tensor format [redLayer, yellowLayer]
+ * @param modelType - Model type to use (optional)
+ * @returns Recommended column (0-6)
  */
 export async function getAIMoveViaAPI(
-  board2ch: Board2CH,
-  options?: FetchOptions
+    layers: number[][][],
+    modelType: 'lightweight' | 'standard' | 'heavyweight' | 'legacy' = 'standard'
 ): Promise<number> {
-  const client = new MLInferenceClient(options);
-  const { move } = await client.getAIMove(board2ch);
-  return move;
+    try {
+        // Convert layers to board format
+        const board = convertLayersToBoard(layers);
+
+        // Make prediction request
+        const request: MLPredictionRequest = {
+            board,
+            model_type: modelType,
+            include_uncertainty: false, // Keep it simple for legacy compatibility
+            game_id: `legacy_${Date.now()}`
+        };
+
+        const response = await mlClient.predict(request);
+
+        // Validate column is in valid range
+        if (response.move < 0 || response.move > 6) {
+            throw new Error(`Invalid move column: ${response.move}`);
+        }
+
+        return response.move;
+    } catch (error: any) {
+        throw new Error(`AI move prediction failed: ${error.message}`);
+    }
 }
 
-// Usage example:
-// import { getAIMoveViaAPI, MLInferenceClient } from './ml_inference';
-// const move = await getAIMoveViaAPI(board2ch);
-// const client = new MLInferenceClient();
-// const prediction = await client.getAIMove(board2ch);
-// const healthy = await client.healthCheck();
+/**
+ * Enhanced function for new integrations
+ * 
+ * @param board - Board in string format
+ * @param options - Prediction options
+ * @returns Full prediction response
+ */
+export async function getEnhancedAIMove(
+    board: string[][],
+    options: {
+        modelType?: 'lightweight' | 'standard' | 'heavyweight' | 'legacy';
+        includeUncertainty?: boolean;
+        gameId?: string;
+    } = {}
+): Promise<MLPredictionResponse> {
+    const request: MLPredictionRequest = {
+        board,
+        model_type: options.modelType || 'standard',
+        include_uncertainty: options.includeUncertainty || false,
+        game_id: options.gameId
+    };
+
+    return await mlClient.predict(request);
+}
+
+/**
+ * Batch prediction for multiple board states
+ */
+export async function getBatchAIMoves(
+    boards: string[][][],
+    modelType: 'lightweight' | 'standard' | 'heavyweight' | 'legacy' = 'standard'
+): Promise<number[]> {
+    const requests: MLPredictionRequest[] = boards.map((board, index) => ({
+        board,
+        model_type: modelType,
+        include_uncertainty: false,
+        game_id: `batch_${Date.now()}_${index}`
+    }));
+
+    const responses = await mlClient.batchPredict(requests);
+    return responses.map(response => response.move);
+}
+
+/**
+ * Get ML service health status
+ */
+export async function getMLServiceHealth(): Promise<boolean> {
+    return await mlClient.checkHealth();
+}
+
+/**
+ * Get ML service information
+ */
+export async function getMLServiceInfo(): Promise<{
+    models: any;
+    stats: any;
+    health: boolean;
+}> {
+    const [models, stats, health] = await Promise.allSettled([
+        mlClient.getModels(),
+        mlClient.getStats(),
+        mlClient.checkHealth()
+    ]);
+
+    return {
+        models: models.status === 'fulfilled' ? models.value : null,
+        stats: stats.status === 'fulfilled' ? stats.value : null,
+        health: health.status === 'fulfilled' ? health.value : false
+    };
+}
+
+// Export the client for advanced usage
+export { mlClient };
+export default mlClient; 

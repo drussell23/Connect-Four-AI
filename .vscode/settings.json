@@ -62,7 +62,7 @@
   // === C/C++ IntelliSense via CMake Tools ===
   "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
   "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
-  "cmake.sourceDirectory": "/Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp/src/cpp",
+  "cmake.sourceDirectory": "/Users/derekjrussell/Documents/repos/ConnectFourGame/c_cpp",
   // === Tailwind & PostCSS validation ===
   "css.validate": false,
   "postcss.validate": true,

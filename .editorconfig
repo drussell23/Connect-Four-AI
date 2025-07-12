@@ -1,0 +1,303 @@
+# 🎮 CONNECT FOUR PROJECT - ENHANCED .EDITORCONFIG
+# ===================================================
+# EditorConfig helps maintain consistent coding styles
+# across different editors and IDEs for all team members
+#
+# See: https://editorconfig.org/
+
+# Top-most EditorConfig file
+root = true
+
+# -----------------------------------------------------------------------------
+# 🌐 DEFAULT SETTINGS (All files)
+# -----------------------------------------------------------------------------
+[*]
+# Character encoding
+charset = utf-8
+
+# End of line format (Unix-style)
+end_of_line = lf
+
+# Insert final newline at end of file
+insert_final_newline = true
+
+# Remove trailing whitespace
+trim_trailing_whitespace = true
+
+# Indentation
+indent_style = space
+indent_size = 2
+
+# Line length guide (soft limit)
+max_line_length = 100
+
+# -----------------------------------------------------------------------------
+# 📝 JAVASCRIPT & TYPESCRIPT
+# -----------------------------------------------------------------------------
+[*.{js,jsx,mjs,cjs}]
+indent_size = 2
+max_line_length = 100
+
+[*.{ts,tsx}]
+indent_size = 2
+max_line_length = 100
+
+# TypeScript config files
+[tsconfig*.json]
+indent_size = 2
+
+# -----------------------------------------------------------------------------
+# 🐍 PYTHON FILES
+# -----------------------------------------------------------------------------
+[*.py]
+indent_size = 4
+max_line_length = 88  # Black formatter default
+trim_trailing_whitespace = true
+
+# Python config files
+[*.{ini,cfg}]
+indent_size = 4
+
+[setup.py]
+indent_size = 4
+
+[requirements*.txt]
+indent_size = 4
+
+# Python project files
+[{pyproject.toml,setup.cfg,tox.ini}]
+indent_size = 4
+
+# Jupyter notebooks
+[*.ipynb]
+indent_size = 2
+insert_final_newline = false  # Jupyter adds metadata
+
+# -----------------------------------------------------------------------------
+# 🎨 WEB TECHNOLOGIES
+# -----------------------------------------------------------------------------
+[*.{html,htm}]
+indent_size = 2
+max_line_length = 120
+
+[*.{css,scss,sass,less}]
+indent_size = 2
+max_line_length = 100
+
+[*.{vue,svelte}]
+indent_size = 2
+
+# -----------------------------------------------------------------------------
+# 📄 CONFIGURATION & DATA FILES
+# -----------------------------------------------------------------------------
+[*.{json,jsonc,json5}]
+indent_size = 2
+
+[*.{yml,yaml}]
+indent_size = 2
+max_line_length = 120
+
+[*.{toml}]
+indent_size = 4
+
+[*.{xml,svg}]
+indent_size = 2
+
+# Package files
+[{package.json,package-lock.json}]
+indent_size = 2
+
+[{composer.json,composer.lock}]
+indent_size = 4
+
+# -----------------------------------------------------------------------------
+# 🐚 SHELL SCRIPTS
+# -----------------------------------------------------------------------------
+[*.{sh,bash,zsh,fish}]
+indent_size = 2
+max_line_length = 100
+
+[*.{bat,cmd,ps1}]
+indent_size = 4
+end_of_line = crlf  # Windows scripts need CRLF
+
+# -----------------------------------------------------------------------------
+# 📚 DOCUMENTATION & MARKUP
+# -----------------------------------------------------------------------------
+[*.{md,markdown,mdx}]
+indent_size = 2
+max_line_length = 80
+trim_trailing_whitespace = false  # Markdown uses trailing spaces for line breaks
+
+[*.{rst,txt}]
+indent_size = 4
+max_line_length = 80
+
+[*.{tex,latex}]
+indent_size = 2
+max_line_length = 80
+
+# -----------------------------------------------------------------------------
+# 🔧 PROJECT-SPECIFIC FILES
+# -----------------------------------------------------------------------------
+# Git files
+[.git*]
+indent_size = 2
+
+# Editor config
+[.editorconfig]
+indent_size = 2
+
+# Environment files
+[.env*]
+indent_size = 2
+insert_final_newline = true
+
+# Docker files
+[{Dockerfile,Dockerfile.*,*.dockerfile}]
+indent_size = 2
+
+[.dockerignore]
+indent_size = 2
+
+[docker-compose*.{yml,yaml}]
+indent_size = 2
+
+# -----------------------------------------------------------------------------
+# 📊 LINTING & FORMATTING CONFIG
+# -----------------------------------------------------------------------------
+# ESLint
+[.eslintrc*]
+indent_size = 2
+
+# Prettier
+[.prettier*]
+indent_size = 2
+
+# Stylelint
+[.stylelint*]
+indent_size = 2
+
+# Babel
+[babel.config.*]
+indent_size = 2
+
+[.babelrc*]
+indent_size = 2
+
+# Webpack
+[webpack*.js]
+indent_size = 2
+
+# Rollup
+[rollup*.js]
+indent_size = 2
+
+# Vite
+[vite*.{js,ts}]
+indent_size = 2
+
+# -----------------------------------------------------------------------------
+# 🧪 TESTING CONFIGURATION
+# -----------------------------------------------------------------------------
+# Jest
+[jest.config.*]
+indent_size = 2
+
+[.jestrc*]
+indent_size = 2
+
+# Cypress
+[cypress.config.*]
+indent_size = 2
+
+# Playwright
+[playwright.config.*]
+indent_size = 2
+
+# Testing files
+[*.{test,spec}.{js,ts,jsx,tsx,py}]
+indent_size = 2
+
+# -----------------------------------------------------------------------------
+# 🚀 CI/CD & DEPLOYMENT
+# -----------------------------------------------------------------------------
+# GitHub Actions
+[.github/**/*.{yml,yaml}]
+indent_size = 2
+
+# GitHub templates
+[.github/**/*.md]
+indent_size = 2
+max_line_length = 80
+
+# Vercel
+[vercel.json]
+indent_size = 2
+
+# Netlify
+[netlify.toml]
+indent_size = 2
+
+[_*]
+indent_size = 2
+
+# -----------------------------------------------------------------------------
+# 🧠 MACHINE LEARNING FILES
+# -----------------------------------------------------------------------------
+# Python ML files
+[{train,test,eval,predict,model,inference}*.py]
+indent_size = 4
+max_line_length = 88
+
+# ML config files
+[*.{hparams,config}]
+indent_size = 2
+
+# Conda environment files
+[{environment,conda-env}.{yml,yaml}]
+indent_size = 2
+
+# -----------------------------------------------------------------------------
+# 📱 MOBILE & NATIVE DEVELOPMENT
+# -----------------------------------------------------------------------------
+# React Native
+[*.{ios,android}.{js,ts}]
+indent_size = 2
+
+# Expo
+[{app,expo}.{json,config.*}]
+indent_size = 2
+
+# -----------------------------------------------------------------------------
+# 🎯 BINARY & SPECIAL FILES
+# -----------------------------------------------------------------------------
+# Binary files (no formatting)
+[*.{png,jpg,jpeg,gif,ico,svg,woff,woff2,ttf,otf,eot}]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+# Archives
+[*.{zip,tar,gz,bz2,xz,7z,rar}]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+# Model files
+[*.{pt,pth,h5,pkl,pickle,onnx}]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+# -----------------------------------------------------------------------------
+# 📝 LOGS & TEMPORARY FILES
+# -----------------------------------------------------------------------------
+[*.log]
+insert_final_newline = true
+trim_trailing_whitespace = false  # Keep log formatting
+
+[*.{tmp,temp}]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+# -----------------------------------------------------------------------------
+# 🎯 END OF ENHANCED .EDITORCONFIG
+# -----------------------------------------------------------------------------

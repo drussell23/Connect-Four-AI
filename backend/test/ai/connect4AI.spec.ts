@@ -175,26 +175,72 @@ describe('Search Algorithms', () => {
   });
 
   it('playout returns a CellValue', () => {
-    const result = playout(emptyBoard, 'Red', 'Yellow');
+    const node: MCTSNode = {
+      board: emptyBoard,
+      player: 'Red',
+      visits: 0,
+      wins: 0,
+      parent: null,
+      children: [],
+      move: null,
+      priorProb: 1.0
+    };
+    const result = playout(node, 'Red');
     expect(['Empty', 'Red', 'Yellow']).toContain(result);
   });
 
   it('select does not throw', () => {
-    const root: MCTSNode = { board: emptyBoard, player: 'Red', visits: 0, wins: 0, parent: null, children: [], move: null };
+    const root: MCTSNode = {
+      board: emptyBoard,
+      player: 'Red',
+      visits: 0,
+      wins: 0,
+      parent: null,
+      children: [],
+      move: null,
+      priorProb: 1.0
+    };
     expect(() => select(root)).not.toThrow();
   });
 
   it('expand populates children', () => {
-    const node: MCTSNode = { board: emptyBoard, player: 'Red', visits: 0, wins: 0, parent: null, children: [], move: null };
+    const node: MCTSNode = {
+      board: emptyBoard,
+      player: 'Red',
+      visits: 0,
+      wins: 0,
+      parent: null,
+      children: [],
+      move: null,
+      priorProb: 1.0
+    };
     expand(node);
     expect(node.children.length).toBeGreaterThan(0);
   });
 
   it('backpropagate updates visits and wins', () => {
-    const root: MCTSNode = { board: emptyBoard, player: 'Red', visits: 0, wins: 0, parent: null, children: [], move: null };
-    const child: MCTSNode = { board: emptyBoard, player: 'Yellow', visits: 0, wins: 0, parent: root, children: [], move: 0 };
+    const root: MCTSNode = {
+      board: emptyBoard,
+      player: 'Red',
+      visits: 0,
+      wins: 0,
+      parent: null,
+      children: [],
+      move: null,
+      priorProb: 1.0
+    };
+    const child: MCTSNode = {
+      board: emptyBoard,
+      player: 'Yellow',
+      visits: 0,
+      wins: 0,
+      parent: root,
+      children: [],
+      move: 0,
+      priorProb: 0.14
+    };
     root.children = [child];
-    backpropagate(child, 'Red', 'Red');
+    backpropagate(child, 'Red');
     expect(root.visits).toBe(1);
     expect(root.wins).toBe(1);
     expect(child.visits).toBe(1);

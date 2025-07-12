@@ -1,10 +1,10 @@
 // backend/src/app.module.ts
 import { Module } from '@nestjs/common';
-import { GameGateway } from './game/game.gateway';
-import { GameService } from './game/game.service';
-import { GameAIService } from './game/game-ai.service';
+import { GameModule } from './game/game.module';
+import { MlModule } from './ml/ml.module';
 
 @Module({
-  providers: [GameGateway, GameService, GameAIService],
+  imports: [GameModule, MlModule],
+  providers: [],
 })
-export class AppModule {}
+export class AppModule { }
