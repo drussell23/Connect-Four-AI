@@ -392,89 +392,168 @@ MLInferenceClient: Attempt 2 failed: request to http://localhost:c[[90m11:30:3
 [7m202[0m     benchmarkQuiescenceSearch,
 [7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
+[96msrc/ai/quiescenceDemo.ts[0m:[93m203[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported varic[[90m11:41:13 AM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
+
+[7m12[0m export const TACTICAL_SCENARIOS = {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m58[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'compareEvaluationMethods'.
+
+[7m58[0m export function compareEvaluationMethods(
+[7m  [96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
+
+[7m12[0m export const TACTICAL_SCENARIOS = {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m58[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'compareEvaluationMethods'.
+
+[7m58[0m export function compareEvaluationMethods(
+[7m  [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m104[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'runQuiescenceDemo'.
+
+[7m104[0m export function runQuiescenceDemo(): ComparisonResult[] {
+[7m   [0m [91m                ~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m120[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'benchmarkQuiescenceSearch'.
+
+[7m120[0m export function benchmarkQuiescenceSearch(
+[7m   [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m172[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'displayQuiescenceResults'.
+
+[7m172[0m export function displayQuiescenceResults(): void {
+[7m   [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m184[0m:[93m57[0m - [91merror[0m[90m TS2365: [0mOperator '+' cannot be applied to types 'string | number' and 'number'.
+
+[7m184[0m         console.log(`🎯 Best Move Found:       Column ${(result.quiescenceBestMove ?? 'None') + 1}`);
+[7m   [0m [91m                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
+
+[7m199[0m     TACTICAL_SCENARIOS,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'TACTICAL_SCENARIOS'.
+
+[7m199[0m     TACTICAL_SCENARIOS,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m200[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'compareEvaluationMethods'.
+
+[7m200[0m     compareEvaluationMethods,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m200[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'compareEvaluationMethods'.
+
+[7m200[0m     compareEvaluationMethods,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m201[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'runQuiescenceDemo'.
+
+[7m201[0m     runQuiescenceDemo,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m201[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'runQuiescenceDemo'.
+
+[7m201[0m     runQuiescenceDemo,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m202[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'benchmarkQuiescenceSearch'.
+
+[7m202[0m     benchmarkQuiescenceSearch,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m202[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'benchmarkQuiescenceSearch'.
+
+[7m202[0m     benchmarkQuiescenceSearch,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
 [96msrc/ai/quiescenceDemo.ts[0m:[93m203[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'displayQuiescenceResults'.
 
 [7m203[0m     displayQuiescenceResults
+[7m   [[96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
+
+[7m12[0m export const TACTICAL_SCENARIOS = {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m58[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'compareEvaluationMethods'.
+
+[7m58[0m export function compareEvaluationMethods(
+[7m  [96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
+
+[7m12[0m export const TACTICAL_SCENARIOS = {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m58[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'compareEvaluationMethods'.
+
+[7m58[0m export function compareEvaluationMethods(
+[7m  [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m104[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'runQuiescenceDemo'.
+
+[7m104[0m export function runQuiescenceDemo(): ComparisonResult[] {
+[7m   [0m [91m                ~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m120[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'benchmarkQuiescenceSearch'.
+
+[7m120[0m export function benchmarkQuiescenceSearch(
+[7m   [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m172[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'displayQuiescenceResults'.
+
+[7m172[0m export function displayQuiescenceResults(): void {
+[7m   [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m184[0m:[93m57[0m - [91merror[0m[90m TS2365: [0mOperator '+' cannot be applied to types 'string | number' and 'number'.
+
+[7m184[0m         console.log(`🎯 Best Move Found:       Column ${(result.quiescenceBestMove ?? 'None') + 1}`);
+[7m   [0m [91m                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
+
+[7m199[0m     TACTICAL_SCENARIOS,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'TACTICAL_SCENARIOS'.
+
+[7m199[0m     TACTICAL_SCENARIOS,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m200[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'compareEvaluationMethods'.
+
+[7m200[0m     compareEvaluationMethods,
 [7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m203[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'displayQuiescenceResults'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m200[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'compareEvaluationMethods'.
 
-[7m203[0m     displayQuiescenceResults
+[7m200[0m     compareEvaluationMethods,
 [7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[[90m11:33:27 AM[0m] Found 16 errors. Watching for file changes.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m201[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'runQuiescenceDemo'.
 
-[91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'runQuiescenceDemo'.
+[7m201[0m     runQuiescenceDemo,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~[0m
 
-[7m201[0m   runQuiescenceDemo,
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~[0m
+[96msrc/ai/quiescenceDemo.ts[0m:[93m201[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'runQuiescenceDemo'.
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m201[0m:[93m3[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'runQuiescenceDemo'.
+[7m201[0m     runQuiescenceDemo,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~[0m
 
-[7m201[0m   runQuiescenceDemo,
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~[0m
+[96msrc/ai/quiescenceDemo.ts[0m:[93m202[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'benchmarkQuiescenceSearch'.
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m202[0m:[93m3[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'benchmarkQuiescenceSearch'.
+[7m202[0m     benchmarkQuiescenceSearch,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[7m202[0m   benchmarkQuiescenceSearch,
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/ai/quiescenceDemo.ts[0m:[93m202[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'benchmarkQuiescenceSearch'.
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m202[0m:[93m3[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'benchmarkQuiescenceSearch'.
+[7m202[0m     benchmarkQuiescenceSearch,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[7m202[0m   benchmarkQuiescenceSearch,
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-
-[96msrc/ai/quiescenceDemo.ts[0m:[93m203[0m:[93m3[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'displayQuiescenceResults'.
-
-[7m203[0m   displayQuiescenceResults
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~~~~~~~~[0m
-
-[96msrc/ai/quiescenceDemo.ts[0m:[93m203[0m:[93m3[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'displayQuiescenceResults'.
-
-[7m203[0m   displayQuiescenceResults
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~~~~~~~~[0m
-
-[[90m11:33:15 AM[0m] Found 16 errors. Watching for file changes.
-
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:16 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +1157ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +118ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +4ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +2ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +9ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +3ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +3ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +4ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +0ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +5ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +9ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +4ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +3ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +1ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +3ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +4ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +11ms[39m
-[31m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3000[39m[38;5;3m +18ms[39m
-[33m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3000 is in use. Trying next port...[39m
-[31m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3001[39m[38;5;3m +5ms[39m
-[33m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3001 is in use. Trying next port...[39m
-[31m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3002[39m[38;5;3m +1ms[39m
-[33m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3002 is in use. Trying next port...[39m
-[31m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3003[39m[38;5;3m +0ms[39m
-[33m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3003 is in use. Trying next port...[39m
-[32m[Nest] 43945  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3004[39m
-c[[90m11:33:24 AM[0m] File change detected. Starting incremental compilation...
+[96msrc/ai/quiescenceDemo.ts[0m:[93m203[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported varic[[90m11:46:53 AM[0m] File change detected. Starting incremental compilation...
 
 [96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
 
@@ -556,221 +635,440 @@ MLInferenceClient: Attempt 2 failed: request to http://localhost:c[[90m11:30:3
 [7m203[0m     displayQuiescenceResults
 [7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[[90m11:33:27 AM[0m] Found 16 errors. Watching for file changes.
+[[90m11:47:02 AM[0m] Found 16 errors. Watching for file changes.
 
-t 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 2:51:03 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:03 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 4[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:03 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 610ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:26 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mGame 0ov4tlvg4 created by Red, starting player: Yellow, difficulty: 3[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:26 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] AI is starting - triggering first move[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:26 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Triggering AI first move[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:26 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:26 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 3ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:26 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] AI played column 5[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:30 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Human dropDisc by Red at column 2[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:31 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:31 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:31 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 2:51:31 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:31 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 2[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:31 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 636ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:33 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Human dropDisc by Red at column 2[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:33 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:33 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:33 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 2:51:34 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:34 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 2[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:34 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 627ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:35 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Human dropDisc by Red at column 2[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:36 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:36 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:36 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 2:51:36 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:36 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 5[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:36 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 630ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:38 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Human dropDisc by Red at column 2[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:38 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:38 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:38 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 2:51:39 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:39 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 5[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:39 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 630ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:41 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Human dropDisc by Red at column 5[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:41 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:41 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:41 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 2:51:42 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:42 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 5[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:42 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 632ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:44 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Human dropDisc by Red at column 0[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:45 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:45 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:45 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 2:51:45 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:45 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 0[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:45 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 654ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:48 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Human dropDisc by Red at column 0[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:48 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:48 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:48 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 2:51:49 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:49 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 4[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:49 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 625ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:51 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Human dropDisc by Red at column 0[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:52 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:52 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:52 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 2:51:53 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:53 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 0[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:53 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 626ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:55 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Human dropDisc by Red at column 0[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:56 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:56 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:56 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 2:51:56 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:56 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 4[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:51:56 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 626ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:52:02 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Human dropDisc by Red at column 6[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:52:03 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:52:03 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:52:03 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 2:52:04 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:52:04 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 4[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:52:04 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 625ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:52:09 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Human dropDisc by Red at column 6[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:52:09 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0ov4tlvg4] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:52:09 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:52:09 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 2:52:10 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:52:10 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 4[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:52:10 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 620ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 2:52:14 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient disconnected: 59BjNaTwnN6Ej-ZEAAAD[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:04 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: udJm_fVOpxn6f5boAAAF[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:30 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mGame 0znd1peuj created by Red, starting player: Red, difficulty: 1[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:32 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0znd1peuj] Human dropDisc by Red at column 3[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:32 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0znd1peuj] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:32 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 0ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:33 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0znd1peuj] Human dropDisc by Red at column 1[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:34 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0znd1peuj] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:34 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:34 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 3:03:34 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:34 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 2[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:34 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 649ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:36 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0znd1peuj] Human dropDisc by Red at column 2[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:37 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0znd1peuj] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:37 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:37 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 3:03:37 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:37 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 3[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:37 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 631ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:39 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0znd1peuj] Human dropDisc by Red at column 1[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:39 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0znd1peuj] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:39 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:39 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 3:03:40 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:40 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 1[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:40 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 632ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:41 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0znd1peuj] Human dropDisc by Red at column 2[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:41 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0znd1peuj] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:41 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:41 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
-MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
-MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
-[33m[Nest] 38103  - [39m07/12/2025, 3:03:42 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:42 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 3[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:42 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 627ms[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:43 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0znd1peuj] Human dropDisc by Red at column 2[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:44 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[0znd1peuj] Computing AI move via GameAIService[39m
-[32m[Nest] 38103  - [39m07/12/2025, 3:03:44 AM [32m    LOG[39m [38;5;3m[GameAIService] [3c[[90m11:30:38 AM[0m] File change detected. Starting incremental compilation...
+c[[90m11:48:03 AM[0m] File change detected. Starting incremental compilation...
 
-[[90m11:32:00 AM[0m] Found 0 errors. Watching for file changes.
+[[90m11:48:06 AM[0m] Found 0 errors. Watching for file changes.
 
-c[[90m11:32:01 AM[0m] File change detected. Starting incremental compilation...
+c[[90m11:48:07 AM[0m] File change detected. Starting incremental compilation...
 
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:38 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:42 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +3963ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:42 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +264ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:42 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +5ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:42 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +12ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:42 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +6ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:42 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:43 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:43 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +2ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:43 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +3ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:43 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +8ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:43 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +0ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:43 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +10ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:43 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +20ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:43 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +69ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +101ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +15ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +11ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +0ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +10ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +19ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +17ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +25ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +15ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +7ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +9ms[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +65ms[39m
-[31m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3000[39m[38;5;3m +21ms[39m
-[33m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3000 is in use. Trying next port...[39m
-[32m[Nest] 43526  - [39m07/12/2025, 11:32:44 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3001[39m
-[[90m11:32:48 AM[0m] Found 0 errors. Watching for file changes.
+[[90m11:48:11 AM[0m] Found 0 errors. Watching for file changes.
 
-c[[90m11:32:48 AM[0m] File change detected. Starting incremental compilation...
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:20 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:22 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +1546ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:22 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +164ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:22 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:22 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +3ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:22 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +7ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:22 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +4ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +11ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +18ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +3ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +22ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +18ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +51ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +16ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +32ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +29ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +10ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +5ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +12ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +37ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +5ms[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +31ms[39m
+[31m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3000[39m[38;5;3m +21ms[39m
+[33m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3000 is in use. Trying next port...[39m
+[31m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3001[39m[38;5;3m +9ms[39m
+[33m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3001 is in use. Trying next port...[39m
+[32m[Nest] 46115  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3002[39m
+c[[90m11:50:07 AM[0m] File change detected. Starting incremental compilation...
 
-[[90m11:32:50 AM[0m] Found 0 errors. Watching for file changes.
+[[90m11:50:17 AM[0m] Found 0 errors. Watching for file changes.
 
-c[[90m11:32:59 AM[0m] File change detected. Starting incremental compilation...
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:20 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:20 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +640ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:20 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +63ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:20 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:20 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +4ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:20 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +5ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:20 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +1ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +2ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +4ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +6ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +13ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +6ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +6ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +13ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +8ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +21ms[39m
+[31m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3000[39m[38;5;3m +6ms[39m
+[33m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3000 is in use. Trying next port...[39m
+[31m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3001[39m[38;5;3m +2ms[39m
+[33m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3001 is in use. Trying next port...[39m
+[31m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3002[39m[38;5;3m +1ms[39m
+[33m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3002 is in use. Trying next port...[39m
+[31m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3003[39m[38;5;3m +0ms[39m
+[33m[Nest] 46439  - [39m07/12/2025, 11:50:21 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33c[[90m11:52:15 AM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'BoardVisualizer'.
+
+[7m12[0m export class BoardVisualizer {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m66[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'ADVANCED_TACTICAL_SCENARIOS'.
+
+[7m66[0m export const ADVANCED_TACTICAL_SCENARIOS = {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m164[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'PositionAnalyzer'.
+
+[7m164[0m export class PositionAnalyzer {
+[7m   [0m [91m             ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m280[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceProfiler'.
+
+[7m280[0m export class QuiescenceProfiler {
+[7m   [0m [91m             ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m340[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceDemo'.
+
+[7m340[0m export class QuiescenceDemo {
+[7m   [0m [91m             ~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m623[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'BoardVisualizer'.
+
+[7m623[0m     BoardVisualizer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m623[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'BoardVisualizer'.
+
+[7m623[0m     BoardVisualizer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m624[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'PositionAnalyzer'.
+
+[7m624[0m     PositionAnalyzer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m624[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'PositionAnalyzer'.
+
+[7m624[0m     PositionAnalyzer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m625[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceProfiler'.
+
+[7m625[0m     QuiescenceProfiler,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m625[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'QuiescenceProfiler'.
+
+[7m625[0m     QuiescenceProfiler,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m626[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceDemo'.
+
+[7m626[0m     QuiescenceDemo,
+[7m   [0m [91m    ~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m626[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'QuiescenceDemo'.
+
+[7m626[0m     QuiescenceDemo,
+[7m   [0m [91m    ~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m627[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'ADVANCED_TACTICAL_SCENARIOS'.
+
+[7m627[0m     ADVANCED_TACTICAL_SCENARIOS
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m627[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'ADVANCED_TACTICAL_SCENARIOS'.
+
+[7m627[0m     ADVANCED_TACTICAL_SCENARIOS
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[[90m11:52:30 AM[0m] Found 15 errors. Watching for file changes.
+
+c[[90m11:52:37 AM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'BoardVisualizer'.
+
+[7m12[0m export class BoardVisualizer {
+[7m  [0m[96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'BoardVisualizer'.
+
+[7m12[0m export class BoardVisualizer {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m66[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'ADVANCED_TACTICAL_SCENARIOS'.
+
+[7m66[0m export const ADVANCED_TACTICAL_SCENARIOS = {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m164[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'PositionAnalyzer'.
+
+[7m164[0m export class PositionAnalyzer {
+[7m   [0m [91m             ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m280[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceProfiler'.
+
+[7m280[0m export class QuiescenceProfiler {
+[7m   [0m [91m             ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m340[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceDemo'.
+
+[7m340[0m export class QuiescenceDemo {
+[7m   [0m [91m             ~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m623[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'BoardVisualizer'.
+
+[7m623[0m     BoardVisualizer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m623[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'BoardVisualizer'.
+
+[7m623[0m     BoardVisualizer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m624[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'PositionAnalyzer'.
+
+[7m624[0m     PositionAnalyzer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m624[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'PositionAnalyzer'.
+
+[7m624[0m     PositionAnalyzer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m625[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceProfiler'.
+
+[7m625[0m     QuiescenceProfiler,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m625[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'QuiescenceProfiler'.
+
+[7m625[0m     QuiescenceProfiler,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m626[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceDemo'.
+
+[7m626[0m     QuiescenceDemo,
+[7m   [0m [91m    ~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m626[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'QuiescenceDemo'.
+
+[7m626[0m     QuiescenceDemo,
+[7m   [0m [91m    ~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m627[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'ADVANCED_TACTICAL_SCENARIOS'.
+
+[7m627[0m     ADVANCED_TACTICAL_SCENARIOS
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m627[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration ofc[[90m11:53:58 AM[0m] File change detected. Starting incremental compilation...
+
+[[90m11:54:03 AM[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 47197  - [39m07/12/2025, 11:54:11 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:54:13 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +1887ms[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:54:13 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +104ms[39m
+[32m[Nest] 47197  - [39m07/12/20[32m[Nest] 47198  - [39m07/12/2025, 11:54:13 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +126ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:13 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +6ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:13 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +5ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:13 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39[32m[Nest] 47197  - [39m07/12/2025, 11:54:14 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:54:14 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +15ms[39m
+[32m[Nest] 47[32m[Nest] 47198  - [39m07/12/2025, 11:54:14 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5[32m[Nest] 4719[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +87ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +109ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "le[32m[Nest] 47197  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +105ms[39m
+[32m[Nest] 47197  - [39m07/12/2025,[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} rou[32m[Nest] 47197  - [39m07[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +25ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +11ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5[32m[Nest] 47[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +6ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +8ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[32m[Nest] 47197  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +27ms[39m
+[32m[Nest] 47197  - [39m07/1[32m[Nest] 47198  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application [32m[Nest] 47197  - [39m07/12/2025, 11:54:20 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: rifOH5C9dRih1b0XAAAB[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:55:40 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient disconnected: rifOH5C9dRih1b0XAAAB[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:55:42 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: nAPE9dPDUTRWPAiTAAAD[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:17 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mGame shdef9vxv created by Red, starting player: Yellow, difficulty: 3[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:17 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] AI is starting - triggering first move[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:17 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Triggering AI first move[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:17 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Computing AI move via GameAIService[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:17 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:17 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 47197  - [39m07/12/2025, 11:56:18 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:18 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 5[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:18 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 899ms[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:18 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] AI played column 5[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:19 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Human dropDisc by Red at column 3[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:20 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Computing AI move via GameAIService[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:20 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:20 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 47197  - [39m07/12/2025, 11:56:20 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:20 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 3[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:20 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 701ms[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:22 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Human dropDisc by Red at column 2[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:23 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Computing AI move via GameAIService[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:23 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:23 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 47197  - [39m07/12/2025, 11:56:24 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:24 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 2[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:24 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 1002ms[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:28 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Human dropDisc by Red at column 3[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:29 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Computing AI move via GameAIService[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:29 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:29 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 47197  - [39m07/12/2025, 11:56:30 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:30 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 5[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:30 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 1008ms[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:31 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Human dropDisc by Red at column 3[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:31 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Computing AI move via GameAIService[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:31 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:31 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 47197  - [39m07/12/2025, 11:56:32 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:32 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 5[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:32 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 801ms[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:34 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Human dropDisc by Red at column 5[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:34 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Computing AI move via GameAIService[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:34 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:34 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 47197  - [39m07/12/2025, 11:56:35 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:35 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 1[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:35 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 801ms[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:42 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Human dropDisc by Red at column 3[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:43 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Computing AI move via GameAIService[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:43 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:43 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 47197  - [39m07/12/2025, 11:56:43 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:43 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 3[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:43 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 665ms[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:46 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Human dropDisc by Red at column 2[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:46 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Computing AI move via GameAIService[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:46 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:46 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 47197  - [39m07/12/2025, 11:56:47 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:47 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 4[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:47 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 706ms[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:49 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Human dropDisc by Red at column 4[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:49 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Computing AI move via GameAIService[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:49 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:49 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 47197  - [39m07/12/2025, 11:56:50 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:50 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 1[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:50 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 690ms[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:55 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Human dropDisc by Red at column 2[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:55 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32m[shdef9vxv] Computing AI move via GameAIService[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:55 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mCurrent AI Level: 1 -> Executing Hybrid Strategy[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:55 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mUsing Minimax with depth 2, enhanced by ML.[39m
+MLInferenceClient: Attempt 1 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 2 failed: request to http://localhost:8001/predict failed, reason: 
+MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict failed, reason: 
+[33m[Nest] 47197  - [39m07/12/2025, 11:56:56 AM [33m   WARN[39m [38;5;3m[GameAIService] [39m[33mMinimax enhancement failed: request to http://localhost:8001/predict failed, reason: . Falling back to standard Minimax.[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:56 AM [32m    LOG[39m [38;5;3m[GameAIService] [39m[32mAI chose column: 2[39m
+[32m[Nest] 47197  - [39m07/12/2025, 11:56:56 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mAI logic time: 699ms[39m
+  [0m [91m                ~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m120[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'benchmarkQuiescenceSearch'.
+
+[7m120[0m export function benchmarkQuiescenceSearch(
+[7m   [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m172[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'displayQuiescenceResults'.
+
+[7m172[0m export function displayQuiescenceResults(): void {
+[7m   [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m184[0m:[93m57[0m - [91merror[0m[90m TS2365: [0mOperator '+' cannot be applied to types 'string | number' and 'number'.
+
+[7m184[0m         console.log(`🎯 Best Move Found:       Column ${(result.quiescenceBestMove ?? 'None') + 1}`);
+[7m   [0m [91m                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
+
+[7m199[0m     TACTICAL_SCENARIOS,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'TACTICAL_SCENARIOS'.
+
+[7m199[0m     TACTICAL_SCENARIOS,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m200[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'compareEvaluationMethods'.
+
+[7m200[0m     compareEvaluationMethods,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
+
+[7m12[0m export const TACTICAL_SCENARIOS = {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m58[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'compareEvaluationMethods'.
+
+[7m58[0m export function compareEvaluationMethods(
+[7m  [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m104[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'runQuiescenceDemo'.
+
+[7m104[0m export function runQuiescenceDemo(): ComparisonResult[] {
+[7m   [0m [91m                ~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m120[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'benchmarkQuiescenceSearch'.
+
+[7m120[0m export function benchmarkQuiescenceSearch(
+[7m   [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m172[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'displayQuiescenceResults'.
+
+[7m172[0m export function displayQuiescenceResults(): void {
+[7m   [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m184[0m:[93m57[0m - [91merror[0m[90m TS2365: [0mOperator '+' cannot be applied to types 'string | number' and 'number'.
+
+[7m184[0m         console.log(`🎯 Best Move Found:       Column ${(result.quiescenceBestMove ?? 'None') + 1}`);
+[7m   [0m [91m                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m5[0m - [91merror[c[[90m11:41:13 AM[0m] File change detected. Starting incremental compilation...
 
 [96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
 
@@ -797,98 +1095,148 @@ MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict fa
 [7m172[0m export function displayQuiescenceResults(): void {
 [7m   [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m184[0m:[93m53[0m - [91merror[0m[90m TS2365: [0mOperator '+' cannot be applied to types 'string | number' and 'number'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m184[0m:[93m57[0m - [91merror[0m[90m TS2365: [0mOperator '+' cannot be applied to types 'string | number' and 'number'.
 
-[7m184[0m     console.log(`🎯 Best Move Found:       Column ${(result.quiescenceBestMove ?? 'None') + 1}`);
-[7m   [0m [91m                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m184[0m         console.log(`🎯 Best Move Found:       Column ${(result.quiescenceBestMove ?? 'None') + 1}`);
+[7m   [0m [91m                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m3[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
 
-[7m199[0m   TACTICAL_SCENARIOS,
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~~[0m
+[7m199[0m     TACTICAL_SCENARIOS,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m3[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'TACTICAL_SCENARIOS'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'TACTICAL_SCENARIOS'.
 
-[7m199[0m   TACTICAL_SCENARIOS,
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~~[0m
+[7m199[0m     TACTICAL_SCENARIOS,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m200[0m:[93m3[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'compareEvaluationMethods'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m200[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'compareEvaluationMethods'.
 
-[7m200[0m   compareEvaluationMethods,
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m200[0m     compareEvaluationMethods,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m200[0m:[93m3[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'compareEvaluationMethods'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m200[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'compareEvaluationMethods'.
 
-[7m200[0m   compareEvaluationMethods,
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m200[0m     compareEvaluationMethods,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m201[0m:[93m3[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'runQuiescenceDemo'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m201[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'runQuiescenceDemo'.
 
-[7m201[0m   runQuiescenceDemo,
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~[0m
+[7m201[0m     runQuiescenceDemo,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m201[0m:[93m3[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'runQuiescenceDemo'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m201[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'runQuiescenceDemo'.
 
-[7m201[0m   runQuiescenceDemo,
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~[0m
+[7m201[0m     runQuiescenceDemo,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m202[0m:[93m3[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'benchmarkQuiescenceSearch'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m202[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'benchmarkQuiescenceSearch'.
 
-[7m202[0m   benchmarkQuiescenceSearch,
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m202[0m     benchmarkQuiescenceSearch,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m202[0m:[93m3[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'benchmarkQuiescenceSearch'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m202[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'benchmarkQuiescenceSearch'.
 
-[7m202[0m   benchmarkQuiescenceSearch,
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m202[0m     benchmarkQuiescenceSearch,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m203[0m:[93m3[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'displayQuiescenceResults'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m203[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'displayQuiescenceResults'.
 
-[7m203[0m   displayQuiescenceResults
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m203[0m     displayQuiescenceResults
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m203[0m:[93m3[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'displayQuiescenceResults'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m203[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'displayQuiescenceResults'.
 
-[7m203[0m   displayQuiescenceResults
-[7m   [0m [91m  ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m203[0m     displayQuiescenceResults
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[[90m11:33:14 AM[0m] Fou[96msrc/ai/quiescenceDemo.ts[0m:[93m12[32m[Nest] 43933  - [39m07/12/2025, 11:33:16 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:17 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +1105ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:17 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +111ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:17 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +3ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:17 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +7ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:17 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +7ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:17 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +2ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +4ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +4ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +0ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +8ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +13ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +6ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +7ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +3ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +0ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +4ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +10ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +2ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +3ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +7ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +0ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +1ms[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +13ms[39m
-[31m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3000[39m[38;5;3m +9ms[39m
-[33m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3000 is in use. Trying next port...[39m
-[31m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3001[39m[38;5;3m +9ms[39m
-[33m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3001 is in use. Trying next port...[39m
-[31m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3002[39m[38;5;3m +1ms[39m
-[33m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3002 is in use. Trying next port...[39m
-[32m[Nest] 43933  - [39m07/12/2025, 11:33:18 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3003[39m
-c[[90m11:33:24 AM[0m] File change detected. Starting incremental compilation...
+[[90m11:41:32 AM[0m] Found 16 errors. Watching for file changes.
+
+c[[90m11:41:33 AM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
+
+[7m12[0m export const TACTICAL_SCENARIOS = {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m58[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'compareEvaluationMethods'.
+
+[7m58[0m export function compareEvaluationMethods(
+[7m  [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m104[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'runQuiescenceDemo'.
+
+[7m104[0m export function runQuiescenceDemo(): ComparisonResult[] {
+[7m   [0m [91m                ~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m120[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'benchmarkQuiescenceSearch'.
+
+[7m120[0m export function benchmarkQuiescenceSearch(
+[7m   [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m172[0m:[93m17[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'displayQuiescenceResults'.
+
+[7m172[0m export function displayQuiescenceResults(): void {
+[7m   [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m184[0m:[93m57[0m - [91merror[0m[90m TS2365: [0mOperator '+' cannot be applied to types 'string | number' and 'number'.
+
+[7m184[0m         console.log(`🎯 Best Move Found:       Column ${(result.quiescenceBestMove ?? 'None') + 1}`);
+[7m   [0m [91m                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
+
+[7m199[0m     TACTICAL_SCENARIOS,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'TACTICAL_SCENARIOS'.
+
+[7m199[0m     TACTICAL_SCENARIOS,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m200[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'compareEvaluationMethods'.
+
+[7m200[0m     compareEvaluationMethods,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m200[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'compareEvaluationMethods'.
+
+[7m200[0m     compareEvaluationMethods,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m201[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'runQuiescenceDemo'.
+
+[7m201[0m     runQuiescenceDemo,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m201[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'runQuiescenceDemo'.
+
+[7m201[0m     runQuiescenceDemo,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m202[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'benchmarkQuiescenceSearch'.
+
+[7m202[0m     benchmarkQuiescenceSearch,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m202[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'benchmarkQuiescenceSearch'.
+
+[7m202[0m     benchmarkQuiescenceSearch,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m203[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'displayQuiescenceResults'.
+
+[7m203[0m     displayQuiescenceResults
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m203[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'displayQuiescenceResults'.
+
+[7m203[0m     displayQuiescenceResults
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[[90m11:41:53 AM[0m] Found 16 errors. Watching for file changes.
+
+c[[90m11:46:53 AM[0m] File change detected. Starting incremental compilation...
 
 [96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
 
@@ -965,55 +1313,294 @@ MLInferenceClient: Attempt 3 failed: request to http://localhost:8001/predict fa
 [7m184[0m         console.log(`🎯 Best Move Found:       Column ${(result.quiescenceBestMove ?? 'None') + 1}`);
 [7m   [0m [91m                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'TACTICAL_SCENARIOS'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m5[0m - [91merror[c[[90m11:48:03 AM[0m] File change detected. Starting incremental compilation...
 
-[7m199[0m     TACTICAL_SCENARIOS,
+[[90m11:48:08 AM[0m] Found 0 errors. Watching for file changes.
+
+c[[90m11:48:08 AM[0m] File change detected. Starting incremental compilation...
+
+[[90m11:48:10 AM[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:20 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:22 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +1481ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:22 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +78ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:22 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:22 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:22 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +17ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:22 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +3ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +7ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +6ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +37ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +40ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +90ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +24ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +7ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +16ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +5ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +6ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +5ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +8ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +66ms[39m
+[31m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3000[39m[38;5;3m +38ms[39m
+[33m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3000 is in use. Trying next port...[39m
+[31m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3001[39m[38;5;3m +6ms[39m
+[33m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3001 is in use. Trying next port...[39m
+[31m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3002[39m[38;5;3m +4ms[39m
+[33m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3002 is in use. Trying next port...[39m
+[31m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3003[39m[38;5;3m +3ms[39m
+[33m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3003 is in use. Trying next port...[39m
+[32m[Nest] 46048  - [39m07/12/2025, 11:48:23 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3004[39m
+c[[90m11:50:07 AM[0m] File change detected. Starting incremental compilation...
+
+[[90m11:50:16 AM[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:19 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:20 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +871ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:20 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +70ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:20 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:20 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:20 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +9ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:20 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +1ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +2ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +4ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +0ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +7ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +12ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +6ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +5ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +10ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +11ms[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3000[39m
+[32m[Nest] 46357  - [39m07/12/2025, 11:50:21 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mClient connected: Kxn8or71fqs9jidUAAAB[39m
+c[[90m11:52:15 AM[0m] File change detected. Starting incremental compilation...
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'BoardVisualizer'.
+
+[7m12[0m export class BoardVisualizer {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m66[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'ADVANCED_TACTICAL_SCENARIOS'.
+
+[7m66[0m export const ADVANCED_TACTICAL_SCENARIOS = {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m164[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'PositionAnalyzer'.
+
+[7m164[0m export class PositionAnalyzer {
+[7m   [0m [91m             ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m280[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceProfiler'.
+
+[7m280[0m export class QuiescenceProfiler {
+[7m   [0m [91m             ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m340[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceDemo'.
+
+[7m340[0m export class QuiescenceDemo {
+[7m   [0m [91m             ~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m623[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'BoardVisualizer'.
+
+[7m623[0m     BoardVisualizer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m623[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'BoardVisualizer'.
+
+[7m623[0m     BoardVisualizer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m624[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'PositionAnalyzer'.
+
+[7m624[0m     PositionAnalyzer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m624[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'PositionAnalyzer'.
+
+[7m624[0m     PositionAnalyzer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m625[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceProfiler'.
+
+[7m625[0m     QuiescenceProfiler,
 [7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m199[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'TACTICAL_SCENARIOS'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m625[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'QuiescenceProfiler'.
 
-[7m199[0m     TACTICAL_SCENARIOS,
+[7m625[0m     QuiescenceProfiler,
 [7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m200[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'compareEvaluationMethods'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m626[96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'BoardVisualizer'.
 
-[7m200[0m     compareEvaluationMethods,
-[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m12[0m export class BoardVisualizer {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m200[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'compareEvaluationMethods'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m66[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'ADVANCED_TACTICAL_SCENARIOS'.
 
-[7m200[0m     compareEvaluationMethods,
-[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m66[0m export const ADVANCED_TACTICAL_SCENARIOS = {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m201[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'runQuiescenceDemo'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m164[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'PositionAnalyzer'.
 
-[7m201[0m     runQuiescenceDemo,
-[7m   [0m [91m    ~~~~~~~~~~~~~~~~~[0m
+[7m164[0m export class PositionAnalyzer {
+[7m   [0m [91m             ~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m201[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'runQuiescenceDemo'.
+[96msrc/ai/quiescenceDemo.ts[0m:[93m280[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceProfiler'.
 
-[7m201[0m     runQuiescenceDemo,
-[7m   [0m [91m    ~~~~~~~~~~~~~~~~~[0m
+[7m280[0m export class QuiescenceProfiler {
+[7m   [0m [91m             ~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m202[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'benchmarkQuiescenceSearch'.
+[96msrc/ai/c[[90m11:52:37 AM[0m] File change detected. Starting incremental compilation...
 
-[7m202[0m     benchmarkQuiescenceSearch,
-[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/ai/quiescenceDemo.ts[0m:[93m12[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'BoardVisualizer'.
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m202[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'benchmarkQuiescenceSearch'.
+[7m12[0m export class BoardVisualizer {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~[0m
 
-[7m202[0m     benchmarkQuiescenceSearch,
-[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/ai/quiescenceDemo.ts[0m:[93m66[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'ADVANCED_TACTICAL_SCENARIOS'.
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m203[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'displayQuiescenceResults'.
+[7m66[0m export const ADVANCED_TACTICAL_SCENARIOS = {
+[7m  [0m [91m             ~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
-[7m203[0m     displayQuiescenceResults
-[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/ai/quiescenceDemo.ts[0m:[93m164[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'PositionAnalyzer'.
 
-[96msrc/ai/quiescenceDemo.ts[0m:[93m203[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'displayQuiescenceResults'.
+[7m164[0m export class PositionAnalyzer {
+[7m   [0m [91m             ~~~~~~~~~~~~~~~~[0m
 
-[7m203[0m     displayQuiescenceResults
-[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/ai/quiescenceDemo.ts[0m:[93m280[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceProfiler'.
 
-[[90m11:33:27 AM[0m] Found 16 errors. Watching for file changes.
+[7m280[0m export class QuiescenceProfiler {
+[7m   [0m [91m             ~~~~~~~~~~~~~~~~~~[0m
 
+[96msrc/ai/quiescenceDemo.ts[0m:[93m340[0m:[93m14[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceDemo'.
+
+[7m340[0m export class QuiescenceDemo {
+[7m   [0m [91m             ~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m623[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'BoardVisualizer'.
+
+[7m623[0m     BoardVisualizer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m623[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'BoardVisualizer'.
+
+[7m623[0m     BoardVisualizer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m624[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'PositionAnalyzer'.
+
+[7m624[0m     PositionAnalyzer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m624[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'PositionAnalyzer'.
+
+[7m624[0m     PositionAnalyzer,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m625[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceProfiler'.
+
+[7m625[0m     QuiescenceProfiler,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m625[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'QuiescenceProfiler'.
+
+[7m625[0m     QuiescenceProfiler,
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m626[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'QuiescenceDemo'.
+
+[7m626[0m     QuiescenceDemo,
+[7m   [0m [91m    ~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m626[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'QuiescenceDemo'.
+
+[7m626[0m     QuiescenceDemo,
+[7m   [0m [91m    ~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m627[0m:[93m5[0m - [91merror[0m[90m TS2323: [0mCannot redeclare exported variable 'ADVANCED_TACTICAL_SCENARIOS'.
+
+[7m627[0m     ADVANCED_TACTICAL_SCENARIOS
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/ai/quiescenceDemo.ts[0m:[93m627[0m:[93m5[0m - [91merror[0m[90m TS2484: [0mExport declaration conflicts with exported declaration of 'ADVANCED_TACTICAL_SCENARIOS'.
+
+[7m627[0m     ADVANCED_TACTICAL_SCENARIOS
+[7m   [0m [91m    ~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[[90m11:52:47 AM[0m] Found 15 errors. Watching for file changes.
+
+c[[90m11:53:58 AM[0m] File change detected. Starting incremental compilation...
+
+[[90m11:54:03 AM[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:11 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Initializing application...[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:13 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +1884ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:13 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +108ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:13 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHttpModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:13 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMlModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:13 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mGameModule dependencies initialized[39m[38;5;3m +5ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:13 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m✅ Application initialized.[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:14 AM [32m    LOG[39m [38;5;3m[GameGateway] [39m[32mWebSocket server initialized[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:14 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "createGame" message[39m[38;5;3m +162ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "joinGame" message[39m[38;5;3m +58ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "dropDisc" message[39m[38;5;3m +72ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[WebSocketsController] [39m[32mGameGateway subscribed to the "leaveGame" message[39m[38;5;3m +1ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mGameController {/api/games}:[39m[38;5;3m +95ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games, POST} route[39m[38;5;3m +30ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/join, POST} route[39m[38;5;3m +9ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/drop, POST} route[39m[38;5;3m +19ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/board, GET} route[39m[38;5;3m +7ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/games/:id/ai-move, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAIProfileController {/api/api/ai-profile}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/configuration, GET} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/analysis, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +7ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +12ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +115ms[39m
+[31m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3000[39m[38;5;3m +61ms[39m
+[33m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3000 is in use. Trying next port...[39m
+[31m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3001[39m[38;5;3m +69ms[39m
+[33m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3001 is in use. Trying next port...[39m
+[31m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3002[39m[38;5;3m +31ms[39m
+[33m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3002 is in use. Trying next port...[39m
+[31m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3003[39m[38;5;3m +93ms[39m
+[33m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3003 is in use. Trying next port...[39m
+[32m[Nest] 47196  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3004[39m
+32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/stats, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 47200  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/taunt, GET} route[39m[38;5;3m +10ms[39m
+[32m[Nest] 47200  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/victory-message, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 47200  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/level-up-message, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 47200  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/:playerId/game-result, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 47200  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/api/ai-profile/level, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 47200  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +41ms[39m
+[31m[Nest] 47200  - [39m07/12/2025, 11:54:15 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3000[39m[38;5;3m +86ms[39m
+[33m[Nest] 47200  - [39m07/12/2025, 11:54:15 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3000 is in use. Trying next port...[39m
+[31m[Nest] 47200  - [39m07/12/2025, 11:54:15 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3001[39m[38;5;3m +13ms[39m
+[33m[Nest] 47200  - [39m07/12/2025, 11:54:15 AM [33m   WARN[39m [38;5;3m[Bootstrap] [39m[33mPort 3001 is in use. Trying next port...[39m
+[32m[Nest] 47200  - [39m07/12/2025, 11:54:15 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚀 Server is running on http://localhost:3002[39m
