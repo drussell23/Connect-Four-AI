@@ -58,21 +58,26 @@ export class GameGateway
   async handleCreateGame(
     @MessageBody() payload: CreateGamePayload,
     @ConnectedSocket() client: Socket
-  ): Promise<void> {
+  ): Promise<any> {
     try {
       const { playerId } = payload;
       if (!playerId) throw new Error('playerId is required');
       const gameId = await this.gameService.createGame(playerId, client.id);
       client.join(gameId);
       this.logger.log(`Game ${gameId} created by ${playerId}`);
-      client.emit('gameCreated', {
+
+      // Return the callback response that the frontend expects
+      return {
+        success: true,
         gameId,
-        board: this.gameService.getBoard(gameId),
         nextPlayer: 'Red' as CellValue,
-      });
+      };
     } catch (error: any) {
       this.logger.error(`createGame error: ${error.message}`);
-      client.emit('error', { event: 'createGame', message: error.message });
+      return {
+        success: false,
+        error: error.message,
+      };
     }
   }
 
