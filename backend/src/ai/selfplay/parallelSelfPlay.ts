@@ -231,7 +231,7 @@ export class AutomatedTrainingPipeline {
             // Create AI instance
             const aiConfig = this.generateAIConfig(algorithm, agentInfo);
             const ai = new UltimateConnect4AI(aiConfig);
-            await ai.initialize();
+            // Note: AI initialization happens automatically in constructor
 
             this.activeAIs.set(agentId, ai);
 
@@ -417,7 +417,7 @@ export class AutomatedTrainingPipeline {
     private async runTrainingGames(): Promise<void> {
         console.log('🎮 Running training games...');
 
-        const gamePromises: Promise<GameResult>[] = [];
+        const gamePromises: Promise<GameResult[]>[] = [];
         const gamesPerWorker = Math.ceil(this.config.gamesPerGeneration / this.config.parallelWorkers);
 
         for (let worker = 0; worker < this.config.parallelWorkers; worker++) {
@@ -741,7 +741,7 @@ export class AutomatedTrainingPipeline {
 
             const aiConfig = this.generateAIConfig(agentInfo.algorithm, agentInfo);
             const ai = new UltimateConnect4AI(aiConfig);
-            await ai.initialize();
+            // Note: AI initialization happens automatically in constructor
 
             this.activeAIs.set(agentId, ai);
         }
@@ -870,7 +870,7 @@ export class AutomatedTrainingPipeline {
         for (const [agentId, agentInfo] of this.agents) {
             const aiConfig = this.generateAIConfig(agentInfo.algorithm, agentInfo);
             const ai = new UltimateConnect4AI(aiConfig);
-            await ai.initialize();
+            // Note: AI initialization happens automatically in constructor
             this.activeAIs.set(agentId, ai);
         }
 
