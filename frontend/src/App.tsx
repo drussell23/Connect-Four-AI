@@ -450,6 +450,33 @@ const App: React.FC = () => {
     setStatus('Ready to play');
     setSidebarOpen(false);
 
+    // Reset difficulty level back to 1 when quitting
+    setAILevel(1);
+    setSelectedDifficulty(1);
+    setCurrentStreak(0);
+
+    // Reset RPS state
+    setShowRPS(false);
+    setRpsResult(null);
+    setRpsDifficulty(1);
+    setStartingPlayer('Red');
+
+    // Reset player statistics back to initial values
+    const initialStats: PlayerStats = {
+      wins: 0,
+      losses: 0,
+      draws: 0,
+      winStreak: 0,
+      currentLevelWins: 0,
+      totalGamesPlayed: 0,
+      highestLevelReached: 1,
+      averageMovesPerGame: 0
+    };
+    saveStats(initialStats);
+
+    // Clear localStorage difficulty selection
+    localStorage.removeItem('selectedDifficulty');
+
     // Disconnect socket
     if (socket) {
       socket.disconnect();
@@ -502,14 +529,31 @@ const App: React.FC = () => {
       return;
     }
 
+    // Read selected difficulty from localStorage if available
+    const storedDifficulty = localStorage.getItem('selectedDifficulty');
+    if (storedDifficulty) {
+      const difficulty = parseInt(storedDifficulty, 10);
+      setSelectedDifficulty(difficulty);
+      setAILevel(difficulty);
+      setRpsDifficulty(difficulty);
+    }
+
     // Socket exists, start with RPS to determine who goes first
-    setRpsDifficulty(selectedDifficulty); // Use current selected difficulty
     setShowRPS(true);
   };
 
   // Effect: establish connection & create game
   useEffect(() => {
     if (!started) return;
+
+    // Read selected difficulty from localStorage if available
+    const storedDifficulty = localStorage.getItem('selectedDifficulty');
+    if (storedDifficulty) {
+      const difficulty = parseInt(storedDifficulty, 10);
+      setSelectedDifficulty(difficulty);
+      setAILevel(difficulty);
+      setRpsDifficulty(difficulty);
+    }
 
     // Show loading progress when game starts
     setShowLoadingProgress(true);
@@ -549,13 +593,22 @@ const App: React.FC = () => {
       apiSocket.off('disconnect');
       apiSocket.off('gameCreated');
     };
-  }, [started, selectedDifficulty]);
+  }, [started]);
 
   // Handler to start or restart game
   const handlePlayAgain = () => {
     setHistory([]);
     setSidebarOpen(false);
     setGameResult(null);
+
+    // Read selected difficulty from localStorage if available
+    const storedDifficulty = localStorage.getItem('selectedDifficulty');
+    if (storedDifficulty) {
+      const difficulty = parseInt(storedDifficulty, 10);
+      setSelectedDifficulty(difficulty);
+      setAILevel(difficulty);
+      setRpsDifficulty(difficulty);
+    }
 
     if (!socket) {
       // If no socket, trigger the initialization
@@ -564,11 +617,10 @@ const App: React.FC = () => {
       return;
     }
 
+    // Instead of directly creating a game, trigger the RPS flow
     setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
     setWinningLine([]);
-    setShowLoadingProgress(true);
-    setIsInitializing(true);
-    socket.emit('createGame', { playerId: 'Red', difficulty: selectedDifficulty });
+    setShowRPS(true);
   };
 
   // Effect: listen for move events
@@ -833,6 +885,8 @@ const App: React.FC = () => {
             onClose={() => setSidebarOpen(false)}
             aiLevel={aiLevel}
             aiJustLeveledUp={aiJustLeveledUp}
+            playerStats={playerStats}
+            currentAI={currentAI}
           />
         )}
       </AnimatePresence>
