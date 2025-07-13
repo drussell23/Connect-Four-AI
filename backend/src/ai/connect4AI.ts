@@ -2231,33 +2231,18 @@ export class UltimateConnect4AI {
   }
 
   private async initializeNeuralNetworks(): Promise<void> {
-    const networkConfig = {
-      learningRate: this.config.neuralNetwork.learningRate,
-      batchSize: this.config.neuralNetwork.batchSize
-    };
+    try {
+      // Temporarily disable ALL neural networks to ensure backend stability
+      console.log('⚠️  All neural networks temporarily disabled for stability');
+      console.log('🧠 Backend will operate in fallback mode using traditional algorithms');
 
-    switch (this.config.neuralNetwork.type) {
-      case 'cnn':
-        this.cnnNetwork = networkManager.createNetwork('main', 'standard', networkConfig);
-        break;
-      case 'resnet':
-        this.resNetNetwork = new Connect4ResNet(networkConfig);
-        this.resNetNetwork.buildModel();
-        break;
-      case 'attention':
-        this.attentionNetwork = new Connect4AttentionNetwork(networkConfig);
-        this.attentionNetwork.buildModel();
-        break;
-      case 'ensemble':
-        this.cnnNetwork = networkManager.createNetwork('cnn', 'standard', networkConfig);
-        this.resNetNetwork = new Connect4ResNet(networkConfig);
-        this.resNetNetwork.buildModel();
-        this.attentionNetwork = new Connect4AttentionNetwork(networkConfig);
-        this.attentionNetwork.buildModel();
-        break;
+      // The backend will use minimax, MCTS, and other traditional algorithms
+      // Neural networks can be re-enabled once tensor shape issues are resolved
+
+    } catch (error) {
+      console.error('❌ Failed to initialize neural networks:', error);
+      throw error;
     }
-
-    console.log(`🧠 Neural networks initialized: ${this.config.neuralNetwork.type}`);
   }
 
   private async initializeRLAgents(): Promise<void> {

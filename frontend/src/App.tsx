@@ -258,7 +258,20 @@ const App: React.FC = () => {
     }
 
     const gameDifficulty = difficulty || selectedDifficulty;
-    setStatus('Creating game...');
+    // Instead of showing "Creating game...", immediately set the game state
+    setCurrentPlayer(firstPlayer);
+    setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
+    setWinningLine([]);
+    setHistory([]);
+
+    // Set the appropriate status based on who goes first
+    const currentAI = getAIPersonality(gameDifficulty);
+    setStatus(
+      firstPlayer === 'Red'
+        ? 'Your turn (Red)'
+        : `${currentAI.name} AI is thinking…`
+    );
+
     socket.emit(
       'createGame',
       {
@@ -279,15 +292,7 @@ const App: React.FC = () => {
         }
         if (res.gameId && res.nextPlayer) {
           setGameId(res.gameId);
-          setCurrentPlayer(res.nextPlayer);
-          setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
-          setWinningLine([]);
-          setHistory([]);
-          setStatus(
-            res.nextPlayer === 'Red'
-              ? 'Your turn (Red)'
-              : `${currentAI.name} AI is thinking…`
-          );
+          // Game state is already set above, so we just confirm the gameId
           console.log('✅ Game ready with starting player:', firstPlayer, res.gameId, res.nextPlayer);
         }
       }
@@ -404,7 +409,19 @@ const App: React.FC = () => {
 
     // Create new game directly with determined starting player
     if (socket) {
-      setStatus('Creating new game...');
+      const currentAI = getAIPersonality(aiLevel + 1);
+
+      // Set game state immediately - no "Creating new game..." delay
+      setCurrentPlayer(nextStartingPlayer);
+      setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
+      setWinningLine([]);
+      setHistory([]);
+      setStatus(
+        nextStartingPlayer === 'Red'
+          ? 'Your turn (Red)'
+          : `${currentAI.name} AI is thinking…`
+      );
+
       socket.emit(
         'createGame',
         {
@@ -425,15 +442,7 @@ const App: React.FC = () => {
           }
           if (res.gameId && res.nextPlayer) {
             setGameId(res.gameId);
-            setCurrentPlayer(res.nextPlayer);
-            setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
-            setWinningLine([]);
-            setHistory([]);
-            setStatus(
-              res.nextPlayer === 'Red'
-                ? 'Your turn (Red)'
-                : `${currentAI.name} AI is thinking…`
-            );
+            // Game state is already set above, just confirm the gameId
             console.log('✅ Next level game ready:', res.gameId, res.nextPlayer);
           }
         }
@@ -931,28 +940,62 @@ const App: React.FC = () => {
     return stageNames[curriculumInfo.currentStage] || 'Custom Learning Path';
   };
 
-  // Handler for when the human clicks a column
+  // Enhanced column click handler with debugging
   function onColumnClick(col: number) {
-    if (!socket || !gameId) return;
-    if (status.endsWith('wins!') || status === 'Draw game') return;
-    if (currentPlayer !== 'Red') return;
+    console.log(`🎯 Column ${col} clicked`);
+    console.log('🔍 Current state:', {
+      socket: !!socket,
+      socketConnected: socket?.connected,
+      gameId,
+      currentPlayer,
+      socketId: socket?.id
+    });
 
-    console.log('➡️ human dropDisc at', col);
-    playClick();
-    setCurrentPlayer('Yellow');
-    setStatus(`${currentAI.name} AI is thinking…`);
+    if (!socket) {
+      console.error('❌ No socket connection');
+      setStatus('No connection - please refresh page');
+      return;
+    }
 
-    socket.emit(
-      'dropDisc',
-      { gameId, playerId: 'Red', column: col },
-      (res: { success: boolean; error?: string }) => {
-        if (!res.success) {
-          console.warn('dropDisc error:', res.error);
-          setCurrentPlayer('Red');
-          setStatus(res.error || 'Error occurred');
-        }
-      }
-    );
+    if (!socket.connected) {
+      console.error('❌ Socket not connected');
+      setStatus('Connection lost - reconnecting...');
+
+      // Try to reconnect
+      socket.connect();
+      return;
+    }
+
+    if (!gameId) {
+      console.error('❌ No game ID - creating new game');
+      setStatus('No active game - starting new game...');
+
+      // Create a new game first
+      createGameWithStartingPlayer('Red', selectedDifficulty);
+      return;
+    }
+
+    if (currentPlayer !== 'Red') {
+      console.log(`⏳ Not player's turn (current: ${currentPlayer})`);
+      return;
+    }
+
+    console.log(`🎯 Dropping disc in column ${col} for game ${gameId}`);
+
+    try {
+      socket.emit('dropDisc', {
+        gameId,
+        playerId: 'Red',
+        column: col
+      });
+
+      playClick();
+      console.log(`✅ Move sent to server`);
+
+    } catch (error) {
+      console.error('❌ Failed to send move:', error);
+      setStatus('Failed to send move - please try again');
+    }
   }
 
   // Enhanced landing page with difficulty selection

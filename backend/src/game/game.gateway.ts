@@ -156,7 +156,7 @@ export class GameGateway
       });
 
       // Execute the AI move
-      const aiRes = await this.gameService.dropDisc(gameId, 'Yellow', enhancedAIResult.column);
+      const aiRes = await this.gameService.dropDisc(gameId, 'AI', enhancedAIResult.column);
       if (!aiRes.success) {
         this.logger.error(`[${gameId}] AI move failed: ${aiRes.error}`);
         this.server.to(gameId).emit('error', {
@@ -226,7 +226,7 @@ export class GameGateway
         }
 
         const fallbackAI = await this.gameAi.getNextMove(fallbackGame.board, 'Yellow', playerId);
-        const fallbackRes = await this.gameService.dropDisc(gameId, 'Yellow', fallbackAI);
+        const fallbackRes = await this.gameService.dropDisc(gameId, 'AI', fallbackAI);
 
         if (fallbackRes.success) {
           this.server.to(gameId).emit('aiMove', {
@@ -263,7 +263,7 @@ export class GameGateway
     @ConnectedSocket() client: Socket
   ): Promise<void> {
     const { gameId, playerId, column } = payload;
-    
+
     try {
       if (!gameId || !playerId || column === undefined) {
         throw new Error('gameId, playerId, and column are required');

@@ -1,85 +1,44 @@
-// backend/src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe, Logger } from '@nestjs/common';
-import { IoAdapter } from '@nestjs/platform-socket.io';
-import { ServerOptions } from 'socket.io';
-import * as express from 'express';
+import { Logger } from '@nestjs/common';
 import { join } from 'path';
-
-// Custom adapter to restrict transports to WebSocket only
-class WSOnlyIoAdapter extends IoAdapter {
-  createIOServer(portOrOptions: any, options?: ServerOptions) {
-    // Supply a default path and restrict to 'websocket' transport
-    const opts: ServerOptions = {
-      path: options?.path ?? '/socket.io',
-      transports: ['websocket'],
-      ...(options || {}),
-    } as ServerOptions;
-    return super.createIOServer(portOrOptions, opts);
-  }
-}
+import * as express from 'express';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   try {
-    logger.log('🚀 Initializing application...');
+    logger.log('🚀 Starting Connect Four Backend with Frontend...');
 
     const app = await NestFactory.create(AppModule, {
-      logger: ['log', 'warn', 'error'],
+      logger: ['error', 'warn', 'log'],
     });
 
-    logger.log('✅ Application initialized.');
+    // Enable CORS
+    app.enableCors({
+      origin: ['http://localhost:3000', 'http://localhost:3001'],
+      credentials: true,
+    });
 
-    // --- Middleware and Configuration ---
-    app.enableCors({ origin: '*', methods: ['GET', 'POST'], credentials: true });
-    app.useGlobalPipes(
-      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
-    );
-    app.useWebSocketAdapter(new WSOnlyIoAdapter(app));
-
-    // Set global prefix for all API routes
+    // Set API prefix
     app.setGlobalPrefix('api');
+    logger.log('✅ API prefix set to /api');
 
-    // --- Static File Serving ---
-    const httpAdapter = app.getHttpAdapter();
-    const expressApp = httpAdapter.getInstance() as express.Application;
-    const distPath = join(__dirname, '..', '..', 'frontend', 'build');
-    expressApp.use(express.static(distPath));
-    expressApp.use((req, res, next) => {
-      if (req.url.startsWith('/socket.io') || req.url.startsWith('/api')) {
-        return next();
-      }
-      res.sendFile(join(distPath, 'index.html'));
-    });
+    // Serve frontend static files
+    const frontendPath = join(__dirname, '..', '..', 'frontend', 'build');
+    app.use(express.static(frontendPath));
+    logger.log('✅ Frontend static files served from: ' + frontendPath);
 
-    // --- Robust Port Handling & Server Start ---
-    const startServer = async () => {
-      let port = parseInt(process.env.PORT, 10) || 3000;
-      const maxRetries = 10;
-      for (let i = 0; i < maxRetries; i++) {
-        try {
-          await app.listen(port);
-          logger.log(`🚀 Server is running on http://localhost:${port}`);
-          return; // Success
-        } catch (error) {
-          if (error.code === 'EADDRINUSE') {
-            logger.warn(`Port ${port} is in use. Trying next port...`);
-            port++;
-          } else {
-            throw error; // Re-throw other errors
-          }
-        }
-      }
-      throw new Error(`Could not find an open port after ${maxRetries} retries.`);
-    };
-
-    await startServer();
+    // Start server
+    await app.listen(3000);
+    logger.log('🚀 Connect Four Backend + Frontend running on http://localhost:3000');
+    logger.log('💚 Health check: http://localhost:3000/api/health');
+    logger.log('🎮 Game ready at: http://localhost:3000');
 
   } catch (error) {
-    logger.error('❌ Failed to bootstrap the application.', error.stack);
+    logger.error('💥 Bootstrap failed:', error.message);
     process.exit(1);
   }
 }
+
 bootstrap();
