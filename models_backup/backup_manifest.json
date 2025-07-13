@@ -1,0 +1,729 @@
+{
+  "backup_created": "2025-07-13T00:05:11Z",
+  "project_root": "/Users/derekjrussell/Documents/repos/ConnectFourGame",
+  "git_commit": "5ea440085eda3853aa72d525c42e8b7771836006",
+  "git_branch": "main",
+  "files": [
+    {
+      "filename": "best_policy_net.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/best_policy_net.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": true
+    },
+    {
+      "filename": "current_policy_net.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/current_policy_net.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": true
+    },
+    {
+      "filename": "fine_tuned_20250424T085128Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250424T085128Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250424T085509Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250424T085509Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250424T092452Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250424T092452Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250424T191506Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250424T191506Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250504T094420Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250504T094420Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250504T094524Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250504T094524Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T215820Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T215820Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T215928Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T215928Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T220032Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T220032Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T220136Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T220136Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T220241Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T220241Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T220345Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T220345Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T220452Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T220452Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T220556Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T220556Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T220701Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T220701Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T220807Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T220807Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T220913Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T220913Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T221022Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T221022Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T221131Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T221131Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T221235Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T221235Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T221345Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T221345Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T221451Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T221451Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T221604Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T221604Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T221736Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T221736Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T221915Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T221915Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T222021Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T222021Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T222147Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T222147Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T222302Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T222302Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T222410Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T222410Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T222525Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T222525Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T222630Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T222630Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T222736Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T222736Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T222846Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T222846Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T222950Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T222950Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T223055Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T223055Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T223159Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T223159Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T223304Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T223304Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T223410Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T223410Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T223517Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T223517Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T223705Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T223705Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T223830Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T223830Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T223942Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T223942Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T224103Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T224103Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T224209Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T224209Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T224316Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T224316Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T224422Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T224422Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T224532Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T224532Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T224648Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T224648Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T224756Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T224756Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T224921Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T224921Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T225026Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T225026Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T225131Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T225131Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T225236Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T225236Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T225344Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T225344Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T225452Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T225452Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T225612Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T225612Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T225828Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T225828Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T225948Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T225948Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T230057Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T230057Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T230210Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T230210Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T230324Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T230324Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T230518Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T230518Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T230637Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T230637Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T230753Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T230753Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T230906Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T230906Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T231037Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T231037Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T231208Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T231208Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T231401Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T231401Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T231523Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T231523Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T231640Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T231640Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T231826Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T231826Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T231942Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T231942Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T232100Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T232100Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T232236Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T232236Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T232347Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T232347Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T232452Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T232452Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T232558Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T232558Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T232737Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T232737Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T232848Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T232848Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T233001Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T233001Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T233110Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T233110Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T233214Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T233214Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T233320Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T233320Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T233428Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T233428Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T233633Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T233633Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T233741Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T233741Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T233931Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T233931Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T234043Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T234043Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T234147Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T234147Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T234252Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T234252Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T234358Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T234358Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T234506Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T234506Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T234612Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T234612Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T234719Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T234719Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T234825Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T234825Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T234931Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T234931Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T235035Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T235035Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T235140Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T235140Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T235244Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T235244Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T235348Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T235348Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    },
+    {
+      "filename": "fine_tuned_20250711T235452Z.pt",
+      "path": "/Users/derekjrussell/Documents/repos/ConnectFourGame/models/fine_tuned_20250711T235452Z.pt",
+      "size_bytes": 132,
+      "md5_hash": "ea8d44c9151b5e229e00e6f94b2ffb5f",
+      "backed_up": false
+    }
+  ]
+}
