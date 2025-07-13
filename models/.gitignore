@@ -1,0 +1,23 @@
+# Ignore all PyTorch model files
+*.pt
+*.pth
+*.ckpt
+
+# Ignore training snapshots and fine-tuned models
+fine_tuned_*
+checkpoint_*
+snapshot_*
+
+# Keep only essential production models (if any)
+# Uncomment and modify as needed:
+# !best_policy_net.pt
+# !current_policy_net.pt
+
+# Ignore log files and temporary files
+*.log
+*.tmp
+*.temp
+
+# Ignore backup files
+*.bak
+backup_* 
