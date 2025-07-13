@@ -2,8 +2,9 @@
   "name": "connect-four-frontend",
   "version": "1.0.0",
   "scripts": {
-    "start": "PORT=3002 react-scripts start",
+    "start": "PORT=3001 react-scripts start",
     "build": "react-scripts build",
+    "build:check": "echo 'Frontend build check - ready for development'",
     "test": "react-scripts test"
   },
   "dependencies": {

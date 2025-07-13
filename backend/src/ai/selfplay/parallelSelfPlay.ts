@@ -280,15 +280,86 @@ export class AutomatedTrainingPipeline {
                 curriculumLearning: this.config.curriculumLearning,
                 populationTraining: true,
                 explainableAI: true,
-                realTimeAdaptation: this.config.adaptiveOpponents
+                realTimeAdaptation: this.config.adaptiveOpponents,
+                constitutionalAI: true,
+                safetyMonitoring: true,
+                opponentModeling: true,
+                multiAgentDebate: true
             },
             performance: {
-                maxThinkingTime: 5000,
+                maxThinkingTime: 2000,
                 multiThreading: true,
-                memoryLimit: this.config.memoryLimit,
+                memoryLimit: 1024,
                 gpuAcceleration: false
+            },
+            drlTraining: {
+                enabled: true,
+                continuousLearning: true,
+                selfPlayEnabled: true,
+                experienceReplaySize: 50000,
+                trainingInterval: 1,
+                evaluationInterval: 100,
+                config: {},
+                backgroundTraining: false,
+                modelVersioning: true,
+                adaptiveRewardShaping: true
             }
         };
+
+        // Configure neural network based on algorithm
+        switch (algorithm) {
+            case 'dqn':
+                baseConfig.neuralNetwork = {
+                    type: 'cnn',
+                    enableTraining: true,
+                    trainingFrequency: 5,
+                    batchSize: this.config.batchSize,
+                    learningRate: this.config.learningRate,
+                    architectureSearch: false
+                };
+                break;
+            case 'ppo':
+            case 'a3c':
+                baseConfig.neuralNetwork = {
+                    type: 'cnn',
+                    enableTraining: true,
+                    trainingFrequency: 10,
+                    batchSize: this.config.batchSize,
+                    learningRate: this.config.learningRate,
+                    architectureSearch: false
+                };
+                break;
+            case 'alphazero':
+                baseConfig.neuralNetwork = {
+                    type: 'resnet',
+                    enableTraining: true,
+                    trainingFrequency: 1,
+                    batchSize: this.config.batchSize,
+                    learningRate: this.config.learningRate,
+                    architectureSearch: true
+                };
+                break;
+            case 'maddpg':
+            case 'qmix':
+                baseConfig.neuralNetwork = {
+                    type: 'attention',
+                    enableTraining: true,
+                    trainingFrequency: 5,
+                    batchSize: this.config.batchSize,
+                    learningRate: this.config.learningRate,
+                    architectureSearch: false
+                };
+                break;
+            default:
+                baseConfig.neuralNetwork = {
+                    type: 'cnn',
+                    enableTraining: true,
+                    trainingFrequency: 10,
+                    batchSize: this.config.batchSize,
+                    learningRate: this.config.learningRate,
+                    architectureSearch: false
+                };
+        }
 
         // Algorithm-specific configurations
         switch (algorithm) {
@@ -313,16 +384,6 @@ export class AutomatedTrainingPipeline {
                         decayRate: 0.995,
                         finalValue: 0.01
                     }
-                };
-                break;
-            case 'ppo':
-            case 'a3c':
-                baseConfig.neuralNetwork = {
-                    type: 'cnn',
-                    enableTraining: true,
-                    trainingFrequency: 10,
-                    batchSize: this.config.batchSize,
-                    learningRate: this.config.learningRate
                 };
                 break;
         }

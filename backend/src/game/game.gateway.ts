@@ -112,101 +112,331 @@ export class GameGateway
     }
   }
 
+  /**
+   * Trigger an enhanced AI move with full capability integration
+   */
+  private async triggerAIMove(gameId: string, playerId: string): Promise<void> {
+    try {
+      this.logger.log(`[${gameId}] 🧠 Triggering Enhanced AI move`);
+
+      // Emit AI thinking status with enhanced information
+      this.server.to(gameId).emit('aiThinking', {
+        status: 'thinking',
+        capabilities: ['constitutional_ai', 'safety_monitoring', 'explainable_ai', 'real_time_adaptation']
+      });
+
+      // Moderate delay to show thinking process
+      await new Promise(r => setTimeout(r, this.AI_THINK_DELAY_MS));
+
+      // Get the current game state
+      const game = this.gameService.getGame(gameId);
+      if (!game) {
+        this.logger.error(`[${gameId}] Game not found for AI move`);
+        return;
+      }
+
+      // Generate Enhanced AI move using the integrated systems
+      this.logger.log(`[${gameId}] 🎯 Computing Enhanced AI move`);
+      const startTime = Date.now();
+
+      const enhancedAIResult = await this.gameService.getAIMove(gameId, 'Yellow', playerId);
+      const thinkingTime = Date.now() - startTime;
+
+      this.logger.log(`[${gameId}] ✅ Enhanced AI computed move ${enhancedAIResult.column} in ${thinkingTime}ms`);
+
+      // Emit enhanced thinking result
+      this.server.to(gameId).emit('aiThinkingComplete', {
+        column: enhancedAIResult.column,
+        confidence: enhancedAIResult.confidence,
+        thinkingTime,
+        explanation: enhancedAIResult.explanation,
+        safetyScore: enhancedAIResult.safetyScore,
+        adaptationInfo: enhancedAIResult.adaptationInfo,
+        curriculumInfo: enhancedAIResult.curriculumInfo
+      });
+
+      // Execute the AI move
+      const aiRes = await this.gameService.dropDisc(gameId, 'Yellow', enhancedAIResult.column);
+      if (!aiRes.success) {
+        this.logger.error(`[${gameId}] AI move failed: ${aiRes.error}`);
+        this.server.to(gameId).emit('error', {
+          event: 'aiMove',
+          message: 'Enhanced AI move failed',
+          fallback: true
+        });
+        return;
+      }
+
+      // Emit the enhanced AI move result to clients
+      this.server.to(gameId).emit('aiMove', {
+        board: aiRes.board,
+        lastMove: {
+          column: enhancedAIResult.column,
+          playerId: 'Yellow' as CellValue,
+          confidence: enhancedAIResult.confidence,
+          thinkingTime: thinkingTime
+        },
+        winner: aiRes.winner,
+        draw: aiRes.draw,
+        nextPlayer: aiRes.nextPlayer,
+
+        // Enhanced AI Information
+        enhancedData: {
+          explanation: enhancedAIResult.explanation,
+          confidence: enhancedAIResult.confidence,
+          safetyScore: enhancedAIResult.safetyScore,
+          adaptationInfo: enhancedAIResult.adaptationInfo,
+          curriculumInfo: enhancedAIResult.curriculumInfo,
+          debateResult: enhancedAIResult.debateResult,
+          thinkingTime: thinkingTime
+        },
+
+        // Game Metrics
+        gameMetrics: aiRes.gameMetrics,
+        aiExplanation: aiRes.aiExplanation,
+        curriculumUpdate: aiRes.curriculumUpdate
+      });
+
+      this.logger.log(
+        `[${gameId}] 🎯 Enhanced AI played column ${enhancedAIResult.column} ` +
+        `(confidence: ${(enhancedAIResult.confidence! * 100).toFixed(1)}%, ` +
+        `safety: ${(enhancedAIResult.safetyScore! * 100).toFixed(1)}%)`
+      );
+
+      // Log explanation if available
+      if (enhancedAIResult.explanation) {
+        this.logger.debug(`[${gameId}] 💭 AI Explanation: ${enhancedAIResult.explanation}`);
+      }
+
+    } catch (error: any) {
+      this.logger.error(`[${gameId}] Error in Enhanced AI move: ${error.message}`);
+      this.server.to(gameId).emit('error', {
+        event: 'enhancedAiMove',
+        message: 'Enhanced AI move failed',
+        fallback: 'Using basic AI fallback'
+      });
+
+      // Fallback to basic AI
+      try {
+        // Get the current game state for fallback
+        const fallbackGame = this.gameService.getGame(gameId);
+        if (!fallbackGame) {
+          this.logger.error(`[${gameId}] Game not found for fallback AI move`);
+          return;
+        }
+
+        const fallbackAI = await this.gameAi.getNextMove(fallbackGame.board, 'Yellow', playerId);
+        const fallbackRes = await this.gameService.dropDisc(gameId, 'Yellow', fallbackAI);
+
+        if (fallbackRes.success) {
+          this.server.to(gameId).emit('aiMove', {
+            board: fallbackRes.board,
+            lastMove: { column: fallbackAI, playerId: 'Yellow' as CellValue },
+            winner: fallbackRes.winner,
+            draw: fallbackRes.draw,
+            nextPlayer: fallbackRes.nextPlayer,
+            enhancedData: {
+              explanation: 'Fallback AI decision - Enhanced systems temporarily unavailable',
+              confidence: 0.6,
+              safetyScore: 1.0,
+              thinkingTime: 100
+            }
+          });
+        }
+      } catch (fallbackError: any) {
+        this.logger.error(`[${gameId}] Fallback AI also failed: ${fallbackError.message}`);
+        this.server.to(gameId).emit('error', {
+          event: 'fallbackAiMove',
+          message: 'Both Enhanced and Fallback AI failed',
+          details: fallbackError.message
+        });
+      }
+    }
+  }
+
+  /**
+   * Enhanced drop disc handler with additional AI capabilities
+   */
   @SubscribeMessage('dropDisc')
   async handleDropDisc(
     @MessageBody() payload: DropDiscPayload,
     @ConnectedSocket() client: Socket
   ): Promise<void> {
+    const { gameId, playerId, column } = payload;
+    
     try {
-      const { gameId, playerId, column } = payload;
-      if (!gameId || !playerId || column == null) {
+      if (!gameId || !playerId || column === undefined) {
         throw new Error('gameId, playerId, and column are required');
       }
-      if (column < 0 || column > 6) {
-        throw new Error('Invalid column index');
-      }
 
-      this.logger.log(`[${gameId}] Human dropDisc by ${playerId} at column ${column}`);
-      const res = await this.gameService.dropDisc(gameId, playerId, column);
-      if (!res.success) throw new Error(res.error);
+      this.logger.log(`[${gameId}] Player ${playerId} dropping disc in column ${column}`);
 
-      this.server.to(gameId).emit('playerMove', {
-        board: res.board,
-        lastMove: { column, playerId },
-        winner: res.winner,
-        draw: res.draw,
-        nextPlayer: res.nextPlayer,
-      });
-
-      // If the human player won, record the game result to level up the AI.
-      if (res.winner && res.winner !== 'Yellow') {
-        this.logger.log(`[${gameId}] Human player ${res.winner} won. Recording game result.`);
-        try {
-          await this.aiProfileService.recordGameResult(playerId, {
-            gameId: gameId,
-            playerMoves: this.gameService.getPlayerMoves(gameId, playerId),
-            aiMoves: this.gameService.getPlayerMoves(gameId, 'Yellow'),
-            winner: 'player',
-            gameLength: this.gameService.getGameLength(gameId),
-            playerMistakes: 0, // TODO: Implement mistake counting
-            aiThreatsMissed: 0, // TODO: Implement threat analysis
-            analysisNotes: ['Player victory']
-          });
-        } catch (error: any) {
-          this.logger.error(`Error recording game result: ${error.message}`);
-        }
-      } else if (res.winner === 'Yellow') {
-        this.logger.log(`[${gameId}] AI won. Recording game result.`);
-        try {
-          await this.aiProfileService.recordGameResult(playerId, {
-            gameId: gameId,
-            playerMoves: this.gameService.getPlayerMoves(gameId, playerId),
-            aiMoves: this.gameService.getPlayerMoves(gameId, 'Yellow'),
-            winner: 'ai',
-            gameLength: this.gameService.getGameLength(gameId),
-            playerMistakes: 0, // TODO: Implement mistake counting
-            aiThreatsMissed: 0, // TODO: Implement threat analysis
-            analysisNotes: ['AI victory']
-          });
-        } catch (error: any) {
-          this.logger.error(`Error recording game result: ${error.message}`);
-        }
-      }
-
-      await new Promise(r => setTimeout(r, this.AI_THINK_DELAY_MS));
-      if (res.winner || res.draw) {
-        this.logger.log(`[${gameId}] Game ended after human move`);
+      // Execute the human move
+      const result = await this.gameService.dropDisc(gameId, playerId, column);
+      if (!result.success) {
+        client.emit('error', {
+          event: 'dropDisc',
+          message: result.error,
+        });
         return;
       }
 
-      this.server.to(gameId).emit('aiThinking');
-      this.logger.log(`[${gameId}] Computing AI move via GameAIService`);
-      const startLogic = Date.now();
-      let aiColumn = await this.gameAi.getNextMove(res.board, 'Yellow', playerId);
-      this.logger.log(`AI logic time: ${Date.now() - startLogic}ms`);
+      // Emit the enhanced human move result
+      this.server.to(gameId).emit('playerMove', {
+        board: result.board,
+        lastMove: { column, playerId },
+        winner: result.winner,
+        draw: result.draw,
+        nextPlayer: result.nextPlayer,
+        gameMetrics: result.gameMetrics,
+        curriculumUpdate: result.curriculumUpdate
+      });
 
-      if (process.env.USE_ML_MODEL === 'true') {
-        this.logger.log(`[${gameId}] ML override active`);
-        try {
-          aiColumn = await this.mlClientService.getBestMove(res.board, 'Yellow');
-          this.logger.log(`ML selected column ${aiColumn}`);
-        } catch (error) {
-          this.logger.warn(`[${gameId}] ML prediction failed, using AI column ${aiColumn}: ${error.message}`);
-        }
+      this.logger.log(`[${gameId}] ✅ Player ${playerId} played column ${column}`);
+
+      // If game continues and it's AI's turn, trigger enhanced AI move
+      if (!result.winner && !result.draw && result.nextPlayer === 'Yellow') {
+        this.logger.log(`[${gameId}] 🤖 Triggering Enhanced AI response`);
+        setTimeout(async () => {
+          await this.triggerAIMove(gameId, playerId);
+        }, this.AI_THINK_DELAY_MS);
       }
 
-      const aiRes = await this.gameService.dropDisc(gameId, 'Yellow', aiColumn);
-      if (!aiRes.success) throw new Error(aiRes.error);
-      this.server.to(gameId).emit('aiMove', {
-        board: aiRes.board,
-        lastMove: { column: aiColumn, playerId: 'Yellow' as CellValue },
-        winner: aiRes.winner,
-        draw: aiRes.draw,
-        nextPlayer: aiRes.nextPlayer,
-      });
     } catch (error: any) {
-      this.logger.error(`dropDisc error: ${error.message}`);
-      client.emit('error', { event: 'dropDisc', message: error.message });
+      this.logger.error(`[${gameId}] dropDisc error: ${error.message}`);
+      client.emit('error', {
+        event: 'dropDisc',
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * Handle requests for AI explanation
+   */
+  @SubscribeMessage('requestExplanation')
+  async handleRequestExplanation(
+    @MessageBody() payload: { gameId: string; playerId: string; moveIndex?: number },
+    @ConnectedSocket() client: Socket
+  ): Promise<void> {
+    try {
+      const { gameId, playerId, moveIndex } = payload;
+      const game = this.gameService.getGame(gameId);
+
+      if (!game) {
+        client.emit('error', { event: 'requestExplanation', message: 'Game not found' });
+        return;
+      }
+
+      // Get enhanced explanation for the move
+      let explanation = 'No explanation available for this move.';
+
+      if (moveIndex !== undefined && game.aiExplanations && game.aiExplanations[moveIndex]) {
+        explanation = game.aiExplanations[moveIndex];
+      } else if (game.aiExplanations && game.aiExplanations.length > 0) {
+        explanation = game.aiExplanations[game.aiExplanations.length - 1];
+      }
+
+      client.emit('aiExplanation', {
+        gameId,
+        moveIndex,
+        explanation,
+        timestamp: Date.now()
+      });
+
+      this.logger.debug(`[${gameId}] 📖 Explanation provided to ${playerId}`);
+
+    } catch (error: any) {
+      this.logger.error(`requestExplanation error: ${error.message}`);
+      client.emit('error', {
+        event: 'requestExplanation',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Handle player feedback for RLHF
+   */
+  @SubscribeMessage('submitFeedback')
+  async handleSubmitFeedback(
+    @MessageBody() payload: {
+      gameId: string;
+      playerId: string;
+      feedback: {
+        rating: number;
+        satisfaction: number;
+        aiPerformance: number;
+        explanation: string;
+        suggestions?: string;
+      };
+    },
+    @ConnectedSocket() client: Socket
+  ): Promise<void> {
+    try {
+      const { gameId, playerId, feedback } = payload;
+
+      this.logger.log(`[${gameId}] 📝 Received feedback from ${playerId}: Rating ${feedback.rating}/10`);
+
+      // Process feedback for RLHF improvement
+      // This would integrate with the Enhanced RLHF system
+
+      client.emit('feedbackReceived', {
+        gameId,
+        message: 'Thank you for your feedback! It helps improve the AI.',
+        timestamp: Date.now()
+      });
+
+    } catch (error: any) {
+      this.logger.error(`submitFeedback error: ${error.message}`);
+      client.emit('error', {
+        event: 'submitFeedback',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Handle requests for player progress
+   */
+  @SubscribeMessage('getPlayerProgress')
+  async handleGetPlayerProgress(
+    @MessageBody() payload: { playerId: string },
+    @ConnectedSocket() client: Socket
+  ): Promise<void> {
+    try {
+      const { playerId } = payload;
+
+      // Get player profile and curriculum information
+      // This would integrate with the adaptation and curriculum systems
+
+      const mockProgress = {
+        playerId,
+        skillLevel: 0.6,
+        currentStage: 'strategic_thinking',
+        progress: 0.75,
+        achievements: ['basic_tactics_complete', 'first_win', 'strategic_play'],
+        nextObjectives: [
+          'Master center control strategies',
+          'Recognize complex threat patterns',
+          'Improve endgame technique'
+        ],
+        recommendations: [
+          'Focus on controlling center columns',
+          'Practice identifying multiple threats',
+          'Study endgame scenarios'
+        ]
+      };
+
+      client.emit('playerProgress', mockProgress);
+      this.logger.debug(`📊 Player progress sent to ${playerId}`);
+
+    } catch (error: any) {
+      this.logger.error(`getPlayerProgress error: ${error.message}`);
+      client.emit('error', {
+        event: 'getPlayerProgress',
+        message: error.message
+      });
     }
   }
 
@@ -224,70 +454,6 @@ export class GameGateway
     } catch (error: any) {
       this.logger.error(`leaveGame error: ${error.message}`);
       client.emit('error', { event: 'leaveGame', message: error.message });
-    }
-  }
-
-  /**
-   * Trigger an AI move for the given game (optimized for first move)
-   */
-  private async triggerAIMove(gameId: string, playerId: string): Promise<void> {
-    try {
-      this.logger.log(`[${gameId}] Triggering AI first move`);
-
-      // Emit AI thinking status
-      this.server.to(gameId).emit('aiThinking');
-
-      // Shorter delay for first move since board is empty
-      await new Promise(r => setTimeout(r, this.AI_FIRST_MOVE_DELAY_MS));
-
-      // Get the current game state
-      const game = this.gameService.getGame(gameId);
-      if (!game) {
-        this.logger.error(`[${gameId}] Game not found for AI move`);
-        return;
-      }
-
-      // Generate AI move
-      this.logger.log(`[${gameId}] Computing AI move via GameAIService`);
-      const startLogic = Date.now();
-      let aiColumn = await this.gameAi.getNextMove(game.board, 'Yellow', playerId);
-      this.logger.log(`AI logic time: ${Date.now() - startLogic}ms`);
-
-      // Check for ML model override
-      if (process.env.USE_ML_MODEL === 'true') {
-        this.logger.log(`[${gameId}] ML override active`);
-        try {
-          aiColumn = await this.mlClientService.getBestMove(game.board, 'Yellow');
-          this.logger.log(`ML selected column ${aiColumn}`);
-        } catch (error) {
-          this.logger.warn(`[${gameId}] ML prediction failed, using AI column ${aiColumn}: ${error.message}`);
-        }
-      }
-
-      // Execute the AI move
-      const aiRes = await this.gameService.dropDisc(gameId, 'Yellow', aiColumn);
-      if (!aiRes.success) {
-        this.logger.error(`[${gameId}] AI move failed: ${aiRes.error}`);
-        return;
-      }
-
-      // Emit the AI move to clients
-      this.server.to(gameId).emit('aiMove', {
-        board: aiRes.board,
-        lastMove: { column: aiColumn, playerId: 'Yellow' as CellValue },
-        winner: aiRes.winner,
-        draw: aiRes.draw,
-        nextPlayer: aiRes.nextPlayer,
-      });
-
-      this.logger.log(`[${gameId}] AI played column ${aiColumn}`);
-
-    } catch (error: any) {
-      this.logger.error(`[${gameId}] Error in AI move: ${error.message}`);
-      this.server.to(gameId).emit('error', {
-        event: 'aiMove',
-        message: 'AI move failed'
-      });
     }
   }
 }

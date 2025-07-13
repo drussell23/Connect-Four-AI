@@ -228,7 +228,8 @@ export class OptimizerDemo {
                 enableTraining: true,
                 trainingFrequency: 10,
                 batchSize: this.config.training.batchSize,
-                learningRate: 0.001
+                learningRate: 0.001,
+                architectureSearch: false
             },
             optimizers: {
                 adamW: { enabled: false, preset: 'custom', config: {} },
@@ -240,18 +241,26 @@ export class OptimizerDemo {
                     performanceMonitoring: false,
                     autoTuning: false
                 }
+            },
+            drlTraining: {
+                enabled: true,
+                continuousLearning: true,
+                selfPlayEnabled: false,
+                experienceReplaySize: 10000,
+                trainingInterval: 1,
+                evaluationInterval: 100,
+                config: {},
+                backgroundTraining: false,
+                modelVersioning: false,
+                adaptiveRewardShaping: false
             }
         };
 
-        return await this.runTrainingScenario(
-            'Basic Training',
-            'Neural network training without optimizers',
-            config
-        );
+        return this.runTrainingScenario('Basic Training', 'Training without optimizers', config);
     }
 
     /**
-     * Scenario 2: Optimized Training (All Optimizers Enabled)
+     * Scenario 2: Optimized Training (All Optimizers)
      */
     private async runOptimizedTraining(): Promise<DemoScenarioResult> {
         const config: Partial<UltimateAIConfig> = {
@@ -261,228 +270,175 @@ export class OptimizerDemo {
                 enableTraining: true,
                 trainingFrequency: 10,
                 batchSize: this.config.training.batchSize,
-                learningRate: 0.001
+                learningRate: 0.001,
+                architectureSearch: false
             },
             optimizers: {
-                adamW: {
-                    enabled: true,
-                    preset: 'neuralNetwork',
-                    config: {
-                        learningRate: 0.001,
-                        weightDecay: 0.01,
-                        gradientClipping: { enabled: true, maxNorm: 1.0, normType: 'l2' }
-                    }
-                },
-                entropyRegularizer: {
-                    enabled: true,
-                    preset: 'policyGradient',
-                    config: {
-                        initialCoefficient: 0.01,
-                        targetEntropy: -1.0
-                    }
-                },
-                learningRateScheduler: {
-                    enabled: true,
-                    preset: 'cosineAnnealing',
-                    config: {
-                        baseLearningRate: 0.001,
-                        warmup: {
-                            enabled: true,
-                            steps: 100,
-                            startFactor: 0.1,
-                            endFactor: 1.0,
-                            method: 'linear' as const
-                        }
-                    }
-                },
+                adamW: { enabled: true, preset: 'neuralNetwork', config: {} },
+                entropyRegularizer: { enabled: true, preset: 'policyGradient', config: {} },
+                learningRateScheduler: { enabled: true, preset: 'neuralNetwork', config: {} },
                 integration: {
                     adaptiveOptimization: true,
                     crossOptimizerLearning: true,
                     performanceMonitoring: true,
                     autoTuning: true
                 }
+            },
+            drlTraining: {
+                enabled: true,
+                continuousLearning: true,
+                selfPlayEnabled: false,
+                experienceReplaySize: 10000,
+                trainingInterval: 1,
+                evaluationInterval: 100,
+                config: {},
+                backgroundTraining: false,
+                modelVersioning: false,
+                adaptiveRewardShaping: false
             }
         };
 
-        return await this.runTrainingScenario(
-            'Optimized Training',
-            'Neural network training with all optimizers enabled',
-            config
-        );
+        return this.runTrainingScenario('Optimized Training', 'Training with all optimizers enabled', config);
     }
 
     /**
-     * Scenario 3: Comparative Analysis
+     * Scenario 3: Comparative Analysis (Different Optimizer Combinations)
      */
     private async runComparativeAnalysis(): Promise<DemoScenarioResult> {
         const scenarios = [
-            { name: 'No Optimizers', optimizers: false },
-            { name: 'AdamW Only', optimizers: { adamW: true } },
-            { name: 'Entropy Only', optimizers: { entropy: true } },
-            { name: 'LR Scheduler Only', optimizers: { scheduler: true } },
-            { name: 'All Optimizers', optimizers: true }
+            {
+                name: 'AdamW Only',
+                config: {
+                    primaryStrategy: 'dqn' as const,
+                    neuralNetwork: {
+                        type: 'cnn' as const,
+                        enableTraining: true,
+                        trainingFrequency: 10,
+                        batchSize: this.config.training.batchSize,
+                        learningRate: 0.001,
+                        architectureSearch: false
+                    },
+                    optimizers: {
+                        adamW: { enabled: true, preset: 'neuralNetwork' as const, config: {} },
+                        entropyRegularizer: { enabled: false, preset: 'custom' as const, config: {} },
+                        learningRateScheduler: { enabled: false, preset: 'custom' as const, config: {} },
+                        integration: {
+                            adaptiveOptimization: false,
+                            crossOptimizerLearning: false,
+                            performanceMonitoring: false,
+                            autoTuning: false
+                        }
+                    }
+                }
+            },
+            {
+                name: 'Entropy Regularization Only',
+                config: {
+                    primaryStrategy: 'dqn' as const,
+                    neuralNetwork: {
+                        type: 'cnn' as const,
+                        enableTraining: true,
+                        trainingFrequency: 10,
+                        batchSize: this.config.training.batchSize,
+                        learningRate: 0.001,
+                        architectureSearch: false
+                    },
+                    optimizers: {
+                        adamW: { enabled: false, preset: 'custom' as const, config: {} },
+                        entropyRegularizer: { enabled: true, preset: 'policyGradient' as const, config: {} },
+                        learningRateScheduler: { enabled: false, preset: 'custom' as const, config: {} },
+                        integration: {
+                            adaptiveOptimization: false,
+                            crossOptimizerLearning: false,
+                            performanceMonitoring: false,
+                            autoTuning: false
+                        }
+                    }
+                }
+            },
+            {
+                name: 'Learning Rate Scheduler Only',
+                config: {
+                    primaryStrategy: 'dqn' as const,
+                    neuralNetwork: {
+                        type: 'cnn' as const,
+                        enableTraining: true,
+                        trainingFrequency: 10,
+                        batchSize: this.config.training.batchSize,
+                        learningRate: 0.001,
+                        architectureSearch: false
+                    },
+                    optimizers: {
+                        adamW: { enabled: false, preset: 'custom' as const, config: {} },
+                        entropyRegularizer: { enabled: false, preset: 'custom' as const, config: {} },
+                        learningRateScheduler: { enabled: true, preset: 'neuralNetwork' as const, config: {} },
+                        integration: {
+                            adaptiveOptimization: false,
+                            crossOptimizerLearning: false,
+                            performanceMonitoring: false,
+                            autoTuning: false
+                        }
+                    }
+                }
+            }
         ];
 
-        const results: any[] = [];
+        // Run all scenarios and find the best performing one
+        let bestResult: DemoScenarioResult | null = null;
+        let bestPerformance = Infinity;
 
         for (const scenario of scenarios) {
-            console.log(`  📊 Testing: ${scenario.name}`);
+            const result = await this.runTrainingScenario(scenario.name, `Comparative analysis: ${scenario.name}`, scenario.config);
 
-            const config: Partial<UltimateAIConfig> = {
-                primaryStrategy: 'dqn',
-                neuralNetwork: {
-                    type: 'cnn',
-                    enableTraining: true,
-                    trainingFrequency: 10,
-                    batchSize: this.config.training.batchSize,
-                    learningRate: 0.001
-                },
-                optimizers: this.getOptimizerConfig(scenario.optimizers)
-            };
-
-            const result = await this.runTrainingScenario(
-                scenario.name,
-                `Comparative test: ${scenario.name}`,
-                config,
-                this.config.training.epochs / 2 // Shorter runs for comparison
-            );
-
-            results.push({
-                name: scenario.name,
-                finalLoss: result.performance.finalLoss,
-                convergenceSteps: result.performance.convergenceSteps,
-                averageReward: result.performance.averageReward
-            });
+            if (result.performance.finalLoss < bestPerformance) {
+                bestPerformance = result.performance.finalLoss;
+                bestResult = result;
+            }
         }
 
-        // Analyze results
-        const bestResult = results.reduce((best, current) =>
-            current.finalLoss < best.finalLoss ? current : best
-        );
-
-        return {
-            name: 'Comparative Analysis',
-            description: 'Performance comparison across different optimizer configurations',
-            duration: 0,
-            performance: {
-                finalLoss: bestResult.finalLoss,
-                convergenceSteps: bestResult.convergenceSteps,
-                averageReward: bestResult.averageReward,
-                explorationRate: 0.5,
-                stabilityScore: 0.9
-            },
-            optimizerMetrics: {
-                adamW: { comparative: results },
-                entropyRegularizer: {},
-                learningRateScheduler: {}
-            },
-            visualizations: {
-                lossHistory: results.map(r => r.finalLoss),
-                learningRateHistory: [],
-                entropyHistory: [],
-                performanceHistory: results.map(r => r.averageReward)
-            }
-        };
+        return bestResult!;
     }
 
     /**
-     * Scenario 4: Adaptive Optimization
+     * Scenario 4: Adaptive Optimization (Dynamic Optimizer Selection)
      */
     private async runAdaptiveOptimization(): Promise<DemoScenarioResult> {
         const config: Partial<UltimateAIConfig> = {
-            primaryStrategy: 'hybrid',
+            primaryStrategy: 'dqn',
             neuralNetwork: {
                 type: 'ensemble',
                 enableTraining: true,
                 trainingFrequency: 5,
                 batchSize: this.config.training.batchSize,
-                learningRate: 0.001
+                learningRate: 0.001,
+                architectureSearch: false
             },
             optimizers: {
-                adamW: {
-                    enabled: true,
-                    preset: 'custom',
-                    config: {
-                        learningRate: 0.001,
-                        amsgrad: true,
-                        trackStatistics: true
-                    }
-                },
-                entropyRegularizer: {
-                    enabled: true,
-                    preset: 'custom',
-                    config: {
-                        schedule: {
-                            type: 'adaptive',
-                            startStep: 0,
-                            endStep: 100000,
-                            minCoefficient: 0.001,
-                            maxCoefficient: 0.1,
-                            decayRate: 0.995
-                        },
-                        adaptive: {
-                            enabled: true,
-                            targetKLDivergence: 0.01,
-                            adaptationRate: 0.001,
-                            windowSize: 100,
-                            toleranceRange: 0.1
-                        }
-                    }
-                },
-                learningRateScheduler: {
-                    enabled: true,
-                    preset: 'adaptive',
-                    config: {
-                        strategy: {
-                            type: 'plateau',
-                            stepSize: 1000,
-                            stepGamma: 0.9,
-                            exponentialGamma: 0.95,
-                            cosineT0: 10000,
-                            cosineTMult: 2.0,
-                            cosineEtaMin: 0.00001,
-                            polynomialPower: 1.0,
-                            polynomialTotalSteps: 100000,
-                            cyclicBaseLr: 0.0001,
-                            cyclicMaxLr: 0.01,
-                            cyclicStepSize: 2000,
-                            cyclicMode: 'triangular' as const,
-                            cyclicGamma: 1.0,
-                            oneCycleMaxLr: 0.01,
-                            oneCycleTotalSteps: 100000,
-                            oneCyclePctStart: 0.25,
-                            oneCycleAnnealStrategy: 'cos' as const,
-                            oneCycleDivFactor: 25.0,
-                            oneCycleFinalDivFactor: 10000.0,
-                            plateauMode: 'min' as const,
-                            plateauFactor: 0.1,
-                            plateauPatience: 10,
-                            plateauThreshold: 0.0001,
-                            plateauThresholdMode: 'rel' as const,
-                            plateauCooldown: 0,
-                            plateauMinLr: 0.00001,
-                            adaptiveMetric: 'loss' as const,
-                            adaptivePatience: 5,
-                            adaptiveFactor: 0.5,
-                            adaptiveMinLr: 0.00001,
-                            adaptiveMaxLr: 0.1
-                        }
-                    }
-                },
+                adamW: { enabled: true, preset: 'neuralNetwork', config: {} },
+                entropyRegularizer: { enabled: true, preset: 'policyGradient', config: {} },
+                learningRateScheduler: { enabled: true, preset: 'adaptive', config: {} },
                 integration: {
                     adaptiveOptimization: true,
                     crossOptimizerLearning: true,
                     performanceMonitoring: true,
                     autoTuning: true
                 }
+            },
+            drlTraining: {
+                enabled: true,
+                continuousLearning: true,
+                selfPlayEnabled: true,
+                experienceReplaySize: 20000,
+                trainingInterval: 1,
+                evaluationInterval: 50,
+                config: {},
+                backgroundTraining: true,
+                modelVersioning: true,
+                adaptiveRewardShaping: true
             }
         };
 
-        return await this.runTrainingScenario(
-            'Adaptive Optimization',
-            'Advanced adaptive optimization with dynamic parameter adjustment',
-            config
-        );
+        return this.runTrainingScenario('Adaptive Optimization', 'Dynamic optimizer selection based on performance', config);
     }
 
     /**
@@ -490,64 +446,41 @@ export class OptimizerDemo {
      */
     private async runCrossOptimizerIntegration(): Promise<DemoScenarioResult> {
         const config: Partial<UltimateAIConfig> = {
-            primaryStrategy: 'ensemble',
+            primaryStrategy: 'hybrid',
             neuralNetwork: {
                 type: 'ensemble',
                 enableTraining: true,
                 trainingFrequency: 5,
                 batchSize: this.config.training.batchSize,
-                learningRate: 0.001
+                learningRate: 0.001,
+                architectureSearch: false
             },
             optimizers: {
-                adamW: {
-                    enabled: true,
-                    preset: 'highPerformance',
-                    config: {
-                        precision: 'float32',
-                        trackStatistics: true
-                    }
-                },
-                entropyRegularizer: {
-                    enabled: true,
-                    preset: 'highExploration',
-                    config: {
-                        monitoring: {
-                            enabled: true,
-                            trackDiversity: true,
-                            logInterval: 1000,
-                            trackConvergence: true,
-                            historySize: 10000
-                        }
-                    }
-                },
-                learningRateScheduler: {
-                    enabled: true,
-                    preset: 'oneCycle',
-                    config: {
-                        monitoring: {
-                            enabled: true,
-                            trackMetrics: true,
-                            logInterval: 1000,
-                            trackGradients: true,
-                            historySize: 10000,
-                            saveCheckpoints: false
-                        }
-                    }
-                },
+                adamW: { enabled: true, preset: 'highPerformance', config: {} },
+                entropyRegularizer: { enabled: true, preset: 'highExploration', config: {} },
+                learningRateScheduler: { enabled: true, preset: 'oneCycle', config: {} },
                 integration: {
                     adaptiveOptimization: true,
                     crossOptimizerLearning: true,
                     performanceMonitoring: true,
                     autoTuning: true
                 }
+            },
+            drlTraining: {
+                enabled: true,
+                continuousLearning: true,
+                selfPlayEnabled: true,
+                experienceReplaySize: 50000,
+                trainingInterval: 1,
+                evaluationInterval: 25,
+                config: {},
+                backgroundTraining: true,
+                modelVersioning: true,
+                adaptiveRewardShaping: true
             }
         };
 
-        return await this.runTrainingScenario(
-            'Cross-Optimizer Integration',
-            'Advanced integration with cross-optimizer communication and learning',
-            config
-        );
+        return this.runTrainingScenario('Cross-Optimizer Integration', 'Full integration with cross-optimizer learning', config);
     }
 
     /**

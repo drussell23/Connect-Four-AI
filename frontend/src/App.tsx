@@ -49,6 +49,25 @@ const App: React.FC = () => {
   const [showNightmareNotification, setShowNightmareNotification] = useState<boolean>(false);
   const [currentStreak, setCurrentStreak] = useState<number>(0);
 
+  // Enhanced AI state
+  const [aiExplanation, setAiExplanation] = useState<string>('');
+  const [aiConfidence, setAiConfidence] = useState<number>(0);
+  const [aiSafetyScore, setAiSafetyScore] = useState<number>(1.0);
+  const [aiThinkingTime, setAiThinkingTime] = useState<number>(0);
+  const [showAiInsights, setShowAiInsights] = useState<boolean>(false);
+  const [gameMetrics, setGameMetrics] = useState<any>({
+    totalThinkingTime: 0,
+    averageConfidence: 0,
+    safetyScore: 1.0,
+    adaptationScore: 0.5,
+    explainabilityScore: 0.8
+  });
+  const [playerProgress, setPlayerProgress] = useState<any>(null);
+  const [aiAdaptationInfo, setAiAdaptationInfo] = useState<any>(null);
+  const [curriculumInfo, setCurriculumInfo] = useState<any>(null);
+  const [debateResult, setDebateResult] = useState<any>(null);
+  const [enhancedAiEnabled, setEnhancedAiEnabled] = useState<boolean>(true);
+
   // Player statistics
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
     wins: 0,
@@ -421,7 +440,7 @@ const App: React.FC = () => {
       );
     } else {
       // Fallback to full initialization if no socket
-    handlePlayAgain();
+      handlePlayAgain();
     }
   };
 
@@ -563,8 +582,8 @@ const App: React.FC = () => {
     apiSocket.on('connect', () => {
       console.log('🔗 connected, id=', apiSocket.id);
       // Don't create game immediately - let loading complete first
-            setShowLoadingProgress(false);
-            setIsInitializing(false);
+      setShowLoadingProgress(false);
+      setIsInitializing(false);
       setStatus('Connection ready - click to start');
     });
 
@@ -627,54 +646,70 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on(
-      'playerMove',
-      (data: {
-        board: CellValue[][];
-        lastMove: { column: number; playerId: string };
-        nextPlayer: CellValue;
-        winner?: CellValue;
-        draw?: boolean;
-        winningLine?: [number, number][];
-      }) => {
-        console.log('⬅️ playerMove', data);
-        setBoard(data.board);
-        playDrop();
-        setWinningLine(data.winningLine || []);
-        setHistory(prev => [...prev, {
-          player: data.lastMove.playerId as CellValue,
-          column: data.lastMove.column
-        }]);
-
-        if (data.winner) {
-          setStatus(`${data.winner} wins!`);
-          return;
-        }
-        if (data.draw) {
-          setStatus('Draw game');
-          return;
-        }
-
+    // Enhanced AI thinking with capabilities
+    socket.on('aiThinking', (data?: { status: string; capabilities: string[] }) => {
+      const currentAI = getAIPersonality(aiLevel);
+      if (data?.capabilities) {
+        setStatus(`${currentAI.name} AI is analyzing (${data.capabilities.length} advanced systems active)...`);
+      } else {
         setStatus(`${currentAI.name} AI is thinking…`);
-        setCurrentPlayer('Yellow');
       }
-    );
-
-    socket.on('aiThinking', () => {
-      setStatus(`${currentAI.name} AI is thinking…`);
     });
 
+    // Enhanced AI thinking complete
+    socket.on('aiThinkingComplete', (data: {
+      column: number;
+      confidence: number;
+      thinkingTime: number;
+      explanation?: string;
+      safetyScore?: number;
+      adaptationInfo?: any;
+      curriculumInfo?: any;
+    }) => {
+      console.log('⬅️ aiThinkingComplete', data);
+      setAiConfidence(data.confidence || 0);
+      setAiThinkingTime(data.thinkingTime || 0);
+      setAiSafetyScore(data.safetyScore || 1.0);
+      if (data.explanation) {
+        setAiExplanation(data.explanation);
+      }
+      if (data.adaptationInfo) {
+        setAiAdaptationInfo(data.adaptationInfo);
+      }
+      if (data.curriculumInfo) {
+        setCurriculumInfo(data.curriculumInfo);
+      }
+    });
+
+    // Enhanced AI move with comprehensive data
     socket.on(
       'aiMove',
       (data: {
         board: CellValue[][];
-        lastMove: { column: number; playerId: string };
+        lastMove: {
+          column: number;
+          playerId: string;
+          confidence?: number;
+          thinkingTime?: number;
+        };
         nextPlayer: CellValue;
         winner?: CellValue;
         draw?: boolean;
         winningLine?: [number, number][];
+        enhancedData?: {
+          explanation?: string;
+          confidence?: number;
+          safetyScore?: number;
+          adaptationInfo?: any;
+          curriculumInfo?: any;
+          debateResult?: any;
+          thinkingTime?: number;
+        };
+        gameMetrics?: any;
+        aiExplanation?: string;
+        curriculumUpdate?: any;
       }) => {
-        console.log('⬅️ aiMove', data);
+        console.log('⬅️ Enhanced aiMove', data);
         setBoard(data.board);
         playDrop();
         setWinningLine(data.winningLine || []);
@@ -683,8 +718,47 @@ const App: React.FC = () => {
           column: data.lastMove.column
         }]);
 
+        // Process enhanced AI data
+        if (data.enhancedData) {
+          setAiConfidence(data.enhancedData.confidence || 0);
+          setAiSafetyScore(data.enhancedData.safetyScore || 1.0);
+          setAiThinkingTime(data.enhancedData.thinkingTime || 0);
+
+          if (data.enhancedData.explanation) {
+            setAiExplanation(data.enhancedData.explanation);
+            setShowAiInsights(true); // Auto-show insights for interesting moves
+          }
+
+          if (data.enhancedData.adaptationInfo) {
+            setAiAdaptationInfo(data.enhancedData.adaptationInfo);
+          }
+
+          if (data.enhancedData.curriculumInfo) {
+            setCurriculumInfo(data.enhancedData.curriculumInfo);
+          }
+
+          if (data.enhancedData.debateResult) {
+            setDebateResult(data.enhancedData.debateResult);
+          }
+        }
+
+        // Update game metrics
+        if (data.gameMetrics) {
+          setGameMetrics(data.gameMetrics);
+        }
+
+        // Handle curriculum updates
+        if (data.curriculumUpdate) {
+          // Show curriculum advancement notifications
+          console.log('📚 Curriculum update:', data.curriculumUpdate);
+        }
+
         if (data.winner) {
           setStatus(`${data.winner} wins!`);
+          const currentAI = getAIPersonality(aiLevel);
+          if (data.enhancedData?.explanation) {
+            setStatus(`${data.winner} wins! AI explanation: ${data.enhancedData.explanation.substring(0, 50)}...`);
+          }
           return;
         }
         if (data.draw) {
@@ -697,12 +771,165 @@ const App: React.FC = () => {
       }
     );
 
+    // Enhanced player move with metrics
+    socket.on(
+      'playerMove',
+      (data: {
+        board: CellValue[][];
+        lastMove: { column: number; playerId: string };
+        nextPlayer: CellValue;
+        winner?: CellValue;
+        draw?: boolean;
+        winningLine?: [number, number][];
+        gameMetrics?: any;
+        curriculumUpdate?: any;
+      }) => {
+        console.log('⬅️ Enhanced playerMove', data);
+        setBoard(data.board);
+        playDrop();
+        setWinningLine(data.winningLine || []);
+        setHistory(prev => [...prev, {
+          player: data.lastMove.playerId as CellValue,
+          column: data.lastMove.column
+        }]);
+
+        // Update game metrics
+        if (data.gameMetrics) {
+          setGameMetrics(data.gameMetrics);
+        }
+
+        // Handle curriculum updates
+        if (data.curriculumUpdate) {
+          console.log('📚 Player curriculum update:', data.curriculumUpdate);
+        }
+
+        if (data.winner) {
+          setStatus(`${data.winner} wins!`);
+          return;
+        }
+        if (data.draw) {
+          setStatus('Draw game');
+          return;
+        }
+
+        const currentAI = getAIPersonality(aiLevel);
+        setStatus(`${currentAI.name} AI is thinking…`);
+        setCurrentPlayer('Yellow');
+      }
+    );
+
+    // AI explanation response
+    socket.on('aiExplanation', (data: {
+      gameId: string;
+      moveIndex?: number;
+      explanation: string;
+      timestamp: number;
+    }) => {
+      console.log('⬅️ AI Explanation received:', data);
+      setAiExplanation(data.explanation);
+      setShowAiInsights(true);
+    });
+
+    // Feedback received confirmation
+    socket.on('feedbackReceived', (data: {
+      gameId: string;
+      message: string;
+      timestamp: number;
+    }) => {
+      console.log('⬅️ Feedback received:', data);
+      // Could show a toast notification here
+    });
+
+    // Player progress update
+    socket.on('playerProgress', (data: any) => {
+      console.log('⬅️ Player progress:', data);
+      setPlayerProgress(data);
+    });
+
     return () => {
       socket.off('playerMove');
       socket.off('aiThinking');
       socket.off('aiMove');
     };
   }, [socket, currentAI.name]);
+
+  // Enhanced AI helper functions
+  const requestAIExplanation = (moveIndex?: number) => {
+    if (socket && gameId) {
+      socket.emit('requestExplanation', {
+        gameId,
+        playerId: 'Red', // Assuming human player is Red
+        moveIndex
+      });
+    }
+  };
+
+  const submitPlayerFeedback = (feedback: {
+    rating: number;
+    satisfaction: number;
+    aiPerformance: number;
+    explanation: string;
+    suggestions?: string;
+  }) => {
+    if (socket && gameId) {
+      socket.emit('submitFeedback', {
+        gameId,
+        playerId: 'Red',
+        feedback
+      });
+    }
+  };
+
+  const requestPlayerProgress = () => {
+    if (socket) {
+      socket.emit('getPlayerProgress', {
+        playerId: 'Red'
+      });
+    }
+  };
+
+  const toggleAIInsights = () => {
+    setShowAiInsights(!showAiInsights);
+  };
+
+  const formatConfidenceLevel = (confidence: number): string => {
+    if (confidence >= 0.9) return 'Very High';
+    if (confidence >= 0.7) return 'High';
+    if (confidence >= 0.5) return 'Medium';
+    if (confidence >= 0.3) return 'Low';
+    return 'Very Low';
+  };
+
+  const formatSafetyLevel = (safety: number): string => {
+    if (safety >= 0.95) return 'Excellent';
+    if (safety >= 0.8) return 'Good';
+    if (safety >= 0.6) return 'Fair';
+    return 'Needs Attention';
+  };
+
+  const getAdaptationDescription = (adaptationInfo: any): string => {
+    if (!adaptationInfo) return 'Standard play';
+
+    const { styleAdaptation, difficultyLevel, emotionalStateMatch } = adaptationInfo;
+
+    if (styleAdaptation > 0.8) return 'Highly adapted to your style';
+    if (styleAdaptation > 0.6) return 'Well adapted to your preferences';
+    if (styleAdaptation > 0.4) return 'Moderately adapted';
+    return 'Learning your style';
+  };
+
+  const getCurriculumStageDescription = (curriculumInfo: any): string => {
+    if (!curriculumInfo) return 'Assessment phase';
+
+    const stageNames: { [key: string]: string } = {
+      'basic_tactics': 'Learning Basic Tactics',
+      'strategic_thinking': 'Developing Strategy',
+      'pattern_mastery': 'Mastering Patterns',
+      'advanced_mastery': 'Advanced Mastery'
+    };
+
+    return stageNames[curriculumInfo.currentStage] || 'Custom Learning Path';
+  };
 
   // Handler for when the human clicks a column
   function onColumnClick(col: number) {
@@ -864,9 +1091,9 @@ const App: React.FC = () => {
             {status}
           </button>
         ) : (
-        <div className="text-xl font-semibold text-white bg-black bg-opacity-30 px-6 py-2 rounded-full">
-          {status}
-        </div>
+          <div className="text-xl font-semibold text-white bg-black bg-opacity-30 px-6 py-2 rounded-full">
+            {status}
+          </div>
         )}
       </motion.div>
 
