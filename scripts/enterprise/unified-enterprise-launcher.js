@@ -301,7 +301,7 @@ const CONFIG = {
         enterpriseScripts: {
             'ai-stability-manager': {
                 name: 'AI Stability Architecture',
-                script: './scripts/ai-stability-manager.js',
+                script: './scripts/enterprise/ai-stability-manager.js',
                 category: 'core',
                 priority: 1,
                 autoStart: true,
@@ -309,7 +309,7 @@ const CONFIG = {
             },
             'intelligent-resource-manager': {
                 name: 'Resource Optimization',
-                script: './scripts/intelligent-resource-manager.js',
+                script: './scripts/enterprise/intelligent-resource-manager.js',
                 category: 'management',
                 priority: 2,
                 autoStart: true,
@@ -317,7 +317,7 @@ const CONFIG = {
             },
             'performance-analytics-suite': {
                 name: 'Performance Intelligence',
-                script: './scripts/performance-analytics-suite.js',
+                script: './scripts/enterprise/performance-analytics-suite.js',
                 category: 'analytics',
                 priority: 3,
                 autoStart: false,
@@ -325,7 +325,7 @@ const CONFIG = {
             },
             'advanced-deployment-manager': {
                 name: 'Deployment Automation',
-                script: './scripts/advanced-deployment-manager.js',
+                script: './scripts/enterprise/advanced-deployment-manager.js',
                 category: 'deployment',
                 priority: 4,
                 autoStart: false,
@@ -333,7 +333,7 @@ const CONFIG = {
             },
             'ai-comprehensive-testing': {
                 name: 'Algorithm Testing Suite',
-                script: './scripts/ai-comprehensive-testing.js',
+                script: './scripts/enterprise/ai-comprehensive-testing.js',
                 category: 'testing',
                 priority: 5,
                 autoStart: false,
@@ -341,11 +341,35 @@ const CONFIG = {
             },
             'enterprise-model-manager': {
                 name: 'Model Lifecycle Management',
-                script: './scripts/enterprise-model-manager.js',
+                script: './scripts/enterprise/enterprise-model-manager.js',
                 category: 'management',
                 priority: 6,
                 autoStart: false,
                 description: 'AI model management and versioning'
+            },
+            'ai-orchestration-dashboard': {
+                name: 'AI Orchestration Dashboard',
+                script: './scripts/enterprise/ai-orchestration-dashboard.js',
+                category: 'dashboard',
+                priority: 7,
+                autoStart: false,
+                description: 'Comprehensive AI orchestration control center'
+            },
+            'advanced-ai-diagnostics': {
+                name: 'Predictive Diagnostics',
+                script: './scripts/enterprise/advanced-ai-diagnostics.js',
+                category: 'diagnostics',
+                priority: 8,
+                autoStart: false,
+                description: 'Predictive failure detection and recovery'
+            },
+            'rlhf-system-manager': {
+                name: 'Human-AI Alignment',
+                script: './scripts/enterprise/rlhf-system-manager.js',
+                category: 'alignment',
+                priority: 9,
+                autoStart: false,
+                description: 'RLHF and Constitutional AI management'
             }
         }
     },
@@ -368,10 +392,30 @@ const CONFIG = {
         },
         production: {
             name: 'Production Ready',
-            description: 'Production environment with full monitoring',
+            description: 'Production environment with comprehensive monitoring',
             services: ['backend', 'frontend', 'ml_service'],
-            enterpriseScripts: ['ai-stability-manager', 'intelligent-resource-manager', 'performance-analytics-suite'],
+            enterpriseScripts: [
+                'ai-stability-manager',
+                'intelligent-resource-manager',
+                'performance-analytics-suite',
+                'ai-orchestration-dashboard',
+                'advanced-ai-diagnostics'
+            ],
             healthCheckMode: 'intelligent'
+        },
+        production_enhanced: {
+            name: 'Enhanced Production',
+            description: 'Production with maximum monitoring and proactive systems',
+            services: ['backend', 'frontend', 'ml_service'],
+            enterpriseScripts: [
+                'ai-stability-manager',
+                'intelligent-resource-manager',
+                'performance-analytics-suite',
+                'ai-orchestration-dashboard',
+                'advanced-ai-diagnostics',
+                'enterprise-model-manager'
+            ],
+            healthCheckMode: 'ai_optimized'
         },
         testing: {
             name: 'Testing Environment',

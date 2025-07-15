@@ -34,6 +34,23 @@
 
 ---
 
+## 📚 Documentation
+
+**[📖 Complete Documentation](./docs/)** - Comprehensive guides organized by category:
+
+- **[🚀 User Guides](./docs/guides/)** - Getting started, quick start, command references
+- **[🧠 AI & ML](./docs/ai-ml/)** - AI enhancements, health check intelligence
+- **[🏗️ Architecture](./docs/architecture/)** - System integration, script modernization  
+- **[⚙️ System Management](./docs/system-management/)** - Operations, port management, workflows
+- **[📊 Reports](./docs/reports/)** - Performance reports, security fixes, model health
+
+**Quick Links:**
+- [Getting Started Guide](./docs/guides/GETTING_STARTED.md)
+- [Enhanced Commands Reference](./docs/guides/ENHANCED_COMMANDS_REFERENCE.md)
+- [AI Health Check Intelligence](./docs/ai-ml/AI_HEALTH_CHECK_INTELLIGENCE.md)
+
+---
+
 ## 🚀 Installation & Setup
 
 ### **📋 Prerequisites**
@@ -664,17 +681,17 @@ class AIStabilityManager {
       const component = await this.selectOptimalComponent(validatedRequest, tier);
       
       // 3. Resource allocation and health check
-      const allocation = await this.resources.allocate(component, tier);
+    const allocation = await this.resources.allocate(component, tier);
       const healthStatus = await this.health.checkComponentHealth(component);
       
       // 4. Execute with comprehensive monitoring
       const result = await this.executeWithStability(
-        component, 
+      component,
         validatedRequest, 
         tier, 
-        allocation
-      );
-      
+      allocation
+    );
+    
       // 5. Post-processing and metrics
       const response = await this.finalize(result, startTime, requestId);
       return response;
@@ -887,7 +904,7 @@ class FallbackSystem {
       try {
         const result = await this.executeStrategy(strategy, error, request);
         
-        if (result.success) {
+      if (result.success) {
           this.recordFallbackSuccess(strategy, result);
           return this.createResponse(result, { fallbackUsed: strategy.name });
         }
@@ -900,7 +917,7 @@ class FallbackSystem {
     // Ultimate emergency fallback
     return this.emergencyFallback(request);
   }
-
+  
   // Real-time fallback metrics
   async getMetrics(): Promise<FallbackMetrics> {
     return {
