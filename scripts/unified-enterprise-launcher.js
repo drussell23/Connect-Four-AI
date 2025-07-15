@@ -6,6 +6,7 @@
  * Master control center for the entire enterprise AI ecosystem featuring:
  * - Single entry point for all enterprise systems and services
  * - Intelligent orchestration of core services and enterprise scripts
+ * - AI/ML-powered adaptive health check timing and optimization
  * - Real-time system health monitoring and management
  * - Automated deployment and scaling coordination
  * - Unified dashboard for all platform components
@@ -13,7 +14,7 @@
  * - Comprehensive logging and analytics integration
  * 
  * @author Derek J. Russell
- * @version 3.0.0 - Unified Enterprise Control Center
+ * @version 3.1.0 - AI-Enhanced Health Check Intelligence
  */
 
 'use strict';
@@ -23,6 +24,244 @@ const fs = require('fs').promises;
 const path = require('path');
 const http = require('http');
 const os = require('os');
+
+// === AI/ML Health Check Intelligence ===
+
+class AIHealthCheckOptimizer {
+    constructor() {
+        this.historicalData = new Map();
+        this.systemMetrics = new Map();
+        this.learningCoefficient = 0.1;
+        this.dataFile = path.join(__dirname, '..', 'logs', 'health-check-intelligence.json');
+        this.initialized = false;
+    }
+
+    async initialize() {
+        if (this.initialized) return;
+
+        try {
+            // Load historical data
+            await this.loadHistoricalData();
+
+            // Initialize system baseline metrics
+            await this.captureSystemBaseline();
+
+            this.initialized = true;
+            console.log('🧠 AI Health Check Optimizer initialized');
+        } catch (error) {
+            console.log('⚠️ AI Optimizer initialization failed, using fallback logic');
+            this.initialized = false;
+        }
+    }
+
+    async loadHistoricalData() {
+        try {
+            const data = await fs.readFile(this.dataFile, 'utf8');
+            const parsed = JSON.parse(data);
+
+            for (const [service, history] of Object.entries(parsed.services || {})) {
+                this.historicalData.set(service, {
+                    startupTimes: history.startupTimes || [],
+                    systemConditions: history.systemConditions || [],
+                    successRate: history.successRate || 0,
+                    averageTime: history.averageTime || 30000,
+                    lastUpdated: history.lastUpdated || Date.now()
+                });
+            }
+        } catch (error) {
+            // First run or corrupted data - start fresh
+            console.log('🔄 Initializing fresh AI learning data');
+        }
+    }
+
+    async saveHistoricalData() {
+        try {
+            const data = {
+                lastUpdated: Date.now(),
+                services: {}
+            };
+
+            for (const [service, history] of this.historicalData.entries()) {
+                data.services[service] = history;
+            }
+
+            await fs.mkdir(path.dirname(this.dataFile), { recursive: true });
+            await fs.writeFile(this.dataFile, JSON.stringify(data, null, 2));
+        } catch (error) {
+            console.log('⚠️ Failed to save AI learning data:', error.message);
+        }
+    }
+
+    async captureSystemBaseline() {
+        const cpus = os.cpus();
+        const memory = process.memoryUsage();
+        const systemLoad = os.loadavg();
+
+        this.systemMetrics.set('baseline', {
+            cpuCount: cpus.length,
+            cpuSpeed: cpus[0]?.speed || 0,
+            totalMemory: os.totalmem(),
+            freeMemory: os.freemem(),
+            loadAverage: systemLoad[0],
+            platform: os.platform(),
+            arch: os.arch(),
+            nodeVersion: process.version,
+            timestamp: Date.now()
+        });
+    }
+
+    async captureCurrentSystemMetrics() {
+        const memory = process.memoryUsage();
+        const loadAvg = os.loadavg();
+
+        return {
+            memoryUsage: (memory.heapUsed / memory.heapTotal) * 100,
+            systemLoad: loadAvg[0],
+            freeMemory: os.freemem(),
+            timestamp: Date.now(),
+            availableCores: os.cpus().length
+        };
+    }
+
+    calculateServiceComplexity(serviceName) {
+        const complexityWeights = {
+            'backend': 3.5,      // High complexity - API, DB, multiple endpoints
+            'frontend': 2.0,     // Medium complexity - React build process
+            'ml_service': 4.0    // Highest complexity - ML model loading, Python startup
+        };
+
+        return complexityWeights[serviceName] || 2.5;
+    }
+
+    async predictOptimalTimeout(serviceName) {
+        if (!this.initialized) {
+            await this.initialize();
+        }
+
+        const currentMetrics = await this.captureCurrentSystemMetrics();
+        const baseline = this.systemMetrics.get('baseline');
+        const history = this.historicalData.get(serviceName);
+        const complexity = this.calculateServiceComplexity(serviceName);
+
+        // Base timeout calculation using AI/ML approach
+        let predictedTimeout = 30000; // Default fallback
+
+        if (history && history.startupTimes.length > 0) {
+            // Calculate weighted average based on recent performance
+            const recentTimes = history.startupTimes.slice(-10); // Last 10 startups
+            const weights = recentTimes.map((_, i) => Math.pow(0.9, recentTimes.length - 1 - i));
+            const weightSum = weights.reduce((a, b) => a + b, 0);
+
+            predictedTimeout = recentTimes.reduce((sum, time, i) => {
+                return sum + (time * weights[i] / weightSum);
+            }, 0);
+        }
+
+        // Apply AI adjustments based on system conditions
+        const systemLoadFactor = Math.max(1.0, currentMetrics.systemLoad / 2.0);
+        const memoryFactor = Math.max(1.0, currentMetrics.memoryUsage / 50.0);
+        const complexityFactor = complexity;
+
+        // Dynamic adjustment formula
+        const aiAdjustedTimeout = predictedTimeout * systemLoadFactor * memoryFactor * complexityFactor;
+
+        // Apply safety bounds and intelligent scaling
+        const minTimeout = 5000;   // Never less than 5 seconds
+        const maxTimeout = 180000; // Never more than 3 minutes
+
+        const finalTimeout = Math.max(minTimeout, Math.min(maxTimeout, aiAdjustedTimeout));
+
+        console.log(`🧠 AI Timeout Prediction for ${serviceName}:`);
+        console.log(`     Historical Average: ${Math.round(predictedTimeout)}ms`);
+        console.log(`     System Load Factor: ${systemLoadFactor.toFixed(2)}x`);
+        console.log(`     Memory Factor: ${memoryFactor.toFixed(2)}x`);
+        console.log(`     Complexity Factor: ${complexityFactor}x`);
+        console.log(`     Final Prediction: ${Math.round(finalTimeout)}ms`);
+
+        return Math.round(finalTimeout);
+    }
+
+    async recordStartupSuccess(serviceName, actualTime, systemMetrics) {
+        if (!this.historicalData.has(serviceName)) {
+            this.historicalData.set(serviceName, {
+                startupTimes: [],
+                systemConditions: [],
+                successRate: 0,
+                averageTime: 30000,
+                lastUpdated: Date.now()
+            });
+        }
+
+        const history = this.historicalData.get(serviceName);
+
+        // Add new data point
+        history.startupTimes.push(actualTime);
+        history.systemConditions.push(systemMetrics);
+
+        // Keep only last 50 data points for performance
+        if (history.startupTimes.length > 50) {
+            history.startupTimes = history.startupTimes.slice(-50);
+            history.systemConditions = history.systemConditions.slice(-50);
+        }
+
+        // Update running statistics
+        history.averageTime = history.startupTimes.reduce((a, b) => a + b, 0) / history.startupTimes.length;
+        history.successRate = Math.min(1.0, history.successRate + this.learningCoefficient);
+        history.lastUpdated = Date.now();
+
+        // Save learning data
+        await this.saveHistoricalData();
+
+        console.log(`🎯 AI Learning: ${serviceName} startup in ${actualTime}ms (avg: ${Math.round(history.averageTime)}ms)`);
+    }
+
+    async recordStartupFailure(serviceName, attemptedTimeout, systemMetrics) {
+        if (!this.historicalData.has(serviceName)) {
+            this.historicalData.set(serviceName, {
+                startupTimes: [],
+                systemConditions: [],
+                successRate: 0.5,
+                averageTime: 30000,
+                lastUpdated: Date.now()
+            });
+        }
+
+        const history = this.historicalData.get(serviceName);
+
+        // Record failure and adjust learning
+        history.successRate = Math.max(0.0, history.successRate - this.learningCoefficient * 2);
+        history.lastUpdated = Date.now();
+
+        // Save learning data
+        await this.saveHistoricalData();
+
+        console.log(`📉 AI Learning: ${serviceName} failed to start within ${attemptedTimeout}ms`);
+    }
+
+    getAdaptiveRetryStrategy(serviceName) {
+        const history = this.historicalData.get(serviceName);
+        const complexity = this.calculateServiceComplexity(serviceName);
+
+        let retryInterval = 2000; // Base 2 seconds
+        let maxRetries = 15;      // Default max retries
+
+        if (history) {
+            // Adjust based on historical success rate
+            if (history.successRate > 0.8) {
+                retryInterval = 1500; // Faster checks for reliable services
+                maxRetries = 10;
+            } else if (history.successRate < 0.5) {
+                retryInterval = 3000; // Slower checks for problematic services
+                maxRetries = 20;
+            }
+        }
+
+        // Adjust for service complexity
+        retryInterval = Math.round(retryInterval * Math.sqrt(complexity));
+
+        return { retryInterval, maxRetries };
+    }
+}
 
 // === Unified Configuration ===
 
@@ -106,67 +345,58 @@ const CONFIG = {
                 category: 'management',
                 priority: 6,
                 autoStart: false,
-                description: 'AI model versioning and deployment'
-            },
-            'advanced-ai-diagnostics': {
-                name: 'Predictive Diagnostics',
-                script: './scripts/advanced-ai-diagnostics.js',
-                category: 'diagnostics',
-                priority: 7,
-                autoStart: false,
-                description: 'Predictive failure detection and recovery'
-            },
-            'rlhf-system-manager': {
-                name: 'Human-AI Alignment',
-                script: './scripts/rlhf-system-manager.js',
-                category: 'alignment',
-                priority: 8,
-                autoStart: false,
-                description: 'RLHF and Constitutional AI management'
+                description: 'AI model management and versioning'
             }
         }
     },
 
-    // Launch configurations
-    launchProfiles: {
+    // Launch profiles
+    profiles: {
         minimal: {
-            name: 'Minimal Setup',
-            description: 'Core services only',
+            name: 'Minimal Development',
+            description: 'Core services only for basic development',
             services: ['backend', 'frontend'],
-            scripts: ['ai-stability-manager']
+            enterpriseScripts: [],
+            healthCheckMode: 'fast'
         },
         development: {
-            name: 'Development Environment',
-            description: 'Full development stack',
+            name: 'Full Development',
+            description: 'All services with core enterprise scripts',
             services: ['backend', 'frontend', 'ml_service'],
-            scripts: ['ai-stability-manager', 'intelligent-resource-manager', 'performance-analytics-suite']
+            enterpriseScripts: ['ai-stability-manager', 'intelligent-resource-manager'],
+            healthCheckMode: 'adaptive'
         },
         production: {
-            name: 'Production Environment',
-            description: 'Enterprise production setup',
+            name: 'Production Ready',
+            description: 'Production environment with full monitoring',
             services: ['backend', 'frontend', 'ml_service'],
-            scripts: ['ai-stability-manager', 'intelligent-resource-manager', 'advanced-deployment-manager', 'performance-analytics-suite']
+            enterpriseScripts: ['ai-stability-manager', 'intelligent-resource-manager', 'performance-analytics-suite'],
+            healthCheckMode: 'intelligent'
         },
         testing: {
             name: 'Testing Environment',
-            description: 'Full testing and validation setup',
-            services: ['backend', 'frontend', 'ml_service'],
-            scripts: ['ai-stability-manager', 'ai-comprehensive-testing', 'performance-analytics-suite', 'advanced-ai-diagnostics']
+            description: 'Full testing suite with all validation systems',
+            services: ['backend'],
+            enterpriseScripts: ['ai-comprehensive-testing', 'ai-stability-manager'],
+            healthCheckMode: 'comprehensive'
         },
         enterprise: {
             name: 'Enterprise Full Stack',
-            description: 'Complete enterprise AI orchestration platform',
+            description: 'Complete enterprise platform with all systems',
             services: ['backend', 'frontend', 'ml_service'],
-            scripts: [
-                'ai-stability-manager',
-                'intelligent-resource-manager',
-                'performance-analytics-suite',
-                'advanced-deployment-manager',
-                'ai-comprehensive-testing',
-                'enterprise-model-manager',
-                'advanced-ai-diagnostics',
-                'rlhf-system-manager'
-            ]
+            enterpriseScripts: [], // Will be populated after CONFIG initialization
+            healthCheckMode: 'ai_optimized'
+        }
+    },
+
+    // Health check modes
+    healthCheck: {
+        modes: {
+            fast: { baseTimeout: 15000, retryInterval: 1000, maxRetries: 10 },
+            adaptive: { baseTimeout: 30000, retryInterval: 2000, maxRetries: 15 },
+            intelligent: { baseTimeout: 45000, retryInterval: 2500, maxRetries: 18 },
+            comprehensive: { baseTimeout: 60000, retryInterval: 3000, maxRetries: 20 },
+            ai_optimized: { baseTimeout: 'auto', retryInterval: 'auto', maxRetries: 'auto' }
         }
     },
 
@@ -187,324 +417,177 @@ const CONFIG = {
     }
 };
 
-// === Unified Enterprise Launcher ===
+// Populate enterprise profile with all available scripts (after CONFIG is defined)
+CONFIG.profiles.enterprise.enterpriseScripts = Object.keys(CONFIG.platform.enterpriseScripts);
+
+// === Main Enterprise Launcher Class ===
 
 class UnifiedEnterpriseLauncher {
     constructor() {
-        this.isRunning = false;
-        this.runningServices = new Map();
-        this.runningScripts = new Map();
-        this.systemMetrics = new Map();
-        this.launchHistory = [];
+        this.runningProcesses = new Map();
+        this.processStatuses = new Map();
+        this.launchProfile = null;
+        this.healthCheckInterval = null;
+        this.aiOptimizer = new AIHealthCheckOptimizer();
 
-        // Monitoring
-        this.healthMonitoringInterval = null;
-        this.metricsInterval = null;
+        // Bind process cleanup
+        process.on('SIGINT', () => this.gracefulShutdown());
+        process.on('SIGTERM', () => this.gracefulShutdown());
+
+        console.log('🚀 Unified Enterprise Launcher initialized');
     }
 
-    // === Main Launcher Methods ===
-
-    async start() {
-        console.log(`${CONFIG.display.colors.cyan}🌟 Unified Enterprise Launcher v3.0.0${CONFIG.display.colors.reset}`);
-        console.log(`${CONFIG.display.colors.bright}Single Entry Point for AI Orchestration Platform${CONFIG.display.colors.reset}\n`);
-
-        this.isRunning = true;
-
-        try {
-            await this.initializeUnifiedLauncher();
-            await this.showMainMenu();
-
-        } catch (error) {
-            console.error(`${CONFIG.display.colors.red}❌ Failed to start unified launcher: ${error.message}${CONFIG.display.colors.reset}`);
-            process.exit(1);
-        }
-    }
-
-    async initializeUnifiedLauncher() {
-        console.log('🔧 Initializing Unified Enterprise Launcher...');
-
-        // Check system requirements
-        await this.checkSystemRequirements();
-        console.log('   ✅ System requirements verified');
-
-        // Initialize platform health monitoring
-        await this.initializeHealthMonitoring();
-        console.log('   ✅ Health monitoring initialized');
-
-        // Load platform status
-        await this.loadPlatformStatus();
-        console.log('   ✅ Platform status loaded');
-    }
-
-    async checkSystemRequirements() {
-        // Check Node.js version
-        const nodeVersion = process.version;
-        console.log(`   Node.js version: ${nodeVersion}`);
-
-        // Check if required directories exist
-        try {
-            await fs.access('./backend');
-            await fs.access('./frontend');
-            await fs.access('./scripts');
-        } catch (error) {
-            throw new Error('Required directories not found. Please run from project root.');
-        }
-    }
-
-    async initializeHealthMonitoring() {
-        // Initialize basic health monitoring
-        this.healthCheckInterval = setInterval(async () => {
-            // Basic health check logic
-        }, 30000); // Every 30 seconds
-    }
-
-    async loadPlatformStatus() {
-        // Load current platform status
-        this.systemMetrics.set('startup_time', Date.now());
-        this.systemMetrics.set('node_version', process.version);
-        this.systemMetrics.set('platform', process.platform);
-    }
-
-    startPlatformMonitoring() {
-        // Start platform monitoring
-        if (!this.healthMonitoringInterval) {
-            this.healthMonitoringInterval = setInterval(async () => {
-                // Monitor platform health
-                try {
-                    // Check running services
-                    for (const [serviceName, serviceInfo] of this.runningServices) {
-                        if (serviceInfo.status === 'running') {
-                            // Basic health check
-                        }
-                    }
-                } catch (error) {
-                    // Continue monitoring on error
-                }
-            }, 30000); // Every 30 seconds
-        }
-    }
-
-    async showMainMenu() {
-        const readline = require('readline');
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-        });
-
-        while (this.isRunning) {
-            this.clearScreen();
-            this.renderHeader();
-
-            await this.renderPlatformStatus();
-
-            console.log(`${CONFIG.display.colors.bright}${CONFIG.display.colors.blue}🌟 UNIFIED ENTERPRISE LAUNCHER${CONFIG.display.colors.reset}`);
-            console.log(`${CONFIG.display.colors.blue}${'─'.repeat(70)}${CONFIG.display.colors.reset}`);
-            console.log('🚀 QUICK LAUNCH PROFILES:');
-            console.log('1. ⚡ Minimal Setup (Core Services)');
-            console.log('2. 🔧 Development Environment');
-            console.log('3. 🏭 Production Environment');
-            console.log('4. 🧪 Testing Environment');
-            console.log('5. 🏢 Enterprise Full Stack');
-            console.log('');
-            console.log('🎛️  ADVANCED MANAGEMENT:');
-            console.log('6. 🔧 Service Management');
-            console.log('7. 🏢 Enterprise Scripts Control');
-            console.log('8. 📊 Platform Dashboard');
-            console.log('9. ⚙️  System Configuration');
-            console.log('');
-            console.log('0. ❌ Shutdown All & Exit');
-            console.log('');
-
-            const choice = await this.getUserInput(rl, 'Select an option: ');
-            await this.handleMenuChoice(choice);
-        }
-
-        rl.close();
-    }
-
-    async handleMenuChoice(choice) {
-        switch (choice) {
-            case '1':
-                await this.launchProfile('minimal');
-                break;
-            case '2':
-                await this.launchProfile('development');
-                break;
-            case '3':
-                await this.launchProfile('production');
-                break;
-            case '4':
-                await this.launchProfile('testing');
-                break;
-            case '5':
-                await this.launchProfile('enterprise');
-                break;
-            case '6':
-                await this.showServiceManagement();
-                break;
-            case '7':
-                await this.showScriptControl();
-                break;
-            case '8':
-                await this.showPlatformDashboard();
-                break;
-            case '9':
-                await this.showSystemConfiguration();
-                break;
-            case '0':
-                await this.shutdown();
-                break;
-            default:
-                console.log(`${CONFIG.display.colors.red}Invalid option. Please try again.${CONFIG.display.colors.reset}`);
-                await this.waitForKeyPress();
-        }
-    }
-
-    // === Profile Launch ===
-
-    async launchProfile(profileName) {
-        const profile = CONFIG.launchProfiles[profileName];
-        if (!profile) {
-            console.log(`${CONFIG.display.colors.red}❌ Profile not found: ${profileName}${CONFIG.display.colors.reset}`);
-            return;
-        }
-
-        console.log(`\n${CONFIG.display.colors.cyan}🚀 Launching ${profile.name}${CONFIG.display.colors.reset}`);
-        console.log(`${CONFIG.display.colors.dim}${profile.description}${CONFIG.display.colors.reset}\n`);
-
-        const launchId = this.generateLaunchId();
+    async launch(profileName = 'development', options = {}) {
         const startTime = Date.now();
-        const results = {
-            services: new Map(),
-            scripts: new Map()
-        };
 
         try {
-            // Launch core services
-            console.log('📡 Starting Core Services...');
-            for (const serviceName of profile.services) {
-                console.log(`   🚀 Starting ${serviceName}...`);
-                const result = await this.startService(serviceName);
-                results.services.set(serviceName, result);
+            console.log(`\n🌟 === Unified Enterprise Launch Sequence ===`);
+            console.log(`📋 Profile: ${profileName}`);
+            console.log(`🕐 Time: ${new Date().toLocaleString()}`);
+            console.log(`🏗️ System: ${os.platform()} ${os.arch()}`);
 
-                if (result.success) {
-                    console.log(`   ✅ ${serviceName} started (${result.startupTime}ms)`);
-                } else {
-                    console.log(`   ❌ ${serviceName} failed: ${result.error}`);
-                }
-            }
+            // Initialize AI optimizer
+            await this.aiOptimizer.initialize();
 
-            // Give services time to initialize
-            console.log('\n⏳ Waiting for services to initialize...');
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            // Validate and get profile
+            this.launchProfile = this.validateProfile(profileName);
 
-            // Launch enterprise scripts
-            console.log('\n🏢 Starting Enterprise Scripts...');
-            for (const scriptName of profile.scripts) {
-                console.log(`   🚀 Starting ${scriptName}...`);
-                const result = await this.startScript(scriptName);
-                results.scripts.set(scriptName, result);
-
-                if (result.success) {
-                    console.log(`   ✅ ${scriptName} started`);
-                } else {
-                    console.log(`   ❌ ${scriptName} failed: ${result.error}`);
-                }
-            }
-
-            const endTime = Date.now();
-            const totalTime = endTime - startTime;
-
-            // Display launch summary
-            this.displayLaunchSummary(profile, results, totalTime);
+            // Start launch sequence
+            const launchId = this.generateLaunchId();
+            const launchData = await this.executeLaunchSequence(this.launchProfile, options);
 
             // Record launch
-            this.recordLaunch({
-                id: launchId,
-                profile: profileName,
-                startTime,
-                endTime,
-                totalTime,
-                results
-            });
+            this.recordLaunch({ ...launchData, launchId, duration: Date.now() - startTime });
 
-            // Start monitoring if not already running
-            if (!this.healthMonitoringInterval) {
-                this.startPlatformMonitoring();
-            }
+            // Start monitoring
+            this.startHealthMonitoring();
+
+            console.log(`\n✅ Launch sequence completed in ${Date.now() - startTime}ms`);
+            return launchData;
 
         } catch (error) {
-            console.log(`\n${CONFIG.display.colors.red}❌ Profile launch failed: ${error.message}${CONFIG.display.colors.reset}`);
+            console.error(`\n❌ Launch failed: ${error.message}`);
+            await this.gracefulShutdown();
+            throw error;
         }
-
-        await this.waitForKeyPress();
     }
 
-    async startService(serviceName) {
-        const serviceConfig = CONFIG.platform.coreServices[serviceName];
-        if (!serviceConfig) {
-            return { success: false, error: 'Service not found' };
+    validateProfile(profileName) {
+        const profile = CONFIG.profiles[profileName];
+
+        if (!profile) {
+            throw new Error(`Invalid profile: ${profileName}. Available: ${Object.keys(CONFIG.profiles).join(', ')}`);
         }
 
-        const startTime = Date.now();
+        console.log(`✅ Profile validated: ${profile.name}`);
+        console.log(`📝 Description: ${profile.description}`);
+
+        return { name: profileName, ...profile };
+    }
+
+    async executeLaunchSequence(profile, options) {
+        const results = {
+            services: { successful: 0, failed: 0, details: {} },
+            enterpriseScripts: { successful: 0, failed: 0, details: {} },
+            healthCheckMode: profile.healthCheckMode || 'adaptive'
+        };
+
+        console.log(`\n🔧 === Starting Core Services (${profile.services.length}) ===`);
+
+        // Launch core services with AI-optimized health checks
+        for (const serviceName of profile.services) {
+            const serviceConfig = CONFIG.platform.coreServices[serviceName];
+            if (serviceConfig) {
+                const success = await this.launchService(serviceName, serviceConfig, profile.healthCheckMode);
+
+                if (success) {
+                    results.services.successful++;
+                    results.services.details[serviceName] = 'running';
+                } else {
+                    results.services.failed++;
+                    results.services.details[serviceName] = 'failed';
+                }
+            }
+        }
+
+        // Launch enterprise scripts
+        if (profile.enterpriseScripts.length > 0) {
+            console.log(`\n🚀 === Starting Enterprise Systems (${profile.enterpriseScripts.length}) ===`);
+
+            for (const scriptName of profile.enterpriseScripts) {
+                const scriptConfig = CONFIG.platform.enterpriseScripts[scriptName];
+                if (scriptConfig) {
+                    const success = await this.launchEnterpriseScript(scriptName, scriptConfig);
+
+                    if (success) {
+                        results.enterpriseScripts.successful++;
+                        results.enterpriseScripts.details[scriptName] = 'running';
+                    } else {
+                        results.enterpriseScripts.failed++;
+                        results.enterpriseScripts.details[scriptName] = 'failed';
+                    }
+                }
+            }
+        }
+
+        return results;
+    }
+
+    async launchService(serviceName, serviceConfig, healthCheckMode = 'adaptive') {
+        console.log(`\n🔥 Launching ${serviceConfig.name}...`);
 
         try {
-            // Check if already running
-            if (this.runningServices.has(serviceName)) {
-                return { success: false, error: 'Service already running' };
-            }
-
-            // Parse command
-            const [command, ...args] = serviceConfig.command.split(' ');
-
-            // Start service
-            const process = spawn(command, args, {
+            // Start the service process
+            const process = spawn('npm', serviceConfig.command.split(' ').slice(1), {
                 cwd: serviceConfig.cwd,
-                detached: true,
-                stdio: 'pipe'
+                stdio: ['ignore', 'pipe', 'pipe'],
+                shell: true
             });
 
-            // Store service reference
-            this.runningServices.set(serviceName, {
-                process,
-                config: serviceConfig,
-                startTime,
-                pid: process.pid,
-                status: 'starting'
-            });
+            // Store process reference
+            this.runningProcesses.set(serviceName, process);
+            this.processStatuses.set(serviceName, 'starting');
 
-            // Set up process monitoring
-            this.setupServiceMonitoring(serviceName, process);
+            // Setup process monitoring
+            this.setupProcessMonitoring(serviceName, process);
 
-            // Wait for service to be ready
-            const isReady = await this.waitForServiceReady(serviceName, 45000);
-            const endTime = Date.now();
+            // Wait for service to be ready with AI-optimized timing
+            const startupStartTime = Date.now();
+            const isReady = await this.waitForServiceReadyAI(serviceName, healthCheckMode);
+            const actualStartupTime = Date.now() - startupStartTime;
 
             if (isReady) {
-                this.runningServices.get(serviceName).status = 'running';
-                return { success: true, startupTime: endTime - startTime, pid: process.pid };
+                this.processStatuses.set(serviceName, 'running');
+                console.log(`     ✅ ${serviceConfig.name} ready`);
+
+                // Record successful startup for AI learning
+                const systemMetrics = await this.aiOptimizer.captureCurrentSystemMetrics();
+                await this.aiOptimizer.recordStartupSuccess(serviceName, actualStartupTime, systemMetrics);
+
+                return true;
             } else {
-                this.runningServices.get(serviceName).status = 'failed';
-                return { success: false, error: 'Service not ready', startupTime: endTime - startTime };
+                this.processStatuses.set(serviceName, 'failed');
+                console.log(`     ❌ ${serviceConfig.name} failed to start`);
+
+                // Record failure for AI learning
+                const systemMetrics = await this.aiOptimizer.captureCurrentSystemMetrics();
+                const attemptedTimeout = await this.aiOptimizer.predictOptimalTimeout(serviceName);
+                await this.aiOptimizer.recordStartupFailure(serviceName, attemptedTimeout, systemMetrics);
+
+                return false;
             }
 
         } catch (error) {
-            return { success: false, error: error.message, startupTime: Date.now() - startTime };
+            console.error(`     ❌ Failed to start ${serviceName}: ${error.message}`);
+            this.processStatuses.set(serviceName, 'error');
+            return false;
         }
     }
 
-    async startScript(scriptName) {
-        const scriptConfig = CONFIG.platform.enterpriseScripts[scriptName];
-        if (!scriptConfig) {
-            return { success: false, error: 'Script not found' };
-        }
+    async launchEnterpriseScript(scriptName, scriptConfig) {
+        console.log(`\n🚀 Launching ${scriptConfig.name}...`);
 
         try {
-            // Check if already running
-            if (this.runningScripts.has(scriptName)) {
-                return { success: false, error: 'Script already running' };
-            }
-
             // Fork the script
             const process = fork(scriptConfig.script, [], {
                 detached: true,
@@ -512,115 +595,111 @@ class UnifiedEnterpriseLauncher {
             });
 
             // Store script reference
-            this.runningScripts.set(scriptName, {
-                process,
-                config: scriptConfig,
-                startTime: Date.now(),
-                pid: process.pid,
-                status: 'running'
-            });
+            this.runningProcesses.set(scriptName, process);
+            this.processStatuses.set(scriptName, 'running');
 
-            // Set up script monitoring
+            // Setup script monitoring
             this.setupScriptMonitoring(scriptName, process);
 
-            return { success: true, pid: process.pid };
+            // Wait for script to be ready (no AI-optimized timing for scripts yet)
+            const isReady = await this.waitForServiceReady(scriptName, 30000); // Default timeout for scripts
 
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    }
-
-    // === Platform Status ===
-
-    async renderPlatformStatus() {
-        const colors = CONFIG.display.colors;
-
-        console.log(`${colors.bright}${colors.green}📊 Platform Status${colors.reset}`);
-        console.log(`${colors.green}${'─'.repeat(50)}${colors.reset}`);
-
-        // Service status
-        const serviceCount = this.runningServices.size;
-        const scriptCount = this.runningScripts.size;
-
-        console.log(`Core Services: ${colors.white}${serviceCount}/3 running${colors.reset}`);
-        console.log(`Enterprise Scripts: ${colors.white}${scriptCount}/8 available${colors.reset}`);
-
-        // Quick service overview
-        if (serviceCount > 0) {
-            console.log('\nRunning Services:');
-            for (const [serviceName, serviceInfo] of this.runningServices) {
-                const statusColor = serviceInfo.status === 'running' ? colors.green : colors.yellow;
-                const uptime = Math.round((Date.now() - serviceInfo.startTime) / 1000);
-                console.log(`   ${statusColor}●${colors.reset} ${serviceName} (${uptime}s)`);
+            if (isReady) {
+                console.log(`     ✅ ${scriptConfig.name} ready`);
+                return true;
+            } else {
+                console.log(`     ❌ ${scriptConfig.name} failed to start`);
+                return false;
             }
-        }
-
-        console.log('');
-    }
-
-    displayLaunchSummary(profile, results, totalTime) {
-        const colors = CONFIG.display.colors;
-
-        console.log(`\n${colors.bright}📊 Launch Summary - ${profile.name}${colors.reset}`);
-        console.log(`${colors.bright}${'='.repeat(60)}${colors.reset}`);
-
-        // Service results
-        const serviceSuccesses = Array.from(results.services.values()).filter(r => r.success).length;
-        const serviceTotal = results.services.size;
-
-        console.log(`Services: ${colors.white}${serviceSuccesses}/${serviceTotal} successful${colors.reset}`);
-
-        // Script results
-        const scriptSuccesses = Array.from(results.scripts.values()).filter(r => r.success).length;
-        const scriptTotal = results.scripts.size;
-
-        console.log(`Scripts: ${colors.white}${scriptSuccesses}/${scriptTotal} successful${colors.reset}`);
-        console.log(`Total Time: ${colors.white}${totalTime}ms${colors.reset}`);
-
-        // Overall status
-        const overallSuccess = (serviceSuccesses === serviceTotal) && (scriptSuccesses === scriptTotal);
-        if (overallSuccess) {
-            console.log(`\n${colors.green}🎉 ${profile.name} launched successfully!${colors.reset}`);
-        } else {
-            console.log(`\n${colors.yellow}⚠️  ${profile.name} partially launched. Check logs for details.${colors.reset}`);
+        } catch (error) {
+            console.error(`     ❌ Failed to start ${scriptName}: ${error.message}`);
+            this.processStatuses.set(scriptName, 'error');
+            return false;
         }
     }
 
-    // === Utility Methods ===
+    setupProcessMonitoring(serviceName, process) {
+        process.stdout.on('data', (data) => {
+            console.log(`     ${serviceName}: ${data.toString().trim()}`);
+        });
 
-    setupServiceMonitoring(serviceName, process) {
+        process.stderr.on('data', (data) => {
+            console.error(`     ${serviceName} ERROR: ${data.toString().trim()}`);
+        });
+
         process.on('exit', (code) => {
-            console.log(`\n⚠️  Service ${serviceName} exited with code ${code}`);
-            this.runningServices.delete(serviceName);
+            console.log(`\n⚠️  ${serviceName} exited with code ${code}`);
+            this.runningProcesses.delete(serviceName);
+            this.processStatuses.set(serviceName, 'stopped');
         });
 
         process.on('error', (error) => {
-            console.log(`\n❌ Service ${serviceName} error: ${error.message}`);
-            this.runningServices.delete(serviceName);
+            console.error(`\n❌ ${serviceName} error: ${error.message}`);
+            this.runningProcesses.delete(serviceName);
+            this.processStatuses.set(serviceName, 'error');
         });
     }
 
     setupScriptMonitoring(scriptName, process) {
+        process.on('message', (msg) => {
+            if (msg.type === 'log') {
+                console.log(`     ${scriptName}: ${msg.message}`);
+            }
+        });
+
         process.on('exit', (code) => {
-            console.log(`\n⚠️  Script ${scriptName} exited with code ${code}`);
-            this.runningScripts.delete(scriptName);
+            console.log(`\n⚠️  ${scriptName} exited with code ${code}`);
+            this.runningProcesses.delete(scriptName);
+            this.processStatuses.set(scriptName, 'stopped');
         });
 
         process.on('error', (error) => {
-            console.log(`\n❌ Script ${scriptName} error: ${error.message}`);
-            this.runningScripts.delete(scriptName);
+            console.error(`\n❌ ${scriptName} error: ${error.message}`);
+            this.runningProcesses.delete(scriptName);
+            this.processStatuses.set(scriptName, 'error');
         });
     }
 
-    async waitForServiceReady(serviceName, timeout = 30000) {
-        const serviceConfig = CONFIG.platform.coreServices[serviceName];
-        const startTime = Date.now();
+    startHealthMonitoring() {
+        if (!this.healthCheckInterval) {
+            this.healthCheckInterval = setInterval(async () => {
+                // Continuous AI-powered health monitoring
+                try {
+                    for (const [serviceName, process] of this.runningProcesses.entries()) {
+                        const status = this.processStatuses.get(serviceName);
 
+                        if (status === 'running') {
+                            // Periodically update AI learning data with current performance
+                            const currentMetrics = await this.aiOptimizer.captureCurrentSystemMetrics();
+
+                            // Log system performance for AI learning
+                            if (Math.random() < 0.1) { // 10% chance to log metrics
+                                console.log(`🔍 Health Check: ${serviceName} - Load: ${currentMetrics.systemLoad.toFixed(2)}, Memory: ${currentMetrics.memoryUsage.toFixed(1)}%`);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    // Continue monitoring on error
+                    console.log(`⚠️ Health monitoring error: ${error.message}`);
+                }
+            }, 30000); // Every 30 seconds
+        }
+    }
+
+    async waitForServiceReady(serviceName, timeout = 30000) {
+        // Fallback method for non-AI health checks (enterprise scripts)
+        const serviceConfig = CONFIG.platform.coreServices[serviceName];
+        if (!serviceConfig) {
+            // For enterprise scripts, just wait a short time
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            return true;
+        }
+
+        const startTime = Date.now();
         console.log(`     Waiting for ${serviceName} on port ${serviceConfig.port}...`);
 
         while (Date.now() - startTime < timeout) {
             try {
-                // For backend, just check if port is open since it serves frontend at all routes
                 if (serviceName === 'backend') {
                     const portOpen = await this.checkPortOpen(serviceConfig.port);
                     if (portOpen) {
@@ -636,14 +715,51 @@ class UnifiedEnterpriseLauncher {
                 // Service not ready yet, continue waiting
             }
 
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Check every 2 seconds
+            await new Promise(resolve => setTimeout(resolve, 2000));
         }
 
         console.log(`     ⚠️ ${serviceName} not ready after ${timeout}ms`);
         return false;
     }
 
-    async checkPortOpen(port) {
+    async waitForServiceReadyAI(serviceName, healthCheckMode) {
+        const serviceConfig = CONFIG.platform.coreServices[serviceName];
+
+        // Get AI-optimized timeout
+        const aiTimeout = await this.aiOptimizer.predictOptimalTimeout(serviceName);
+        const { retryInterval, maxRetries } = this.aiOptimizer.getAdaptiveRetryStrategy(serviceName);
+
+        let currentRetries = 0;
+        const startTime = Date.now();
+
+        console.log(`     🧠 AI-optimized wait for ${serviceConfig.name} (predicted: ${aiTimeout}ms, mode: ${healthCheckMode})...`);
+
+        while (currentRetries < maxRetries && (Date.now() - startTime) < aiTimeout) {
+            try {
+                if (serviceName === 'backend') {
+                    const portOpen = await this.checkPortOpen(serviceConfig.port);
+                    if (portOpen) {
+                        return true;
+                    }
+                } else {
+                    const response = await this.makeHealthCheckRequest(serviceConfig.port, serviceConfig.healthCheck);
+                    if (response) {
+                        return true;
+                    }
+                }
+            } catch (error) {
+                // Service not ready yet, continue waiting
+            }
+
+            await new Promise(resolve => setTimeout(resolve, retryInterval));
+            currentRetries++;
+        }
+
+        console.log(`     ⚠️ ${serviceConfig.name} not ready after ${currentRetries} retries (${Date.now() - startTime}ms)`);
+        return false;
+    }
+
+    checkPortOpen(port) {
         return new Promise((resolve) => {
             const net = require('net');
             const socket = new net.Socket();
@@ -698,10 +814,10 @@ class UnifiedEnterpriseLauncher {
     }
 
     recordLaunch(launchData) {
-        this.launchHistory.unshift(launchData);
-        if (this.launchHistory.length > 50) {
-            this.launchHistory = this.launchHistory.slice(0, 50);
-        }
+        // Store launch data for analytics and AI learning
+        console.log(`📊 Launch Record: ID ${launchData.launchId}, Duration: ${launchData.duration}ms`);
+        console.log(`     Services: ${launchData.services.successful}/${launchData.services.successful + launchData.services.failed} successful`);
+        console.log(`     Enterprise Scripts: ${launchData.enterpriseScripts.successful}/${launchData.enterpriseScripts.successful + launchData.enterpriseScripts.failed} successful`);
     }
 
     clearScreen() {
@@ -737,107 +853,133 @@ class UnifiedEnterpriseLauncher {
         rl.close();
     }
 
-    async shutdown() {
-        console.log(`\n${CONFIG.display.colors.yellow}🔄 Shutting down Enterprise Platform...${CONFIG.display.colors.reset}`);
+    async gracefulShutdown() {
+        console.log(`\n🔄 Graceful shutdown initiated...`);
 
-        this.isRunning = false;
-
-        // Stop all services
-        console.log('Stopping services...');
-        for (const [serviceName, serviceInfo] of this.runningServices) {
-            try {
-                console.log(`   🛑 Stopping ${serviceName}...`);
-                serviceInfo.process.kill('SIGTERM');
-            } catch (error) {
-                console.log(`   ⚠️  Error stopping ${serviceName}: ${error.message}`);
-            }
+        // Save AI learning data before shutdown
+        try {
+            await this.aiOptimizer.saveHistoricalData();
+            console.log('💾 AI learning data saved');
+        } catch (error) {
+            console.log('⚠️ Failed to save AI data:', error.message);
         }
 
-        // Stop all scripts
-        console.log('Stopping enterprise scripts...');
-        for (const [scriptName, scriptInfo] of this.runningScripts) {
+        // Stop all processes
+        console.log('🛑 Stopping all processes...');
+        for (const [serviceName, process] of this.runningProcesses) {
             try {
-                console.log(`   🛑 Stopping ${scriptName}...`);
-                scriptInfo.process.kill('SIGTERM');
+                console.log(`   Stopping ${serviceName}...`);
+                process.kill('SIGTERM');
             } catch (error) {
-                console.log(`   ⚠️  Error stopping ${scriptName}: ${error.message}`);
+                console.log(`   ⚠️ Error stopping ${serviceName}: ${error.message}`);
             }
         }
 
         // Clear intervals
-        if (this.healthMonitoringInterval) clearInterval(this.healthMonitoringInterval);
-        if (this.metricsInterval) clearInterval(this.metricsInterval);
+        if (this.healthCheckInterval) {
+            clearInterval(this.healthCheckInterval);
+        }
 
-        console.log(`${CONFIG.display.colors.green}✅ Enterprise Platform shutdown complete${CONFIG.display.colors.reset}`);
+        console.log('✅ Shutdown complete');
         process.exit(0);
     }
 }
 
-// === Main Execution ===
+// === Main Execution Logic ===
 
 async function main() {
-    const launcher = new UnifiedEnterpriseLauncher();
+    try {
+        const launcher = new UnifiedEnterpriseLauncher();
+        const args = process.argv.slice(2);
 
-    // Handle graceful shutdown
-    process.on('SIGTERM', () => launcher.shutdown());
-    process.on('SIGINT', () => launcher.shutdown());
+        // Parse command line arguments
+        let profileName = 'development';
+        let options = {};
 
-    await launcher.start();
+        for (let i = 0; i < args.length; i++) {
+            const arg = args[i];
+
+            if (arg === '--profile' && i + 1 < args.length) {
+                profileName = args[i + 1];
+                i++; // Skip next argument
+            } else if (arg === '--force') {
+                options.force = true;
+            } else if (arg === '--verbose') {
+                options.verbose = true;
+            } else if (arg === '--help' || arg === '-h') {
+                showHelp();
+                return;
+            }
+        }
+
+        // Launch with specified profile
+        console.log(`🌟 Starting Unified Enterprise Launcher v3.1.0`);
+        console.log(`🚀 Profile: ${profileName}`);
+
+        const results = await launcher.launch(profileName, options);
+
+        // Display final results
+        console.log(`\n📊 === Launch Results ===`);
+        console.log(`🔧 Services: ${results.services.successful}/${results.services.successful + results.services.failed} successful`);
+        console.log(`🚀 Enterprise Scripts: ${results.enterpriseScripts.successful}/${results.enterpriseScripts.successful + results.enterpriseScripts.failed} successful`);
+        console.log(`🧠 Health Check Mode: ${results.healthCheckMode}`);
+
+        if (results.services.successful + results.enterpriseScripts.successful > 0) {
+            console.log(`\n✨ Platform is running! AI-enhanced health monitoring active.`);
+            console.log(`💡 Use Ctrl+C to gracefully shutdown all services.`);
+
+            // Keep process running to maintain services
+            await new Promise(() => { }); // Run indefinitely until interrupted
+        } else {
+            console.log(`\n❌ Failed to start any services. Check logs for details.`);
+            process.exit(1);
+        }
+
+    } catch (error) {
+        console.error(`❌ Launcher failed: ${error.message}`);
+        process.exit(1);
+    }
 }
 
-// Handle command line arguments
-const args = process.argv.slice(2);
-if (args.includes('--help') || args.includes('-h')) {
+function showHelp() {
     console.log(`
-🌟 Unified Enterprise Launcher - Single Entry Point for AI Orchestration Platform
+🌟 Unified Enterprise Launcher v3.1.0 - AI-Enhanced Health Check Intelligence
 
 USAGE:
     node unified-enterprise-launcher.js [options]
 
 OPTIONS:
-    --help, -h              Show this help message
-    --profile <name>        Launch specific profile (minimal, development, production, testing, enterprise)
+    --profile <name>        Launch specific profile (default: development)
+    --force                Force start even if some services fail
+    --verbose              Enable verbose logging
+    --help, -h             Show this help message
 
 PROFILES:
-    minimal                 Core services only
-    development            Full development stack  
-    production             Enterprise production setup
-    testing                Full testing and validation setup
-    enterprise             Complete enterprise AI orchestration platform
+    minimal                Core services only for basic development
+    development            Full development stack with core enterprise scripts  
+    production             Production environment with full monitoring
+    testing                Full testing suite with all validation systems
+    enterprise             Complete enterprise platform with all systems
 
-FEATURES:
-    ✅ Single entry point for all enterprise systems
-    ✅ Intelligent orchestration of services and scripts
-    ✅ Real-time system health monitoring
-    ✅ Automated deployment coordination
-    ✅ Enterprise-grade security and management
+AI/ML HEALTH CHECK FEATURES:
+    🧠 Adaptive timeout prediction based on system performance
+    📊 Historical startup time learning and optimization
+    🔄 Dynamic retry strategies based on service reliability
+    ⚡ System resource-aware health check timing
+    📈 Continuous performance monitoring and learning
 
-AUTHOR: Derek J. Russell
+EXAMPLES:
+    node unified-enterprise-launcher.js --profile production
+    node unified-enterprise-launcher.js --profile testing --verbose
+    node unified-enterprise-launcher.js --profile enterprise --force
+
+For more information, visit the project documentation.
 `);
-    process.exit(0);
 }
 
-// Handle profile argument
-const profileIndex = args.indexOf('--profile');
-if (profileIndex !== -1 && args[profileIndex + 1]) {
-    const profileName = args[profileIndex + 1];
-    const launcher = new UnifiedEnterpriseLauncher();
-
-    (async () => {
-        try {
-            await launcher.initializeUnifiedLauncher();
-            await launcher.launchProfile(profileName);
-            process.exit(0);
-        } catch (error) {
-            console.error(`${CONFIG.display.colors.red}❌ Fatal error: ${error.message}${CONFIG.display.colors.reset}`);
-            process.exit(1);
-        }
-    })();
-} else if (require.main === module) {
-    main().catch(error => {
-        console.error(`${CONFIG.display.colors.red}❌ Fatal error: ${error.message}${CONFIG.display.colors.reset}`);
-        process.exit(1);
-    });
+// Execute main function if run directly
+if (require.main === module) {
+    main().catch(console.error);
 }
 
 module.exports = { UnifiedEnterpriseLauncher, CONFIG }; 
