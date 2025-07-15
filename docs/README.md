@@ -29,6 +29,7 @@ System architecture, integration guides, and modernization documentation.
 ### ⚙️ **[System Management](./system-management/)**
 Operations, management, and system administration documentation.
 
+- **[Environment Configuration](./system-management/ENVIRONMENT_CONFIGURATION.md)** - Enterprise environment setup guide
 - **[Port Management](./system-management/PORT-MANAGEMENT.md)** - Port conflict resolution and management
 - **[Parallel Execution](./system-management/PARALLEL_EXECUTION.md)** - Parallel processing and coordination
 - **[Workflow Status](./system-management/WORKFLOW_STATUS.md)** - Current workflow states and processes

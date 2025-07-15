@@ -47,6 +47,7 @@
 **Quick Links:**
 - [Getting Started Guide](./docs/guides/GETTING_STARTED.md)
 - [Enhanced Commands Reference](./docs/guides/ENHANCED_COMMANDS_REFERENCE.md)
+- [Environment Configuration](./docs/system-management/ENVIRONMENT_CONFIGURATION.md)
 - [AI Health Check Intelligence](./docs/ai-ml/AI_HEALTH_CHECK_INTELLIGENCE.md)
 
 ---

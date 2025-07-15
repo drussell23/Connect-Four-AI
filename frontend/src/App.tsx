@@ -9,6 +9,7 @@ import VictoryModal from './components/VictoryModal';
 import LoadingProgress from './components/LoadingProgress';
 import RockPaperScissors, { type RPSResult } from './components/RockPaperScissors';
 import apiSocket from './api/socket';
+import { appConfig, enterprise, ai, game, ui, dev, analytics } from './config/environment';
 import type { CellValue, PlayerStats, AIPersonalityData } from './declarations';
 
 interface Move {
@@ -66,7 +67,7 @@ const App: React.FC = () => {
   const [aiAdaptationInfo, setAiAdaptationInfo] = useState<any>(null);
   const [curriculumInfo, setCurriculumInfo] = useState<any>(null);
   const [debateResult, setDebateResult] = useState<any>(null);
-  const [enhancedAiEnabled, setEnhancedAiEnabled] = useState<boolean>(true);
+  const [enhancedAiEnabled, setEnhancedAiEnabled] = useState<boolean>(enterprise.aiInsightsEnabled);
 
   // Player statistics
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
@@ -193,6 +194,7 @@ const App: React.FC = () => {
   }, []);
 
   const playTone = (freq: number, duration: number) => {
+    if (!ui.soundEffects) return; // Enterprise sound control
     const ctx = audioCtxRef.current;
     if (!ctx) return;
     if (ctx.state === 'suspended') {
@@ -209,27 +211,35 @@ const App: React.FC = () => {
   };
 
   const playClick = () => {
-    playTone(1000, 0.05);
-    navigator.vibrate?.(10);
+    if (ui.soundEffects) {
+      playTone(1000, 0.05);
+      navigator.vibrate?.(10);
+    }
   };
 
   const playDrop = () => {
-    playTone(300, 0.2);
-    navigator.vibrate?.(20);
+    if (ui.soundEffects) {
+      playTone(300, 0.2);
+      navigator.vibrate?.(20);
+    }
   };
 
   const playVictory = () => {
-    playTone(523.25, 0.3);
-    setTimeout(() => playTone(659.25, 0.3), 300);
-    setTimeout(() => playTone(783.99, 0.3), 600);
-    navigator.vibrate?.([100, 50, 100, 50, 100]);
+    if (ui.soundEffects) {
+      playTone(523.25, 0.3);
+      setTimeout(() => playTone(659.25, 0.3), 300);
+      setTimeout(() => playTone(783.99, 0.3), 600);
+      navigator.vibrate?.([100, 50, 100, 50, 100]);
+    }
   };
 
   const playDefeat = () => {
-    playTone(220, 0.5);
-    setTimeout(() => playTone(185, 0.5), 300);
-    setTimeout(() => playTone(147, 0.8), 600);
-    navigator.vibrate?.([50, 100, 50, 100, 50]);
+    if (ui.soundEffects) {
+      playTone(220, 0.5);
+      setTimeout(() => playTone(185, 0.5), 300);
+      setTimeout(() => playTone(147, 0.8), 600);
+      navigator.vibrate?.([50, 100, 50, 100, 50]);
+    }
   };
 
   // Rock Paper Scissors handlers
@@ -325,20 +335,28 @@ const App: React.FC = () => {
       playVictory();
       setGameResult('victory');
 
-      // Trigger fireworks
-      const fw = new Fireworks(document.body, { sound: { enabled: false } });
-      const canvas = (fw as any).canvas as HTMLCanvasElement;
-      if (canvas) {
-        canvas.style.position = 'fixed';
-        canvas.style.top = '0';
-        canvas.style.left = '0';
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
-        canvas.style.pointerEvents = 'none';
-        canvas.style.zIndex = '9999';
+      // Enterprise victory celebrations control
+      if (ui.victoryCelebrations) {
+        const fw = new Fireworks(document.body, {
+          sound: { enabled: ui.soundEffects }
+        });
+        const canvas = (fw as any).canvas as HTMLCanvasElement;
+        if (canvas) {
+          canvas.style.position = 'fixed';
+          canvas.style.top = '0';
+          canvas.style.left = '0';
+          canvas.style.width = '100%';
+          canvas.style.height = '100%';
+          canvas.style.pointerEvents = 'none';
+          canvas.style.zIndex = '9999';
+        }
+        fw.start();
+        setTimeout(() => fw.stop(), 5000);
+
+        if (dev.verboseLogging) {
+          console.log('🎉 Enterprise victory celebration triggered');
+        }
       }
-      fw.start();
-      setTimeout(() => fw.stop(), 5000);
 
     } else if (isDefeat) {
       newStats.losses++;
@@ -583,9 +601,11 @@ const App: React.FC = () => {
       setRpsDifficulty(difficulty);
     }
 
-    // Show loading progress when game starts
-    setShowLoadingProgress(true);
-    setIsInitializing(true);
+    // Enterprise loading control
+    if (ui.loadingAnimations) {
+      setShowLoadingProgress(true);
+      setIsInitializing(true);
+    }
     setSocket(apiSocket);
 
     apiSocket.on('connect', () => {

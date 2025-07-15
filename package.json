@@ -10,9 +10,12 @@
     "start:enterprise": "node scripts/enterprise/unified-enterprise-launcher.js --profile enterprise",
     "start:turbo": "node scripts/enterprise/unified-enterprise-launcher.js --profile development",
     "start:turbo:build": "node scripts/enterprise/unified-enterprise-launcher.js --profile production",
-    "start:turbo:build:enhanced": "node scripts/enterprise/unified-enterprise-launcher.js --profile production_enhanced",
-    "start:production:full": "npm run system:health && node scripts/enterprise/unified-enterprise-launcher.js --profile production_enhanced",
+    "start:turbo:build:enhanced": "node scripts/enterprise/unified-enterprise-launcher.js turbo:build:enhanced",
     "start:turbo:build:full": "npm run system:health && node scripts/enterprise/unified-enterprise-launcher.js --profile production_enhanced --force",
+    "start:turbo:build:enhanced:v2": "node scripts/enterprise/unified-enterprise-launcher-v2.js turbo:build:enhanced",
+    "start:quick": "node scripts/enterprise/quick-launcher.js",
+    "start:super": "node scripts/enterprise/super-quick-launcher.js",
+    "start:production:full": "npm run system:health && node scripts/enterprise/unified-enterprise-launcher.js --profile production_enhanced",
     "start:fast": "node scripts/enterprise/unified-enterprise-launcher.js --profile minimal",
     "start:force": "node scripts/enterprise/enterprise-parallel-launcher.js",
     "start:backend": "./scripts/legacy/smart-start.sh --backend-only",
@@ -27,7 +30,7 @@
     "dev:logs": "./scripts/legacy/smart-start.sh --follow-logs",
     "stop": "pkill -f 'unified-enterprise-launcher\\|enterprise-parallel-launcher\\|ai-stability-manager\\|intelligent-resource-manager'; ./scripts/legacy/smart-stop-parallel.sh",
     "stop:turbo": "pkill -f 'unified-enterprise-launcher\\|enterprise-parallel-launcher\\|ai-stability-manager\\|intelligent-resource-manager\\|performance-analytics-suite'; ./scripts/legacy/smart-stop-parallel.sh",
-    "stop:turbo:enhanced": "pkill -f 'unified-enterprise-launcher\\|enterprise-parallel-launcher\\|ai-stability-manager\\|intelligent-resource-manager\\|performance-analytics-suite\\|ai-orchestration-dashboard\\|advanced-ai-diagnostics\\|enterprise-model-manager'; ./scripts/legacy/smart-stop-parallel.sh",
+    "stop:turbo:enhanced": "pkill -SIGINT -f 'unified-enterprise-launcher.*turbo:build:enhanced' || pkill -f 'unified-enterprise-launcher\\|enterprise-parallel-launcher\\|ai-stability-manager\\|intelligent-resource-manager\\|performance-analytics-suite\\|ai-orchestration-dashboard\\|advanced-ai-diagnostics\\|enterprise-model-manager\\|backend.*nest\\|frontend.*react-scripts\\|ml_service.*python'; ./scripts/legacy/smart-stop-parallel.sh",
     "stop:turbo:full": "npm run stop:turbo:enhanced && npm run system:cleanup",
     "stop:enterprise": "pkill -f 'node scripts/(unified-enterprise-launcher|enterprise-parallel-launcher|ai-stability-manager|intelligent-resource-manager|performance-analytics-suite|advanced-deployment-manager|ai-comprehensive-testing|enterprise-model-manager|advanced-ai-diagnostics|rlhf-system-manager|ai-orchestration-dashboard)'",
     "stop:legacy": "./scripts/tooling/port-manager-v2.sh emergency",
@@ -103,6 +106,7 @@
   },
   "devDependencies": {
     "@types/node": "^18.0.0",
+    "axios": "^1.10.0",
     "typescript": "^4.9.0"
   },
   "dependencies": {

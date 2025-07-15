@@ -1,0 +1,28 @@
+{
+    "name": "connect-four-ml-service",
+    "version": "1.0.0",
+    "description": "Connect Four ML Inference Service",
+    "main": "ml_service.py",
+    "scripts": {
+        "start": "python3 start_quick.py",
+        "start:full": "python3 ml_service.py",
+        "dev": "python3 start_quick.py",
+        "test": "python3 test_service.py",
+        "install": "pip3 install -r requirements.txt",
+        "health": "curl -f http://localhost:8000/health || echo 'Service not ready'"
+    },
+    "keywords": [
+        "ai",
+        "ml",
+        "connect-four",
+        "inference"
+    ],
+    "author": "Connect Four Team",
+    "license": "MIT",
+    "engines": {
+        "python": ">=3.8"
+    },
+    "dependencies": {
+        "note": "See requirements.txt for Python dependencies"
+    }
+}

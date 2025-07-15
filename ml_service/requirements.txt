@@ -48,4 +48,3 @@ websockets>=12.0
 
 # Environment and Configuration
 python-dotenv>=1.0.0
-pyyaml>=6.0.0 

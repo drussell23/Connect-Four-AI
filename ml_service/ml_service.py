@@ -25,6 +25,12 @@ from typing import List, Union, Optional, Dict, Any, Tuple
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+# Environment Configuration
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
 # Core ML and Web Framework
 import torch
 import torch.nn.functional as F
@@ -64,6 +70,107 @@ try:
 except ImportError:
     REDIS_AVAILABLE = False
     redis = None
+
+# -----------------------------------------------------------------------------
+# 🏢 ENTERPRISE ENVIRONMENT CONFIGURATION
+# -----------------------------------------------------------------------------
+
+# Service Configuration
+PORT = int(os.getenv("PORT", 8000))
+HOST = os.getenv("HOST", "0.0.0.0")
+DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+WORKERS = int(os.getenv("WORKERS", 4))
+
+# Model Management
+MODEL_PATH = os.getenv("MODEL_PATH", "models/")
+POLICY_MODEL_NAME = os.getenv("POLICY_MODEL_NAME", "policy_net.pt")
+VALUE_MODEL_NAME = os.getenv("VALUE_MODEL_NAME", "value_net.pt")
+BACKUP_MODEL_PATH = os.getenv("BACKUP_MODEL_PATH", "../models_backup/")
+
+# Model Loading Configuration
+AUTO_LOAD_MODELS = os.getenv("AUTO_LOAD_MODELS", "true").lower() == "true"
+MODEL_WARMUP = os.getenv("MODEL_WARMUP", "true").lower() == "true"
+MODEL_VALIDATION = os.getenv("MODEL_VALIDATION", "true").lower() == "true"
+FALLBACK_TO_RANDOM = os.getenv("FALLBACK_TO_RANDOM", "true").lower() == "true"
+
+# Inference Configuration
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", 32))
+MAX_BATCH_SIZE = int(os.getenv("MAX_BATCH_SIZE", 128))
+INFERENCE_TIMEOUT = int(os.getenv("INFERENCE_TIMEOUT", 5000))
+MAX_CONCURRENT_REQUESTS = int(os.getenv("MAX_CONCURRENT_REQUESTS", 50))
+
+# Enterprise Integration
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:3000")
+ENTERPRISE_MODE = os.getenv("ENTERPRISE_MODE", "true").lower() == "true"
+PERFORMANCE_MONITORING = os.getenv("PERFORMANCE_MONITORING", "true").lower() == "true"
+HEALTH_REPORTING_INTERVAL = int(os.getenv("HEALTH_REPORTING_INTERVAL", 30))
+
+# Logging Configuration
+LOG_FILE_PATH = os.getenv("LOG_FILE_PATH", "logs/ml_service.log")
+
+# Performance Optimization
+USE_GPU = os.getenv("USE_GPU", "false").lower() == "true"
+GPU_DEVICE = int(os.getenv("GPU_DEVICE", 0))
+NUM_THREADS = int(os.getenv("NUM_THREADS", 4))
+MEMORY_LIMIT = int(os.getenv("MEMORY_LIMIT", 2048))
+
+
+# Build dynamic model paths with fallback system
+def get_model_paths():
+    """Get model paths with intelligent fallback system"""
+    base_path = Path(MODEL_PATH)
+    backup_path = Path(BACKUP_MODEL_PATH)
+
+    # Primary model paths
+    policy_model = base_path / POLICY_MODEL_NAME
+    value_model = base_path / VALUE_MODEL_NAME
+
+    # Fallback to backup if primary doesn't exist
+    if not policy_model.exists() and (backup_path / POLICY_MODEL_NAME).exists():
+        logger.warning(
+            f"Primary model not found, using backup: {backup_path / POLICY_MODEL_NAME}"
+        )
+        policy_model = backup_path / POLICY_MODEL_NAME
+
+    if not value_model.exists() and (backup_path / VALUE_MODEL_NAME).exists():
+        logger.warning(
+            f"Primary value model not found, using backup: {backup_path / VALUE_MODEL_NAME}"
+        )
+        value_model = backup_path / VALUE_MODEL_NAME
+
+    return {
+        "model_dir": str(base_path),
+        "backup_dir": str(backup_path),
+        "policy_model": str(policy_model),
+        "value_model": str(value_model),
+        "policy_exists": policy_model.exists(),
+        "value_exists": value_model.exists(),
+    }
+
+
+# Get model paths at startup
+MODEL_PATHS = get_model_paths()
+
+print(f"🔧 Enterprise ML Service Configuration:")
+print(f"   📁 Model Path: {MODEL_PATHS['model_dir']}")
+print(f"   📁 Backup Path: {MODEL_PATHS['backup_dir']}")
+print(
+    f"   🤖 Policy Model: {MODEL_PATHS['policy_model']} ({'✅' if MODEL_PATHS['policy_exists'] else '❌'})"
+)
+print(
+    f"   📊 Value Model: {MODEL_PATHS['value_model']} ({'✅' if MODEL_PATHS['value_exists'] else '❌'})"
+)
+print(f"   🏢 Enterprise Mode: {'✅' if ENTERPRISE_MODE else '❌'}")
+print(f"   📈 Performance Monitoring: {'✅' if PERFORMANCE_MONITORING else '❌'}")
+print(f"   🔗 Backend URL: {BACKEND_URL}")
+print(f"   🚀 Service Port: {PORT}")
+print(f"   🖥️  GPU Enabled: {'✅' if USE_GPU else '❌'}")
+print(f"   📝 Log Level: {LOG_LEVEL}")
+print()
+
+# Set torch threads
+torch.set_num_threads(NUM_THREADS)
 
 # -----------------------------------------------------------------------------
 # Enhanced Logging Configuration

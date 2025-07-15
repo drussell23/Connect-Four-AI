@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import * as express from 'express';
 
@@ -8,17 +9,36 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   try {
-    logger.log('🚀 Starting Connect Four Backend with Frontend...');
+    logger.log('🚀 Starting Enterprise Connect Four Backend...');
 
     const app = await NestFactory.create(AppModule, {
       logger: ['error', 'warn', 'log'],
     });
 
-    // Enable CORS
-    app.enableCors({
-      origin: ['http://localhost:3000', 'http://localhost:3001'],
-      credentials: true,
-    });
+    const configService = app.get(ConfigService);
+
+    // Enterprise Configuration Logging
+    logger.log('🏢 Enterprise Configuration:');
+    logger.log(`   📁 Port: ${configService.get('port')}`);
+    logger.log(`   🌐 Frontend URL: ${configService.get('frontendUrl')}`);
+    logger.log(`   🧠 ML Service URL: ${configService.get('mlServiceUrl')}`);
+    logger.log(`   🏢 Enterprise Mode: ${configService.get('enterpriseMode') ? '✅' : '❌'}`);
+    logger.log(`   🤖 Advanced AI: ${configService.get('enableAdvancedAI') ? '✅' : '❌'}`);
+    logger.log(`   📈 Performance Monitoring: ${configService.get('performanceMonitoring') ? '✅' : '❌'}`);
+
+    // Enterprise CORS Configuration
+    const corsEnabled = configService.get('corsEnabled');
+    const corsOrigins = configService.get('corsOrigins');
+
+    if (corsEnabled) {
+      app.enableCors({
+        origin: corsOrigins,
+        credentials: true,
+      });
+      logger.log(`✅ CORS enabled for origins: ${corsOrigins.join(', ')}`);
+    } else {
+      logger.log('❌ CORS disabled');
+    }
 
     // Set API prefix
     app.setGlobalPrefix('api');
@@ -29,11 +49,15 @@ async function bootstrap() {
     app.use(express.static(frontendPath));
     logger.log('✅ Frontend static files served from: ' + frontendPath);
 
-    // Start server
-    await app.listen(3000);
-    logger.log('🚀 Connect Four Backend + Frontend running on http://localhost:3000');
-    logger.log('💚 Health check: http://localhost:3000/api/health');
-    logger.log('🎮 Game ready at: http://localhost:3000');
+    // Enterprise Server Startup
+    const port = configService.get('port');
+    const frontendUrl = configService.get('frontendUrl');
+
+    await app.listen(port);
+    logger.log(`🚀 Enterprise Connect Four Backend running on http://localhost:${port}`);
+    logger.log(`💚 Health check: http://localhost:${port}/api/health`);
+    logger.log(`🎮 Game ready at: ${frontendUrl}`);
+    logger.log(`🧠 ML Service integration: ${configService.get('mlServiceUrl')}`);
 
   } catch (error) {
     logger.error('💥 Bootstrap failed:', error.message);

@@ -1,6 +1,7 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import type { AxiosResponse } from 'axios';
 import { HttpService } from '@nestjs/axios';   // now resolves correctly
+import { ConfigService } from '@nestjs/config';
 import { lastValueFrom, Observable } from 'rxjs';
 import type { CellValue } from '../ai/connect4AI';
 
@@ -26,11 +27,17 @@ export class MlClientService {
     private readonly predictMoveEndpoint: string;
     private readonly predictEndpoint: string;
 
-    constructor(private readonly httpService: HttpService) {
-        const baseUrl = process.env.ML_SERVICE_URL ?? 'http://localhost:8001';
+    constructor(
+        private readonly httpService: HttpService,
+        private readonly configService: ConfigService
+    ) {
+        const baseUrl = this.configService.get('mlServiceUrl');
         this.logGameEndpoint = `${baseUrl}/log_game`;
         this.predictMoveEndpoint = `${baseUrl}/predict_move`;
         this.predictEndpoint = `${baseUrl}/predict`;
+
+        // Enterprise logging
+        console.log(`🧠 ML Client configured with base URL: ${baseUrl}`);
     }
 
     /**

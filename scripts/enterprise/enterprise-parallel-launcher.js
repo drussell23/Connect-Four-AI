@@ -69,49 +69,49 @@ const CONFIG = {
     // Enterprise scripts integration
     enterpriseScripts: {
         'ai-stability-manager': {
-            script: './scripts/ai-stability-manager.js',
+            script: './scripts/enterprise/ai-stability-manager.js',
             autoStart: false,
             priority: 1,
             description: 'AI Stability Architecture monitoring'
         },
         'ai-orchestration-dashboard': {
-            script: './scripts/ai-orchestration-dashboard.js',
+            script: './scripts/enterprise/ai-orchestration-dashboard.js',
             autoStart: false,
             priority: 2,
             description: 'Multi-algorithm management dashboard'
         },
         'intelligent-resource-manager': {
-            script: './scripts/intelligent-resource-manager.js',
+            script: './scripts/enterprise/intelligent-resource-manager.js',
             autoStart: false,
             priority: 3,
             description: 'CPU/GPU resource optimization'
         },
         'performance-analytics-suite': {
-            script: './scripts/performance-analytics-suite.js',
+            script: './scripts/enterprise/performance-analytics-suite.js',
             autoStart: false,
             priority: 4,
             description: 'Performance intelligence platform'
         },
         'advanced-deployment-manager': {
-            script: './scripts/advanced-deployment-manager.js',
+            script: './scripts/enterprise/advanced-deployment-manager.js',
             autoStart: false,
             priority: 5,
             description: 'Hot-swapping and canary deployments'
         },
         'ai-comprehensive-testing': {
-            script: './scripts/ai-comprehensive-testing.js',
+            script: './scripts/enterprise/ai-comprehensive-testing.js',
             autoStart: false,
             priority: 6,
             description: 'Algorithm validation and testing'
         },
         'advanced-ai-diagnostics': {
-            script: './scripts/advanced-ai-diagnostics.js',
+            script: './scripts/enterprise/advanced-ai-diagnostics.js',
             autoStart: false,
             priority: 7,
             description: 'Predictive failure detection'
         },
         'rlhf-system-manager': {
-            script: './scripts/rlhf-system-manager.js',
+            script: './scripts/enterprise/rlhf-system-manager.js',
             autoStart: false,
             priority: 8,
             description: 'Human-AI alignment platform'

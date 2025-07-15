@@ -1,10 +1,16 @@
 // frontend/src/api/socket.ts
 import io from 'socket.io-client';
+import { appConfig } from '../config/environment';
 
-// API configuration
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+// Enterprise API configuration from environment
+const API_URL = appConfig.api.baseUrl;
+const WS_URL = appConfig.api.wsUrl;
 
-console.log('🔌 Initializing WebSocket connection to:', `${API_URL}/game`);
+console.log('🔌 Enterprise WebSocket connection to:', `${API_URL}/game`);
+if (appConfig.dev.debugMode) {
+  console.log('🏢 Enterprise Mode:', appConfig.enterprise.mode);
+  console.log('🔗 WebSocket URL:', WS_URL);
+}
 
 // Enhanced Socket.IO client with robust connection handling
 const socket = io(`${API_URL}/game`, {

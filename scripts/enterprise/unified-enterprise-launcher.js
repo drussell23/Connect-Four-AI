@@ -125,7 +125,7 @@ class AIHealthCheckOptimizer {
 
     calculateServiceComplexity(serviceName) {
         const complexityWeights = {
-            'backend': 3.5,      // High complexity - API, DB, multiple endpoints
+            'backend': 5.0,      // Very high complexity - API, DB, TypeScript compilation, multiple endpoints
             'frontend': 2.0,     // Medium complexity - React build process
             'ml_service': 4.0    // Highest complexity - ML model loading, Python startup
         };
@@ -165,9 +165,14 @@ class AIHealthCheckOptimizer {
         // Dynamic adjustment formula
         const aiAdjustedTimeout = predictedTimeout * systemLoadFactor * memoryFactor * complexityFactor;
 
-        // Apply safety bounds and intelligent scaling
-        const minTimeout = 5000;   // Never less than 5 seconds
-        const maxTimeout = 180000; // Never more than 3 minutes
+        // PERFORMANCE FIX: Aggressive safety bounds with service-specific minimums
+        const serviceMinimums = {
+            'backend': 30000,    // Backend needs 25+ seconds for TypeScript compilation and full startup
+            'frontend': 2000,    // Frontend standard minimum
+            'ml_service': 3000   // ML service needs time for Python startup
+        };
+        const minTimeout = serviceMinimums[serviceName] || 2000;   // Service-specific or default 2 seconds
+        const maxTimeout = 35000;  // Increased max to 35 seconds for backend
 
         const finalTimeout = Math.max(minTimeout, Math.min(maxTimeout, aiAdjustedTimeout));
 
@@ -273,7 +278,7 @@ const CONFIG = {
                 name: 'Backend API Server',
                 command: 'npm run start:dev',
                 cwd: './backend',
-                port: 3001,
+                port: 3000,  // FIXED: Backend runs on port 3000, not 3001
                 healthCheck: '/api/health',
                 priority: 1,
                 essential: true
@@ -282,14 +287,14 @@ const CONFIG = {
                 name: 'Frontend React App',
                 command: 'npm start',
                 cwd: './frontend',
-                port: 3000,
+                port: 3001, // FIXED: Frontend runs on 3001
                 healthCheck: '/',
                 priority: 2,
                 essential: true
             },
             ml_service: {
                 name: 'ML Inference Service',
-                command: 'python ml_service.py',
+                command: 'python3 ml_service.py', // FIXED: Correct Python command
                 cwd: './ml_service',
                 port: 8000,
                 healthCheck: '/health',
@@ -430,6 +435,19 @@ const CONFIG = {
             services: ['backend', 'frontend', 'ml_service'],
             enterpriseScripts: [], // Will be populated after CONFIG initialization
             healthCheckMode: 'ai_optimized'
+        },
+        'turbo:build:enhanced': {
+            name: 'Turbo Enhanced Production',
+            description: 'High-performance production with enhanced monitoring',
+            services: ['backend', 'frontend', 'ml_service'],
+            enterpriseScripts: [
+                'ai-stability-manager',
+                'intelligent-resource-manager',
+                'performance-analytics-suite',
+                'ai-orchestration-dashboard',
+                'advanced-ai-diagnostics'
+            ],
+            healthCheckMode: 'ai_optimized'
         }
     },
 
@@ -554,22 +572,34 @@ class UnifiedEnterpriseLauncher {
             }
         }
 
-        // Launch enterprise scripts
+        // Launch enterprise scripts - ONLY if all core services are successful
         if (profile.enterpriseScripts.length > 0) {
-            console.log(`\n🚀 === Starting Enterprise Systems (${profile.enterpriseScripts.length}) ===`);
+            if (results.services.successful === profile.services.length && results.services.failed === 0) {
+                console.log(`\n🚀 === Starting Enterprise Systems (${profile.enterpriseScripts.length}) ===`);
+                console.log(`✅ All core services ready - proceeding with enterprise scripts`);
 
-            for (const scriptName of profile.enterpriseScripts) {
-                const scriptConfig = CONFIG.platform.enterpriseScripts[scriptName];
-                if (scriptConfig) {
-                    const success = await this.launchEnterpriseScript(scriptName, scriptConfig);
+                for (const scriptName of profile.enterpriseScripts) {
+                    const scriptConfig = CONFIG.platform.enterpriseScripts[scriptName];
+                    if (scriptConfig) {
+                        const success = await this.launchEnterpriseScript(scriptName, scriptConfig);
 
-                    if (success) {
-                        results.enterpriseScripts.successful++;
-                        results.enterpriseScripts.details[scriptName] = 'running';
-                    } else {
-                        results.enterpriseScripts.failed++;
-                        results.enterpriseScripts.details[scriptName] = 'failed';
+                        if (success) {
+                            results.enterpriseScripts.successful++;
+                            results.enterpriseScripts.details[scriptName] = 'running';
+                        } else {
+                            results.enterpriseScripts.failed++;
+                            results.enterpriseScripts.details[scriptName] = 'failed';
+                        }
                     }
+                }
+            } else {
+                console.log(`\n⚠️  === Skipping Enterprise Systems ===`);
+                console.log(`❌ Core services not fully ready (${results.services.successful}/${profile.services.length} successful)`);
+                console.log(`🔧 Enterprise scripts require all core services to be running`);
+
+                // Mark all enterprise scripts as skipped
+                for (const scriptName of profile.enterpriseScripts) {
+                    results.enterpriseScripts.details[scriptName] = 'skipped - dependencies not ready';
                 }
             }
         }
@@ -581,8 +611,20 @@ class UnifiedEnterpriseLauncher {
         console.log(`\n🔥 Launching ${serviceConfig.name}...`);
 
         try {
-            // Start the service process
-            const process = spawn('npm', serviceConfig.command.split(' ').slice(1), {
+            // Start the service process - detect if it's an npm command or direct command
+            let spawnCommand, spawnArgs;
+            if (serviceConfig.command.startsWith('npm ') || serviceConfig.command.startsWith('run ')) {
+                // It's an npm command
+                spawnCommand = 'npm';
+                spawnArgs = serviceConfig.command.split(' ').slice(1);
+            } else {
+                // It's a direct command (like python3, node, etc.)
+                const commandParts = serviceConfig.command.split(' ');
+                spawnCommand = commandParts[0];
+                spawnArgs = commandParts.slice(1);
+            }
+
+            const process = spawn(spawnCommand, spawnArgs, {
                 cwd: serviceConfig.cwd,
                 stdio: ['ignore', 'pipe', 'pipe'],
                 shell: true
@@ -745,8 +787,9 @@ class UnifiedEnterpriseLauncher {
         while (Date.now() - startTime < timeout) {
             try {
                 if (serviceName === 'backend') {
-                    const portOpen = await this.checkPortOpen(serviceConfig.port);
-                    if (portOpen) {
+                    // PERFORMANCE FIX: Use proper health endpoint
+                    const response = await this.makeHttpRequest(`http://localhost:${serviceConfig.port}/api/health`);
+                    if (response.status === 200) {
                         return true;
                     }
                 } else {
@@ -780,19 +823,22 @@ class UnifiedEnterpriseLauncher {
 
         while (currentRetries < maxRetries && (Date.now() - startTime) < aiTimeout) {
             try {
-                if (serviceName === 'backend') {
-                    const portOpen = await this.checkPortOpen(serviceConfig.port);
-                    if (portOpen) {
-                        return true;
-                    }
-                } else {
-                    const response = await this.makeHealthCheckRequest(serviceConfig.port, serviceConfig.healthCheck);
-                    if (response) {
-                        return true;
-                    }
+                // Use proper HTTP health check for all services (including backend)
+                console.log(`     🔍 Health check attempt ${currentRetries + 1}: ${serviceConfig.name} on http://localhost:${serviceConfig.port}${serviceConfig.healthCheck}`);
+                const response = await this.makeHealthCheckRequest(serviceConfig.port, serviceConfig.healthCheck);
+                console.log(`     📊 Health check response: ${response}`);
+                if (response) {
+                    // Record successful startup for AI learning
+                    const actualTime = Date.now() - startTime;
+                    const currentMetrics = await this.aiOptimizer.captureCurrentSystemMetrics();
+                    await this.aiOptimizer.recordStartupSuccess(serviceName, actualTime, currentMetrics);
+                    console.log(`     ✅ ${serviceConfig.name} ready`);
+                    console.log(`🎯 AI Learning: ${serviceName} startup in ${actualTime}ms (avg: ${actualTime}ms)`);
+                    return true;
                 }
             } catch (error) {
                 // Service not ready yet, continue waiting
+                console.log(`     ⚠️ Health check error: ${error.message}`);
             }
 
             await new Promise(resolve => setTimeout(resolve, retryInterval));
@@ -835,7 +881,7 @@ class UnifiedEnterpriseLauncher {
             }, 5000); // 5 second timeout
 
             const req = http.request({
-                hostname: 'localhost',
+                hostname: '127.0.0.1',  // Use IPv4 explicitly instead of 'localhost'
                 port,
                 path: endpoint,
                 method: 'GET'
@@ -851,6 +897,24 @@ class UnifiedEnterpriseLauncher {
 
             req.end();
         });
+    }
+
+    // PERFORMANCE FIX: Add HTTP request method for health checks
+    async makeHttpRequest(url, timeout = 3000) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+        try {
+            const response = await fetch(url, {
+                signal: controller.signal,
+                headers: { 'Accept': 'application/json' }
+            });
+            clearTimeout(timeoutId);
+            return { status: response.status, ok: response.ok };
+        } catch (error) {
+            clearTimeout(timeoutId);
+            throw error;
+        }
     }
 
     generateLaunchId() {
