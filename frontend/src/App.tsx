@@ -10,7 +10,7 @@ import SimplifiedEnhancedLoading from './components/SimplifiedEnhancedLoading';
 import ConnectFourLoading from './components/ConnectFourLoading';
 import RealTimeConnectFourLoading from './components/RealTimeConnectFourLoading';
 import LoadingPreferences from './components/LoadingPreferences';
-import RockPaperScissors, { type RPSResult } from './components/RockPaperScissors';
+import CoinToss, { type CoinResult, type CoinTossResult } from './components/CoinToss';
 import AIAnalysisDashboard from './components/AIAnalysisDashboard';
 import AITrainingGround from './components/AITrainingGround';
 import apiSocket from './api/socket';
@@ -64,12 +64,16 @@ const App: React.FC = () => {
   // New AI Features state
   const [showAIDashboard, setShowAIDashboard] = useState<boolean>(false);
   const [showTrainingGround, setShowTrainingGround] = useState<boolean>(false);
+  const [showAIInsightsPanel, setShowAIInsightsPanel] = useState<boolean>(false);
 
   // Rock Paper Scissors state
   const [showRPS, setShowRPS] = useState<boolean>(false);
-  const [rpsResult, setRpsResult] = useState<RPSResult | null>(null);
-  const [startingPlayer, setStartingPlayer] = useState<CellValue>('Red'); // Who goes first
+  const [rpsResult, setRpsResult] = useState<CoinResult | null>(null);
   const [rpsDifficulty, setRpsDifficulty] = useState<number>(1); // Difficulty for the RPS game
+  const [showCoinToss, setShowCoinToss] = useState<boolean>(false);
+  const [coinResult, setCoinResult] = useState<CoinResult | null>(null);
+  const [coinDifficulty, setCoinDifficulty] = useState<number>(1); // Difficulty for the coin toss
+  const [hasDoneCoinToss, setHasDoneCoinToss] = useState<boolean>(false);
 
   // AI and difficulty state
   const [aiLevel, setAILevel] = useState<number>(1);
@@ -283,22 +287,47 @@ const App: React.FC = () => {
   };
 
   // Rock Paper Scissors handlers
-  const handleRPSComplete = (winner: RPSResult) => {
-    setRpsResult(winner);
-    setShowRPS(false);
+  // (Remove this function, only coin toss is used now)
+  // const handleRPSComplete = (winner: CoinResult) => {
+  //   setRpsResult(winner);
+  //   setShowRPS(false);
 
-    // Determine starting player based on RPS result
-    let firstPlayer: CellValue = 'Red'; // Default to player
-    if (winner === 'ai') {
-      firstPlayer = 'Yellow'; // AI goes first
+  //   // Determine starting player based on RPS result
+  //   let firstPlayer: CellValue;
+  //   if (winner === 'player') {
+  //     firstPlayer = 'Red';
+  //     setStatus('You go first!');
+  //   } else {
+  //     firstPlayer = 'Yellow';
+  //     setStatus('AI goes first!');
+  //   }
+
+  //   // Create game with determined starting player
+  //   createGameWithStartingPlayer(firstPlayer, rpsDifficulty);
+  // };
+  const handleCoinTossComplete = (result: CoinTossResult) => {
+    console.log('🎯 Coin toss completed:', result);
+    setCoinResult(result.coinResult);
+    setShowCoinToss(false);
+    setHasDoneCoinToss(true);
+
+    // Clear any previous AI explanation
+    setAiExplanation('');
+    setShowAiInsights(false);
+
+    // Determine starting player based on whether user won their call
+    let firstPlayer: CellValue;
+    if (result.userWon) {
+      firstPlayer = 'Red';
+      setStatus(`You called ${result.coinResult.toUpperCase()} and won! You go first!`);
     } else {
-      firstPlayer = 'Red'; // Player goes first (for 'player' win or 'tie')
+      firstPlayer = 'Yellow';
+      setStatus(`You called ${result.coinResult === 'heads' ? 'TAILS' : 'HEADS'} but got ${result.coinResult.toUpperCase()}. AI goes first!`);
     }
 
-    setStartingPlayer(firstPlayer);
-
-    // Create the game with the determined starting player using stored difficulty
-    createGameWithStartingPlayer(firstPlayer, rpsDifficulty);
+    console.log('🎮 Starting game with first player:', firstPlayer);
+    // Create game with determined starting player
+    createGameWithStartingPlayer(firstPlayer, coinDifficulty);
   };
 
   const createGameWithStartingPlayer = (firstPlayer: CellValue, difficulty?: number) => {
@@ -313,6 +342,10 @@ const App: React.FC = () => {
     setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
     setWinningLine([]);
     setHistory([]);
+
+    // Clear any previous AI explanation
+    setAiExplanation('');
+    setShowAiInsights(false);
 
     // Set the appropriate status based on who goes first
     const currentAI = getAIPersonality(gameDifficulty);
@@ -441,6 +474,9 @@ const App: React.FC = () => {
 
     setShowVictoryModal(false);
 
+    // Store the game result before clearing it
+    const previousGameResult = gameResult;
+
     // Reset game state first
     setGameResult(null);
     setHistory([]);
@@ -449,7 +485,6 @@ const App: React.FC = () => {
     // Determine starting player based on previous game result
     // If player won previous level, they go first in next level
     // If player lost, AI goes first
-    const previousGameResult = gameResult;
     let nextStartingPlayer: CellValue;
 
     if (previousGameResult === 'victory') {
@@ -457,13 +492,9 @@ const App: React.FC = () => {
     } else if (previousGameResult === 'defeat') {
       nextStartingPlayer = 'Yellow'; // Player lost, so AI goes first
     } else {
-      // For draws or first game, use RPS
-      setRpsDifficulty(aiLevel + 1); // Next level difficulty
-      setShowRPS(true);
-      return;
+      // For draws, player goes first (fair default)
+      nextStartingPlayer = 'Red';
     }
-
-    setStartingPlayer(nextStartingPlayer);
 
     // Create new game directly with determined starting player
     if (socket) {
@@ -514,14 +545,33 @@ const App: React.FC = () => {
   const handleReplayLevel = () => {
     setShowVictoryModal(false);
 
+    // Store the game result before clearing it
+    const previousGameResult = gameResult;
+
     // Reset game state first
     setGameResult(null);
     setHistory([]);
     setSidebarOpen(false);
 
-    // For replay, always use RPS to determine who goes first
-    setRpsDifficulty(aiLevel); // Current level difficulty
-    setShowRPS(true);
+    // For replay, only show coin toss if it hasn't been done yet
+    setCoinDifficulty(aiLevel); // Current level difficulty
+    if (!hasDoneCoinToss) {
+      setShowCoinToss(true);
+    } else {
+      // If coin toss has already been done, determine starting player based on previous result
+      let replayFirstPlayer: CellValue;
+
+      if (previousGameResult === 'victory') {
+        replayFirstPlayer = 'Red'; // Player won, so they go first
+      } else if (previousGameResult === 'defeat') {
+        replayFirstPlayer = 'Yellow'; // Player lost, so AI goes first
+      } else {
+        // For draws, player goes first (fair default)
+        replayFirstPlayer = 'Red';
+      }
+
+      createGameWithStartingPlayer(replayFirstPlayer, aiLevel);
+    }
   };
 
   const handleQuitToMenu = () => {
@@ -545,7 +595,11 @@ const App: React.FC = () => {
     setShowRPS(false);
     setRpsResult(null);
     setRpsDifficulty(1);
-    setStartingPlayer('Red');
+    // Reset coin toss state
+    setShowCoinToss(false);
+    setCoinResult(null);
+    setCoinDifficulty(1);
+    setHasDoneCoinToss(false);
 
     // Reset player statistics back to initial values
     const initialStats: PlayerStats = {
@@ -621,11 +675,17 @@ const App: React.FC = () => {
       const difficulty = parseInt(storedDifficulty, 10);
       setSelectedDifficulty(difficulty);
       setAILevel(difficulty);
-      setRpsDifficulty(difficulty);
+      setCoinDifficulty(difficulty);
     }
 
-    // Socket exists, start with RPS to determine who goes first
-    setShowRPS(true);
+    // Only show coin toss if it hasn't been done yet
+    if (!hasDoneCoinToss) {
+      setShowCoinToss(true);
+    } else {
+      // If coin toss has already been done, just create a new game
+      const nextStartingPlayer: CellValue = Math.random() < 0.5 ? 'Red' : 'Yellow';
+      createGameWithStartingPlayer(nextStartingPlayer, selectedDifficulty);
+    }
   };
 
   // Effect: establish connection & create game
@@ -638,7 +698,7 @@ const App: React.FC = () => {
       const difficulty = parseInt(storedDifficulty, 10);
       setSelectedDifficulty(difficulty);
       setAILevel(difficulty);
-      setRpsDifficulty(difficulty);
+      setCoinDifficulty(difficulty);
     }
 
     // Enterprise loading control
@@ -695,7 +755,7 @@ const App: React.FC = () => {
       const difficulty = parseInt(storedDifficulty, 10);
       setSelectedDifficulty(difficulty);
       setAILevel(difficulty);
-      setRpsDifficulty(difficulty);
+      setCoinDifficulty(difficulty);
     }
 
     if (!socket) {
@@ -705,10 +765,14 @@ const App: React.FC = () => {
       return;
     }
 
-    // Instead of directly creating a game, trigger the RPS flow
-    setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
-    setWinningLine([]);
-    setShowRPS(true);
+    // Use coin toss to determine who goes first
+    if (!hasDoneCoinToss) {
+      setShowCoinToss(true);
+    } else {
+      // If coin toss has already been done, just create a new game
+      const nextStartingPlayer: CellValue = Math.random() < 0.5 ? 'Red' : 'Yellow';
+      createGameWithStartingPlayer(nextStartingPlayer, aiLevel);
+    }
   };
 
   // Effect: listen for move events
@@ -795,7 +859,7 @@ const App: React.FC = () => {
 
           if (data.enhancedData.explanation) {
             setAiExplanation(data.enhancedData.explanation);
-            setShowAiInsights(true); // Auto-show insights for interesting moves
+            // Don't auto-show insights, let user choose to see it
           }
 
           if (data.enhancedData.adaptationInfo) {
@@ -826,7 +890,8 @@ const App: React.FC = () => {
           setStatus(`${data.winner} wins!`);
           const currentAI = getAIPersonality(aiLevel);
           if (data.enhancedData?.explanation) {
-            setStatus(`${data.winner} wins! AI explanation: ${data.enhancedData.explanation.substring(0, 50)}...`);
+            setAiExplanation(data.enhancedData.explanation);
+            // Don't show explanation automatically, let user choose to see it
           }
           return;
         }
@@ -1111,10 +1176,10 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Rock Paper Scissors */}
-      <RockPaperScissors
-        isVisible={showRPS}
-        onComplete={handleRPSComplete}
+      {/* Coin Toss */}
+      <CoinToss
+        isVisible={showCoinToss}
+        onComplete={handleCoinTossComplete}
         aiPersonality={currentAI.name}
       />
 
@@ -1217,11 +1282,40 @@ const App: React.FC = () => {
             {status}
           </button>
         ) : (
-          <div className="text-xl font-semibold text-white bg-black bg-opacity-30 px-6 py-2 rounded-full">
-            {status}
+          <div className="flex items-center justify-center gap-2">
+            <div className="text-xl font-semibold text-white bg-black bg-opacity-30 px-6 py-2 rounded-full">
+              {status}
+            </div>
+            {aiExplanation && (status.includes('wins!') || status.includes('AI')) && (
+              <motion.button
+                onClick={() => setShowAIInsightsPanel(true)}
+                className="bg-blue-500 bg-opacity-60 hover:bg-opacity-80 text-white p-2 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                title="View AI's thinking process"
+              >
+                <span className="text-sm">💭</span>
+              </motion.button>
+            )}
           </div>
         )}
       </motion.div>
+
+      {/* Floating AI Insights Button - Available during gameplay */}
+      {aiExplanation && !showVictoryModal && (
+        <motion.button
+          onClick={() => setShowAIInsightsPanel(true)}
+          className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 hover:scale-110 z-[9999]"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          title="View AI's Analysis"
+        >
+          <div className="flex flex-col items-center">
+            <span className="text-2xl">🧠</span>
+            <span className="text-xs font-semibold mt-1">AI</span>
+          </div>
+        </motion.button>
+      )}
 
       {/* Game Board */}
       <Board
@@ -1309,6 +1403,71 @@ const App: React.FC = () => {
           📈 Stats & History
         </button>
       </div>
+
+      {/* AI Insights Side Panel - Slides in from right */}
+      <AnimatePresence>
+        {showAIInsightsPanel && aiExplanation && (
+          <motion.div
+            className="fixed top-0 right-0 h-full w-80 bg-gradient-to-b from-blue-900 to-purple-900 shadow-2xl border-l border-blue-400 z-[9999] overflow-y-auto"
+            initial={{ x: 320 }}
+            animate={{ x: 0 }}
+            exit={{ x: 320 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          >
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <span className="text-blue-300">🧠</span>
+                  {currentAI.name}'s Analysis
+                </h3>
+                <button
+                  onClick={() => setShowAIInsightsPanel(false)}
+                  className="text-gray-400 hover:text-white transition-colors text-lg p-1 rounded-full hover:bg-white hover:bg-opacity-10"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="text-gray-200 text-sm leading-relaxed mb-6">
+                {aiExplanation}
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-blue-800 bg-opacity-50 rounded-lg p-4">
+                  <h4 className="text-blue-300 font-semibold mb-2">AI Metrics</h4>
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <span className="text-gray-400">Confidence:</span>
+                      <div className="text-white font-semibold">{formatConfidenceLevel(aiConfidence)}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Level:</span>
+                      <div className="text-white font-semibold">{aiLevel}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Thinking Time:</span>
+                      <div className="text-white font-semibold">{aiThinkingTime}ms</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Safety:</span>
+                      <div className="text-white font-semibold">{formatSafetyLevel(aiSafetyScore)}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-purple-800 bg-opacity-50 rounded-lg p-4">
+                  <h4 className="text-purple-300 font-semibold mb-2">Current Game</h4>
+                  <div className="text-xs text-gray-300">
+                    <div>Status: {status}</div>
+                    <div>Moves: {history.length}</div>
+                    <div>Current Player: {currentPlayer}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
