@@ -6,8 +6,13 @@ import Board from './components/Board';
 import Sidebar from './components/Sidebar';
 import LandingPage from './components/LandingPage';
 import VictoryModal from './components/VictoryModal';
-import LoadingProgress from './components/LoadingProgress';
+import SimplifiedEnhancedLoading from './components/SimplifiedEnhancedLoading';
+import ConnectFourLoading from './components/ConnectFourLoading';
+import RealTimeConnectFourLoading from './components/RealTimeConnectFourLoading';
+import LoadingPreferences from './components/LoadingPreferences';
 import RockPaperScissors, { type RPSResult } from './components/RockPaperScissors';
+import AIAnalysisDashboard from './components/AIAnalysisDashboard';
+import AITrainingGround from './components/AITrainingGround';
 import apiSocket from './api/socket';
 import { appConfig, enterprise, ai, game, ui, dev, analytics } from './config/environment';
 import type { CellValue, PlayerStats, AIPersonalityData } from './declarations';
@@ -36,6 +41,29 @@ const App: React.FC = () => {
   const [gameResult, setGameResult] = useState<'victory' | 'defeat' | 'draw' | null>(null);
   const [showLoadingProgress, setShowLoadingProgress] = useState<boolean>(false);
   const [isInitializing, setIsInitializing] = useState<boolean>(false);
+  const [showLoadingPreferences, setShowLoadingPreferences] = useState<boolean>(false);
+  const [loadingPreferences, setLoadingPreferences] = useState(() => {
+    const saved = localStorage.getItem('loadingPreferences');
+    return saved ? JSON.parse(saved) : {
+      theme: 'cyber',
+      soundEnabled: true,
+      animationSpeed: 1,
+      particleCount: 50,
+      showMetrics: true,
+      autoStart: true,
+      language: 'en',
+      accessibility: {
+        reducedMotion: false,
+        highContrast: false,
+        largeText: false,
+        screenReader: false
+      }
+    };
+  });
+
+  // New AI Features state
+  const [showAIDashboard, setShowAIDashboard] = useState<boolean>(false);
+  const [showTrainingGround, setShowTrainingGround] = useState<boolean>(false);
 
   // Rock Paper Scissors state
   const [showRPS, setShowRPS] = useState<boolean>(false);
@@ -59,7 +87,10 @@ const App: React.FC = () => {
   const [gameMetrics, setGameMetrics] = useState<any>({
     totalThinkingTime: 0,
     averageConfidence: 0,
-    safetyScore: 1.0,
+    safety: {
+      score: 1.0,
+      violations: []
+    },
     adaptationScore: 0.5,
     explainabilityScore: 0.8
   });
@@ -68,6 +99,15 @@ const App: React.FC = () => {
   const [curriculumInfo, setCurriculumInfo] = useState<any>(null);
   const [debateResult, setDebateResult] = useState<any>(null);
   const [enhancedAiEnabled, setEnhancedAiEnabled] = useState<boolean>(enterprise.aiInsightsEnabled);
+
+  // System health metrics for dashboard
+  const [systemHealth, setSystemHealth] = useState<any>({
+    aiStatus: 'healthy',
+    cpuUsage: 25,
+    memoryUsage: 45,
+    networkLatency: 35,
+    mlServiceStatus: 'connected'
+  });
 
   // Player statistics
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
@@ -338,7 +378,7 @@ const App: React.FC = () => {
       // Enterprise victory celebrations control
       if (ui.victoryCelebrations) {
         const fw = new Fireworks(document.body, {
-          sound: { enabled: ui.soundEffects }
+          sound: { enabled: false }
         });
         const canvas = (fw as any).canvas as HTMLCanvasElement;
         if (canvas) {
@@ -882,6 +922,11 @@ const App: React.FC = () => {
     };
   }, [socket, currentAI.name]);
 
+  const handleLoadingPreferencesChange = (preferences: any) => {
+    setLoadingPreferences(preferences);
+    localStorage.setItem('loadingPreferences', JSON.stringify(preferences));
+  };
+
   // Enhanced AI helper functions
   const requestAIExplanation = (moveIndex?: number) => {
     if (socket && gameId) {
@@ -1034,11 +1079,37 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4"
       style={{ fontFamily: "'Poppins', sans-serif" }}>
 
-      {/* Loading Progress Overlay */}
-      <LoadingProgress
-        isVisible={showLoadingProgress}
+      {/* Real-Time Connect Four Loading System */}
+      <RealTimeConnectFourLoading
+        isVisible={showLoadingProgress || isInitializing}
         onComplete={handleLoadingComplete}
       />
+
+      {/* Loading Preferences Modal */}
+      <LoadingPreferences
+        isOpen={showLoadingPreferences}
+        onClose={() => setShowLoadingPreferences(false)}
+        preferences={loadingPreferences}
+        onPreferencesChange={handleLoadingPreferencesChange}
+      />
+
+      {/* Enhanced Landing Page with Loading Preferences */}
+      {!started && (
+        <div className="relative">
+          <LandingPage onStart={() => setStarted(true)} />
+
+          {/* Loading Preferences Button */}
+          <motion.button
+            onClick={() => setShowLoadingPreferences(true)}
+            className="fixed top-4 right-4 bg-black/30 backdrop-blur-lg rounded-xl p-3 border border-white/20 text-white hover:bg-black/40 transition-all z-50"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            title="Loading System Preferences"
+          >
+            <span className="text-xl">⚙️</span>
+          </motion.button>
+        </div>
+      )}
 
       {/* Rock Paper Scissors */}
       <RockPaperScissors
@@ -1133,13 +1204,6 @@ const App: React.FC = () => {
         </button>
       </div>
 
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="absolute top-4 right-4 bg-white bg-opacity-20 text-white px-3 py-1 rounded hover:bg-opacity-40 transition-all duration-200 hover:scale-105"
-      >
-        Stats & History
-      </button>
-
       {/* Game Status */}
       <motion.div
         className="mb-4 text-center"
@@ -1181,6 +1245,36 @@ const App: React.FC = () => {
         )}
       </AnimatePresence>
 
+      {/* AI Analysis Dashboard */}
+      <AIAnalysisDashboard
+        isVisible={showAIDashboard}
+        onClose={() => setShowAIDashboard(false)}
+        gameData={{
+          board,
+          currentPlayer: currentPlayer,
+          gameId,
+          history
+        }}
+        aiMetrics={{
+          confidence: aiConfidence,
+          thinkingTime: aiThinkingTime,
+          safetyScore: aiSafetyScore,
+          explanation: aiExplanation,
+          adaptationInfo: aiAdaptationInfo,
+          curriculumInfo: curriculumInfo,
+          debateResult: debateResult
+        }}
+        systemHealth={systemHealth}
+        socket={socket}
+      />
+
+      {/* AI Training Ground */}
+      <AITrainingGround
+        isVisible={showTrainingGround}
+        onClose={() => setShowTrainingGround(false)}
+        socket={socket}
+      />
+
       {/* Victory Modal */}
       <VictoryModal
         isVisible={showVictoryModal}
@@ -1192,6 +1286,30 @@ const App: React.FC = () => {
         onQuitToMenu={handleQuitToMenu}
         playerStats={playerStats}
       />
+
+      {/* Right Side Navigation - Vertical Stack */}
+      <div className="absolute top-4 right-4 flex flex-col gap-2">
+        <button
+          onClick={() => setShowAIDashboard(true)}
+          className="bg-blue-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
+          title="Open AI Analysis Dashboard"
+        >
+          📊 AI Dashboard
+        </button>
+        <button
+          onClick={() => setShowTrainingGround(true)}
+          className="bg-purple-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
+          title="Open AI Training Ground"
+        >
+          🧪 Training Ground
+        </button>
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="bg-white bg-opacity-20 text-white px-3 py-2 rounded hover:bg-opacity-40 transition-all duration-200 hover:scale-105 text-sm font-semibold"
+        >
+          📈 Stats & History
+        </button>
+      </div>
     </div>
   );
 };

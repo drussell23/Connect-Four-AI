@@ -1,0 +1,542 @@
+/* Enhanced Loading Progress Styles */
+.loading-container {
+    position: relative;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+}
+
+/* Advanced Glassmorphism Effects */
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.1),
+            transparent);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+
+    100% {
+        left: 100%;
+    }
+}
+
+/* Holographic Progress Bar */
+.holographic-progress {
+    position: relative;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.holographic-progress::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg,
+            transparent 30%,
+            rgba(255, 255, 255, 0.1) 50%,
+            transparent 70%);
+    background-size: 20px 20px;
+    animation: holographic-scan 2s linear infinite;
+}
+
+@keyframes holographic-scan {
+    0% {
+        background-position: -20px 0;
+    }
+
+    100% {
+        background-position: 40px 0;
+    }
+}
+
+.holographic-progress .progress-fill {
+    position: relative;
+    height: 100%;
+    background: linear-gradient(135deg,
+            #00f5ff 0%,
+            #ff006e 25%,
+            #8338ec 50%,
+            #3a86ff 75%,
+            #06ffa5 100%);
+    background-size: 300% 300%;
+    animation: rainbow-shift 3s ease-in-out infinite;
+    border-radius: inherit;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes rainbow-shift {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    25% {
+        background-position: 25% 25%;
+    }
+
+    50% {
+        background-position: 50% 0%;
+    }
+
+    75% {
+        background-position: 75% 75%;
+    }
+}
+
+/* Neural Network Animation */
+.neural-node {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle, #00f5ff 0%, transparent 70%);
+    border-radius: 50%;
+    animation: neural-pulse 2s ease-in-out infinite;
+}
+
+@keyframes neural-pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+        box-shadow: 0 0 0 0 rgba(0, 245, 255, 0.7);
+    }
+
+    50% {
+        transform: scale(1.5);
+        opacity: 1;
+        box-shadow: 0 0 0 10px rgba(0, 245, 255, 0);
+    }
+}
+
+/* Matrix Rain Effect */
+.matrix-char {
+    font-family: 'Courier New', monospace;
+    color: #00ff00;
+    text-shadow: 0 0 5px #00ff00;
+    animation: matrix-fall 3s linear infinite;
+    opacity: 0;
+}
+
+@keyframes matrix-fall {
+    0% {
+        opacity: 0;
+        transform: translateY(-100vh);
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(100vh);
+    }
+}
+
+/* Quantum Loading Spinner */
+.quantum-spinner {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.quantum-ring {
+    position: absolute;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    animation: quantum-spin 3s linear infinite;
+}
+
+.quantum-ring:nth-child(1) {
+    width: 80px;
+    height: 80px;
+    border-top-color: #00f5ff;
+    animation-duration: 2s;
+}
+
+.quantum-ring:nth-child(2) {
+    width: 60px;
+    height: 60px;
+    top: 10px;
+    left: 10px;
+    border-right-color: #ff006e;
+    animation-duration: 1.5s;
+    animation-direction: reverse;
+}
+
+.quantum-ring:nth-child(3) {
+    width: 40px;
+    height: 40px;
+    top: 20px;
+    left: 20px;
+    border-bottom-color: #8338ec;
+    animation-duration: 1s;
+}
+
+.quantum-ring:nth-child(4) {
+    width: 20px;
+    height: 20px;
+    top: 30px;
+    left: 30px;
+    background: radial-gradient(circle, #06ffa5, transparent);
+    border: none;
+    animation: quantum-core 2s ease-in-out infinite;
+}
+
+@keyframes quantum-spin {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+
+    50% {
+        transform: rotate(180deg) scale(1.1);
+    }
+
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
+}
+
+@keyframes quantum-core {
+
+    0%,
+    100% {
+        transform: scale(1) rotate(0deg);
+        box-shadow: 0 0 10px #06ffa5;
+    }
+
+    50% {
+        transform: scale(1.5) rotate(180deg);
+        box-shadow: 0 0 20px #06ffa5, 0 0 30px #06ffa5;
+    }
+}
+
+/* Particle System Effects */
+.particle {
+    position: absolute;
+    pointer-events: none;
+    border-radius: 50%;
+}
+
+.particle-spark {
+    background: radial-gradient(circle, currentColor 0%, transparent 70%);
+    animation: particle-float 3s ease-out forwards;
+}
+
+.particle-glow {
+    background: radial-gradient(circle, currentColor 0%, transparent 50%);
+    filter: blur(1px);
+    animation: particle-glow 2s ease-out forwards;
+}
+
+.particle-neural {
+    border: 1px solid currentColor;
+    background: transparent;
+    animation: particle-neural 4s ease-in-out forwards;
+}
+
+@keyframes particle-float {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.5);
+    }
+}
+
+@keyframes particle-glow {
+    0% {
+        opacity: 0.8;
+        transform: scale(0);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(2);
+    }
+}
+
+@keyframes particle-neural {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.5);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+}
+
+/* Theme-specific Backgrounds */
+.theme-cyber {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+}
+
+.theme-neural {
+    background: linear-gradient(135deg, #4a044e 0%, #7c2d92 50%, #1e3a8a 100%);
+}
+
+.theme-quantum {
+    background: linear-gradient(135deg, #064e3b 0%, #1e40af 50%, #ca8a04 100%);
+}
+
+.theme-matrix {
+    background: linear-gradient(135deg, #000000 0%, #052e16 50%, #000000 100%);
+}
+
+/* Step Status Indicators */
+.step-indicator {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-indicator.pending {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+.step-indicator.loading {
+    opacity: 1;
+    transform: scale(1.02);
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid #3b82f6;
+}
+
+.step-indicator.complete {
+    opacity: 1;
+    transform: scale(1);
+    background: rgba(34, 197, 94, 0.1);
+    border-left: 3px solid #22c55e;
+}
+
+.step-indicator.complete::after {
+    content: '✓';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #22c55e;
+    font-weight: bold;
+    animation: checkmark-appear 0.3s ease-out;
+}
+
+@keyframes checkmark-appear {
+    0% {
+        opacity: 0;
+        transform: translateY(-50%) scale(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
+}
+
+/* Interactive Elements */
+.interactive-button {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.interactive-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+.interactive-button:hover::before {
+    width: 100%;
+    height: 100%;
+}
+
+.interactive-button:active {
+    transform: scale(0.95);
+}
+
+/* Text Gradient Effects */
+.gradient-text {
+    background: linear-gradient(135deg,
+            #00f5ff 0%,
+            #ff006e 25%,
+            #8338ec 50%,
+            #3a86ff 75%,
+            #06ffa5 100%);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-flow 3s ease-in-out infinite;
+}
+
+@keyframes gradient-flow {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    25% {
+        background-position: 100% 25%;
+    }
+
+    50% {
+        background-position: 50% 100%;
+    }
+
+    75% {
+        background-position: 25% 0%;
+    }
+}
+
+/* Screen Overlay Effects */
+.scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(0, 245, 255, 0.8),
+            transparent);
+    animation: scan-line-move 2s ease-in-out infinite;
+}
+
+@keyframes scan-line-move {
+    0% {
+        top: 0;
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        top: 100%;
+        opacity: 0;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .glass-card {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    .quantum-spinner {
+        width: 60px;
+        height: 60px;
+    }
+
+    .quantum-ring:nth-child(1) {
+        width: 60px;
+        height: 60px;
+    }
+
+    .quantum-ring:nth-child(2) {
+        width: 45px;
+        height: 45px;
+        top: 7.5px;
+        left: 7.5px;
+    }
+
+    .quantum-ring:nth-child(3) {
+        width: 30px;
+        height: 30px;
+        top: 15px;
+        left: 15px;
+    }
+
+    .quantum-ring:nth-child(4) {
+        width: 15px;
+        height: 15px;
+        top: 22.5px;
+        left: 22.5px;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .glass-card {
+        border: 2px solid white;
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .holographic-progress .progress-fill {
+        background: #ffffff;
+    }
+
+    .gradient-text {
+        background: #ffffff;
+        -webkit-background-clip: text;
+        background-clip: text;
+    }
+}
