@@ -279,7 +279,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     >
       {/* AI Threat Meter */}
       <div className="section-card">
-    <ThreatMeter level={aiLevel} isAdapting={aiJustLeveledUp} />
+        <ThreatMeter level={aiLevel} isAdapting={aiJustLeveledUp} />
       </div>
 
       {/* Quick Stats */}
@@ -472,10 +472,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             ) : (
               enhancedMoves.map((move, idx) => (
                 <motion.div
-            key={idx}
+                  key={idx}
                   className="enhanced-history-item"
                   initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
+                  animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.05, duration: 0.3 }}
                 >
                   {/* Main move info */}
@@ -620,7 +620,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               </span>
             </div>
             <div className="insight-item">
-              <span className="insight-icon">🧠</span>
+              <span className="insight-icon">🎯</span>
               <span className="insight-text">
                 Strategy: {playerPattern.some(count => count > 2) ? 'Focused' : 'Distributed'}
               </span>
@@ -738,9 +738,9 @@ const Sidebar: React.FC<SidebarProps> = ({
           {activeSection === 'analytics' && renderAnalytics()}
           {activeSection === 'achievements' && renderAchievements()}
         </AnimatePresence>
-    </div>
+      </div>
     </motion.div>
-);
+  );
 };
 
 export default Sidebar;

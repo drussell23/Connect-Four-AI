@@ -783,7 +783,19 @@ const App: React.FC = () => {
     socket.on('aiThinking', (data?: { status: string; capabilities: string[] }) => {
       const currentAI = getAIPersonality(aiLevel);
       if (data?.capabilities) {
-        setStatus(`${currentAI.name} AI is analyzing (${data.capabilities.length} advanced systems active)...`);
+        // More creative and simple AI thinking messages
+        const thinkingMessages = [
+          "AI is thinking...",
+          "AI is calculating...",
+          "AI is strategizing...",
+          "AI is analyzing...",
+          "AI is planning...",
+          "AI is computing...",
+          "AI is evaluating...",
+          "AI is considering..."
+        ];
+        const randomMessage = thinkingMessages[Math.floor(Math.random() * thinkingMessages.length)];
+        setStatus(randomMessage);
       } else {
         setStatus(`${currentAI.name} AI is thinking…`);
       }

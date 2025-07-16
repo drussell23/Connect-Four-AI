@@ -994,7 +994,7 @@ const AIAnalysisDashboard: React.FC<AIAnalysisDashboardProps> = ({
                         </div>
 
                         <div className="insight-card">
-                            <div className="insight-icon">🧠</div>
+                            <div className="insight-icon">🎯</div>
                             <div className="insight-content">
                                 <h4>Learning Adaptation</h4>
                                 <p>AI has successfully identified and countered 3 distinct player patterns this game.</p>

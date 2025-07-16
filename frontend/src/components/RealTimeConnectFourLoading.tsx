@@ -435,7 +435,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center z-50 overflow-hidden"
+                className="fixed inset-0 flex items-center justify-center z-50 overflow-hidden loading-background"
             >
                 {/* Sound Toggle */}
                 <motion.button
@@ -569,8 +569,8 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                             <motion.div
                                 key={step.id}
                                 className={`flex items-center text-sm p-3 rounded-lg transition-all duration-300 ${step.status === 'complete' ? 'bg-green-500/20' :
-                                        step.status === 'loading' ? 'bg-blue-500/20' :
-                                            step.status === 'error' ? 'bg-red-500/20' : 'bg-gray-500/10'
+                                    step.status === 'loading' ? 'bg-blue-500/20' :
+                                        step.status === 'error' ? 'bg-red-500/20' : 'bg-gray-500/10'
                                     }`}
                             >
                                 <div className="w-6 h-6 mr-3 flex items-center justify-center">
@@ -600,8 +600,8 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
 
                                 <div className="flex-1">
                                     <div className={`font-medium ${step.status === 'complete' ? 'text-green-300' :
-                                            step.status === 'loading' ? 'text-blue-300' :
-                                                step.status === 'error' ? 'text-red-300' : 'text-gray-400'
+                                        step.status === 'loading' ? 'text-blue-300' :
+                                            step.status === 'error' ? 'text-red-300' : 'text-gray-400'
                                         }`}>
                                         {step.label}
                                     </div>

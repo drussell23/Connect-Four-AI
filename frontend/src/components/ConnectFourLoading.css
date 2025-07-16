@@ -1,5 +1,26 @@
 /* Connect Four Loading Styles */
 
+/* Animated Background - Same as Landing Page */
+.loading-background {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 25%, #3b82f6 50%, #1e40af 75%, #1e3a8a 100%);
+    background-size: 400% 400%;
+    animation: gradientFlow 15s ease infinite;
+}
+
+@keyframes gradientFlow {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
 .connect-four-board {
     background: linear-gradient(145deg, #1e40af, #3b82f6);
     box-shadow:
