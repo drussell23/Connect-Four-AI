@@ -479,14 +479,58 @@
 
 .analysis-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 25px;
+    grid-template-columns: 1.4fr 0.6fr;
+    gap: 30px;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: start;
 }
 
+/* Ensure scrollbar is always visible */
 .analysis-section {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    height: 600px;
+    max-height: 600px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding: 20px;
+    padding-right: 25px;
+    padding-bottom: 40px;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* Custom scrollbar styling */
+.analysis-section::-webkit-scrollbar {
+    width: 10px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.analysis-section::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+}
+
+.analysis-section::-webkit-scrollbar-thumb {
+    background: rgba(96, 165, 250, 0.6);
+    border-radius: 5px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.analysis-section::-webkit-scrollbar-thumb:hover {
+    background: rgba(96, 165, 250, 0.8);
+}
+
+/* Ensure content doesn't overlap */
+.analysis-content {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .section-header {
@@ -529,12 +573,6 @@
 .status-indicator.needs-improvement {
     background: rgba(245, 158, 11, 0.2);
     color: #fbbf24;
-}
-
-.analysis-content {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
 }
 
 .explanation-box,
@@ -593,12 +631,29 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    flex-shrink: 0 !important;
+    margin-bottom: 15px;
 }
 
 .progress-label {
     color: rgba(255, 255, 255, 0.8);
     font-size: 14px;
     font-weight: 500;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
+    line-height: 1.4;
+    margin-bottom: 8px;
 }
 
 .progress-track {
@@ -606,6 +661,11 @@
     border-radius: 6px;
     height: 8px;
     overflow: hidden;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
+    margin-bottom: 8px;
 }
 
 .progress-fill {
@@ -619,6 +679,76 @@
     font-size: 12px;
     font-weight: 600;
     text-align: right;
+    white-space: nowrap;
+    overflow: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
+    margin-bottom: 15px;
+}
+
+/* Clean separation between progress bar and learning statistics */
+.curriculum-box .progress-bar {
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.curriculum-box .progress-value {
+    position: relative;
+    z-index: 1;
+}
+
+/* Remove all conflicting styles and create clean Learning Statistics */
+.curriculum-box div[style*="marginTop"] {
+    position: relative;
+    z-index: 2;
+    margin-top: 15px !important;
+    padding: 10px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 6px !important;
+    border: none !important;
+    overflow: visible !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.curriculum-box div[style*="marginTop"]>div {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    padding-right: 5px;
+    border: none !important;
+    background: none !important;
+    margin-bottom: 8px;
+}
+
+.curriculum-box div[style*="marginTop"]>div>div {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    border: none !important;
+    background: none !important;
+    padding: 2px 0;
+    line-height: 1.5;
+}
+
+/* Remove any border-bottom from progress elements */
+.progress-bar *,
+.curriculum-metrics * {
+    border-bottom: none !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
 }
 
 .consensus-score {
@@ -1216,4 +1346,70 @@
 
 .dashboard-content::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
+}
+
+/* Clean CSS for curriculum box - matching Move Analysis structure */
+.curriculum-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+}
+
+.curriculum-metrics {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.progress-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 15px;
+}
+
+/* Clean Learning Statistics styling - using adaptation-metrics structure */
+.curriculum-box .adaptation-metrics {
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+}
+
+.curriculum-box .adaptation-metrics .adaptation-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
+}
+
+.curriculum-box .adaptation-metrics .adaptation-item:last-child {
+    margin-bottom: 0;
+}
+
+.curriculum-box .adaptation-metrics .adaptation-item .label {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    text-align: left;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.curriculum-box .adaptation-metrics .adaptation-item .value {
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+    margin-left: 15px;
+    flex: 0 0 auto;
 }

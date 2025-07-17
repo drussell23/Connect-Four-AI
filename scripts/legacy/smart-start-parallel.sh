@@ -182,7 +182,7 @@ start_all_services_parallel() {
             "ML Service" \
             "8000" \
             "http://localhost:8000/health" \
-            "python3 ml_service.py" \
+            "uvicorn ml_service:app --host 0.0.0.0 --port 8000 --reload" \
             "$SCRIPT_DIR/logs/ml_service.log" \
             "$SCRIPT_DIR/ml_service" &
         start_jobs+=($!)
@@ -258,16 +258,16 @@ parallel_health_checks() {
     check_service_health() {
         local name="$1"
         local url="$2"
-        local max_attempts=15
+        local max_attempts=30
         local attempt=0
         
         while [[ $attempt -lt $max_attempts ]]; do
-            if curl -s --max-time 2 "$url" >/dev/null 2>&1; then
+            if curl -s --max-time 5 "$url" >/dev/null 2>&1; then
                 echo "✅ $name"
                 return 0
             fi
             attempt=$((attempt + 1))
-            sleep 1
+            sleep 2
         done
         
         echo "⚠️  $name (timeout)"
@@ -365,7 +365,7 @@ main() {
     auto_cleanup_ports
     parallel_dependencies
     start_all_services_parallel
-    sleep 3  # Brief pause for services to stabilize
+    sleep 10  # Longer pause for services to stabilize
     parallel_health_checks
     
     local end_time=$(date +%s.%N)

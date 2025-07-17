@@ -167,12 +167,12 @@ class AIHealthCheckOptimizer {
 
         // PERFORMANCE FIX: Aggressive safety bounds with service-specific minimums
         const serviceMinimums = {
-            'backend': 30000,    // Backend needs 25+ seconds for TypeScript compilation and full startup
+            'backend': 90000,    // Backend needs 60+ seconds for TypeScript compilation and full startup
             'frontend': 2000,    // Frontend standard minimum
             'ml_service': 3000   // ML service needs time for Python startup
         };
         const minTimeout = serviceMinimums[serviceName] || 2000;   // Service-specific or default 2 seconds
-        const maxTimeout = 35000;  // Increased max to 35 seconds for backend
+        const maxTimeout = 120000;  // Increased max to 120 seconds for backend compilation
 
         const finalTimeout = Math.max(minTimeout, Math.min(maxTimeout, aiAdjustedTimeout));
 
@@ -294,7 +294,7 @@ const CONFIG = {
             },
             ml_service: {
                 name: 'ML Inference Service',
-                command: 'python3 ml_service.py', // FIXED: Correct Python command
+                command: 'uvicorn ml_service:app --host 0.0.0.0 --port 8000 --reload',
                 cwd: './ml_service',
                 port: 8000,
                 healthCheck: '/health',
@@ -560,17 +560,26 @@ class UnifiedEnterpriseLauncher {
         for (const serviceName of profile.services) {
             const serviceConfig = CONFIG.platform.coreServices[serviceName];
             if (serviceConfig) {
+                console.log(`\n🔧 Starting ${serviceName} (${serviceConfig.name})...`);
                 const success = await this.launchService(serviceName, serviceConfig, profile.healthCheckMode);
 
                 if (success) {
                     results.services.successful++;
                     results.services.details[serviceName] = 'running';
+                    console.log(`✅ ${serviceName} marked as successful`);
                 } else {
                     results.services.failed++;
                     results.services.details[serviceName] = 'failed';
+                    console.log(`❌ ${serviceName} marked as failed`);
                 }
             }
         }
+
+        console.log(`\n📊 Service Results Summary:`);
+        console.log(`   Successful: ${results.services.successful}`);
+        console.log(`   Failed: ${results.services.failed}`);
+        console.log(`   Expected: ${profile.services.length}`);
+        console.log(`   Details:`, results.services.details);
 
         // Launch enterprise scripts - ONLY if all core services are successful
         if (profile.enterpriseScripts.length > 0) {
