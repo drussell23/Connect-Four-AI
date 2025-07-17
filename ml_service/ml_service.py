@@ -48,7 +48,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from prometheus_client import (
     Counter,
     Histogram,
@@ -350,7 +350,7 @@ class BoardInput(BaseModel):
         True, description="Include uncertainty estimation"
     )
 
-    @validator("board")
+    @field_validator("board")
     def validate_board_structure(cls, v):
         """Validate board structure"""
         if isinstance(v, list) and len(v) == 2:

@@ -1,31 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import settingsAPI from '../../api/settings';
+import settingsAPI, { UserSettings as APIUserSettings } from '../../api/settings';
 import './UserSettings.css';
 
 interface Settings {
     theme: 'light' | 'dark' | 'auto';
-    soundEnabled: boolean;
-    soundVolume: number;
-    aiDifficulty: 'easy' | 'medium' | 'hard' | 'expert';
-    animationsEnabled: boolean;
-    showHints: boolean;
-    autoSave: boolean;
     language: string;
+    timezone: string;
+    notifications: {
+        enabled: boolean;
+        sound: boolean;
+        vibration: boolean;
+        email: boolean;
+        push: boolean;
+    };
+    privacy: {
+        profileVisibility: 'public' | 'friends' | 'private';
+        gameHistoryVisibility: 'public' | 'friends' | 'private';
+        allowAnalytics: boolean;
+        allowTracking: boolean;
+    };
     accessibility: {
         highContrast: boolean;
+        largeText: boolean;
         reducedMotion: boolean;
         screenReader: boolean;
-    };
-    notifications: {
-        gameStart: boolean;
-        gameEnd: boolean;
-        achievements: boolean;
-        updates: boolean;
-    };
-    performance: {
-        maxFPS: number;
-        enableParticles: boolean;
-        enableShadows: boolean;
+        keyboardNavigation: boolean;
     };
 }
 
@@ -36,28 +35,27 @@ interface UserSettingsProps {
 const UserSettings: React.FC<UserSettingsProps> = ({ playerId }) => {
     const [settings, setSettings] = useState<Settings>({
         theme: 'auto',
-        soundEnabled: true,
-        soundVolume: 70,
-        aiDifficulty: 'medium',
-        animationsEnabled: true,
-        showHints: true,
-        autoSave: true,
         language: 'en',
+        timezone: 'UTC',
+        notifications: {
+            enabled: true,
+            sound: true,
+            vibration: false,
+            email: false,
+            push: false,
+        },
+        privacy: {
+            profileVisibility: 'public',
+            gameHistoryVisibility: 'friends',
+            allowAnalytics: true,
+            allowTracking: false,
+        },
         accessibility: {
             highContrast: false,
+            largeText: false,
             reducedMotion: false,
             screenReader: false,
-        },
-        notifications: {
-            gameStart: true,
-            gameEnd: true,
-            achievements: true,
-            updates: true,
-        },
-        performance: {
-            maxFPS: 60,
-            enableParticles: true,
-            enableShadows: true,
+            keyboardNavigation: true,
         },
     });
 
@@ -87,7 +85,10 @@ const UserSettings: React.FC<UserSettingsProps> = ({ playerId }) => {
     const saveSettings = async () => {
         try {
             setSaving(true);
-            await settingsAPI.updateUserSettings(playerId, settings);
+            const userSettingsData: Partial<APIUserSettings> = {
+                preferences: settings
+            };
+            await settingsAPI.updateUserSettings(playerId, userSettingsData);
             setMessage({ type: 'success', text: 'Settings saved successfully!' });
 
             // Apply theme immediately
@@ -107,9 +108,9 @@ const UserSettings: React.FC<UserSettingsProps> = ({ playerId }) => {
     const resetToDefaults = async () => {
         try {
             setSaving(true);
-            // Assuming resetToDefaults resets only for this user
-            const defaultSettings = await settingsAPI.resetSettings(playerId, 'user');
-            setSettings(defaultSettings);
+            await settingsAPI.resetSettings(playerId, 'user');
+            // Reload settings after reset
+            await loadSettings();
             setMessage({ type: 'success', text: 'Settings reset to defaults' });
         } catch (error) {
             console.error('Failed to reset settings:', error);
@@ -150,8 +151,8 @@ const UserSettings: React.FC<UserSettingsProps> = ({ playerId }) => {
     const handleSettingChange = (category: keyof Settings, key: string, value: any) => {
         setSettings(prev => ({
             ...prev,
-            [category]: typeof prev[category] === 'object'
-                ? { ...prev[category], [key]: value }
+            [category]: typeof prev[category] === 'object' && prev[category] !== null
+                ? { ...(prev[category] as object), [key]: value }
                 : value
         }));
     };
@@ -179,8 +180,11 @@ const UserSettings: React.FC<UserSettingsProps> = ({ playerId }) => {
 
         try {
             const text = await file.text();
+            const importedData = JSON.parse(text);
             await settingsAPI.importSettings(playerId, text, 'json');
-            setSettings(JSON.parse(text));
+            if (importedData.preferences) {
+                setSettings(importedData.preferences);
+            }
             setMessage({ type: 'success', text: 'Settings imported successfully!' });
         } catch (error) {
             console.error('Failed to import settings:', error);
@@ -229,75 +233,121 @@ const UserSettings: React.FC<UserSettingsProps> = ({ playerId }) => {
                                 <option value="auto">Auto (System)</option>
                             </select>
                         </label>
+                        <label>
+                            Language:
+                            <select
+                                value={settings.language}
+                                onChange={(e) => handleSettingChange('language', '', e.target.value)}
+                            >
+                                <option value="en">English</option>
+                                <option value="es">Spanish</option>
+                                <option value="fr">French</option>
+                                <option value="de">German</option>
+                            </select>
+                        </label>
+                        <label>
+                            Timezone:
+                            <select
+                                value={settings.timezone}
+                                onChange={(e) => handleSettingChange('timezone', '', e.target.value)}
+                            >
+                                <option value="UTC">UTC</option>
+                                <option value="EST">Eastern Time</option>
+                                <option value="PST">Pacific Time</option>
+                                <option value="GMT">GMT</option>
+                            </select>
+                        </label>
                     </div>
                 </div>
 
-                {/* Audio */}
+                {/* Notifications */}
                 <div className="settings-section">
-                    <h3>🔊 Audio</h3>
+                    <h3>🔔 Notifications</h3>
                     <div className="setting-group">
                         <label>
                             <input
                                 type="checkbox"
-                                checked={settings.soundEnabled}
-                                onChange={(e) => handleSettingChange('soundEnabled', '', e.target.checked)}
+                                checked={settings.notifications.enabled}
+                                onChange={(e) => handleSettingChange('notifications', 'enabled', e.target.checked)}
                             />
-                            Enable Sound Effects
+                            Enable All Notifications
                         </label>
-                        {settings.soundEnabled && (
-                            <label>
-                                Volume: {settings.soundVolume}%
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    value={settings.soundVolume}
-                                    onChange={(e) => handleSettingChange('soundVolume', '', parseInt(e.target.value))}
-                                />
-                            </label>
-                        )}
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={settings.notifications.sound}
+                                onChange={(e) => handleSettingChange('notifications', 'sound', e.target.checked)}
+                            />
+                            Enable Sound
+                        </label>
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={settings.notifications.vibration}
+                                onChange={(e) => handleSettingChange('notifications', 'vibration', e.target.checked)}
+                            />
+                            Enable Vibration
+                        </label>
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={settings.notifications.email}
+                                onChange={(e) => handleSettingChange('notifications', 'email', e.target.checked)}
+                            />
+                            Enable Email
+                        </label>
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={settings.notifications.push}
+                                onChange={(e) => handleSettingChange('notifications', 'push', e.target.checked)}
+                            />
+                            Enable Push Notifications
+                        </label>
                     </div>
                 </div>
 
-                {/* Game */}
+                {/* Privacy */}
                 <div className="settings-section">
-                    <h3>🎮 Game</h3>
+                    <h3>🔒 Privacy</h3>
                     <div className="setting-group">
                         <label>
-                            AI Difficulty:
+                            Profile Visibility:
                             <select
-                                value={settings.aiDifficulty}
-                                onChange={(e) => handleSettingChange('aiDifficulty', '', e.target.value)}
+                                value={settings.privacy.profileVisibility}
+                                onChange={(e) => handleSettingChange('privacy', 'profileVisibility', e.target.value)}
                             >
-                                <option value="easy">Easy</option>
-                                <option value="medium">Medium</option>
-                                <option value="hard">Hard</option>
-                                <option value="expert">Expert</option>
+                                <option value="public">Public</option>
+                                <option value="friends">Friends Only</option>
+                                <option value="private">Private</option>
+                            </select>
+                        </label>
+                        <label>
+                            Game History Visibility:
+                            <select
+                                value={settings.privacy.gameHistoryVisibility}
+                                onChange={(e) => handleSettingChange('privacy', 'gameHistoryVisibility', e.target.value)}
+                            >
+                                <option value="public">Public</option>
+                                <option value="friends">Friends Only</option>
+                                <option value="private">Private</option>
                             </select>
                         </label>
                         <label>
                             <input
                                 type="checkbox"
-                                checked={settings.animationsEnabled}
-                                onChange={(e) => handleSettingChange('animationsEnabled', '', e.target.checked)}
+                                checked={settings.privacy.allowAnalytics}
+                                onChange={(e) => handleSettingChange('privacy', 'allowAnalytics', e.target.checked)}
                             />
-                            Enable Animations
+                            Allow Analytics
                         </label>
                         <label>
                             <input
                                 type="checkbox"
-                                checked={settings.showHints}
-                                onChange={(e) => handleSettingChange('showHints', '', e.target.checked)}
+                                checked={settings.privacy.allowTracking}
+                                onChange={(e) => handleSettingChange('privacy', 'allowTracking', e.target.checked)}
                             />
-                            Show Hints
-                        </label>
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={settings.autoSave}
-                                onChange={(e) => handleSettingChange('autoSave', '', e.target.checked)}
-                            />
-                            Auto-save Games
+                            Allow Tracking
                         </label>
                     </div>
                 </div>
@@ -317,6 +367,14 @@ const UserSettings: React.FC<UserSettingsProps> = ({ playerId }) => {
                         <label>
                             <input
                                 type="checkbox"
+                                checked={settings.accessibility.largeText}
+                                onChange={(e) => handleSettingChange('accessibility', 'largeText', e.target.checked)}
+                            />
+                            Large Text
+                        </label>
+                        <label>
+                            <input
+                                type="checkbox"
                                 checked={settings.accessibility.reducedMotion}
                                 onChange={(e) => handleSettingChange('accessibility', 'reducedMotion', e.target.checked)}
                             />
@@ -330,107 +388,42 @@ const UserSettings: React.FC<UserSettingsProps> = ({ playerId }) => {
                             />
                             Screen Reader Support
                         </label>
-                    </div>
-                </div>
-
-                {/* Notifications */}
-                <div className="settings-section">
-                    <h3>🔔 Notifications</h3>
-                    <div className="setting-group">
                         <label>
                             <input
                                 type="checkbox"
-                                checked={settings.notifications.gameStart}
-                                onChange={(e) => handleSettingChange('notifications', 'gameStart', e.target.checked)}
+                                checked={settings.accessibility.keyboardNavigation}
+                                onChange={(e) => handleSettingChange('accessibility', 'keyboardNavigation', e.target.checked)}
                             />
-                            Game Start
-                        </label>
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={settings.notifications.gameEnd}
-                                onChange={(e) => handleSettingChange('notifications', 'gameEnd', e.target.checked)}
-                            />
-                            Game End
-                        </label>
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={settings.notifications.achievements}
-                                onChange={(e) => handleSettingChange('notifications', 'achievements', e.target.checked)}
-                            />
-                            Achievements
-                        </label>
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={settings.notifications.updates}
-                                onChange={(e) => handleSettingChange('notifications', 'updates', e.target.checked)}
-                            />
-                            Updates
-                        </label>
-                    </div>
-                </div>
-
-                {/* Performance */}
-                <div className="settings-section">
-                    <h3>⚡ Performance</h3>
-                    <div className="setting-group">
-                        <label>
-                            Max FPS: {settings.performance.maxFPS}
-                            <input
-                                type="range"
-                                min="30"
-                                max="120"
-                                step="30"
-                                value={settings.performance.maxFPS}
-                                onChange={(e) => handleSettingChange('performance', 'maxFPS', parseInt(e.target.value))}
-                            />
-                        </label>
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={settings.performance.enableParticles}
-                                onChange={(e) => handleSettingChange('performance', 'enableParticles', e.target.checked)}
-                            />
-                            Enable Particle Effects
-                        </label>
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={settings.performance.enableShadows}
-                                onChange={(e) => handleSettingChange('performance', 'enableShadows', e.target.checked)}
-                            />
-                            Enable Shadows
+                            Keyboard Navigation
                         </label>
                     </div>
                 </div>
 
                 {/* Actions */}
                 <div className="settings-actions">
-                    <button
-                        className="btn-primary"
+                    <button 
+                        className="btn-primary" 
                         onClick={saveSettings}
                         disabled={saving}
                     >
                         {saving ? 'Saving...' : '💾 Save Settings'}
                     </button>
-
-                    <button
-                        className="btn-secondary"
+                    
+                    <button 
+                        className="btn-secondary" 
                         onClick={resetToDefaults}
                         disabled={saving}
                     >
                         🔄 Reset to Defaults
                     </button>
-
-                    <button
-                        className="btn-secondary"
+                    
+                    <button 
+                        className="btn-secondary" 
                         onClick={exportSettings}
                     >
                         📤 Export Settings
                     </button>
-
+                    
                     <label className="btn-secondary file-input-label">
                         📥 Import Settings
                         <input
