@@ -13,26 +13,6 @@
 
 ---
 
-## 🎮 Platform Showcase
-
-### 🏠 Landing Page
-![Connect Four AI Landing Page](./screenshots/landing-page.png)
-*Modern landing page with AI challenge selection and difficulty levels*
-
-### 🔧 System Initialization
-![System Initialization](./screenshots/system-initialization.png)
-*Real-time system initialization with health monitoring and progress tracking*
-
-### 🎯 Game Interface
-![Game Interface](./screenshots/game-interface.png)
-*Clean game interface with AI opponent information and comprehensive sidebar navigation*
-
-### 🪙 Coin Toss Feature
-![Coin Toss Modal](./screenshots/coin-toss-modal.png)
-*Interactive coin toss to determine starting player with keyboard shortcuts and accessibility features*
-
----
-
 ## 🚀 Project Overview
 
 **Connect-Four-AI** represents a breakthrough in AI game systems, combining cutting-edge research algorithms with enterprise software architecture and a revolutionary **AI Stability Architecture** that ensures 100% reliability, optimal performance, and intelligent resource management.
