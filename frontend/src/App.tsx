@@ -13,6 +13,10 @@ import LoadingPreferences from './components/loading/LoadingPreferences';
 import CoinToss, { type CoinResult, type CoinTossResult } from './components/game/CoinToss';
 import AIAnalysisDashboard from './components/analytics/AIAnalysisDashboard';
 import AITrainingGround from './components/analytics/AITrainingGround';
+import PlayerStatsComponent from './components/analytics/PlayerStats';
+import MoveExplanationPanel from './components/ai-insights/MoveExplanation';
+import GameHistory from './components/game-history/GameHistory';
+import UserSettings from './components/settings/UserSettings';
 import apiSocket from './api/socket';
 import { appConfig, enterprise, ai, game, ui, dev, analytics } from './config/environment';
 import type { CellValue, PlayerStats, AIPersonalityData } from './declarations';
@@ -124,6 +128,17 @@ const App: React.FC = () => {
     highestLevelReached: 1,
     averageMovesPerGame: 0
   });
+
+  // New API Components state
+  const [showPlayerStats, setShowPlayerStats] = useState<boolean>(false);
+  const [showMoveExplanation, setShowMoveExplanation] = useState<boolean>(false);
+  const [showGameHistory, setShowGameHistory] = useState<boolean>(false);
+  const [showUserSettings, setShowUserSettings] = useState<boolean>(false);
+  const [selectedMoveIndex, setSelectedMoveIndex] = useState<number>(-1);
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [aiInsightsData, setAiInsightsData] = useState<any>(null);
+  const [gameHistoryData, setGameHistoryData] = useState<any>(null);
+  const [settingsData, setSettingsData] = useState<any>(null);
 
   // Load stats from localStorage
   useEffect(() => {
@@ -1414,7 +1429,137 @@ const App: React.FC = () => {
         >
           📈 Stats & History
         </button>
+        <button
+          onClick={() => setShowPlayerStats(true)}
+          className="bg-green-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
+          title="Player Analytics"
+        >
+          🧑‍💼 Player Stats
+        </button>
+        <button
+          onClick={() => setShowMoveExplanation(true)}
+          className="bg-yellow-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
+          title="AI Move Explanation"
+        >
+          💡 Move Explanation
+        </button>
+        <button
+          onClick={() => setShowGameHistory(true)}
+          className="bg-pink-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
+          title="Game History"
+        >
+          🕰️ Game History
+        </button>
+        <button
+          onClick={() => setShowUserSettings(true)}
+          className="bg-gray-700 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
+          title="User Settings"
+        >
+          ⚙️ Settings
+        </button>
       </div>
+
+      {/* Player Stats Panel */}
+      <AnimatePresence>
+        {showPlayerStats && (
+          <motion.div
+            className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-60 z-[9999] flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 max-w-lg w-full relative">
+              <button
+                onClick={() => setShowPlayerStats(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-black dark:hover:text-white text-2xl"
+              >
+                ×
+              </button>
+              <PlayerStatsComponent
+                playerId={gameId || 'demo-user'}
+                isVisible={showPlayerStats}
+                onClose={() => setShowPlayerStats(false)}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Move Explanation Panel */}
+      <AnimatePresence>
+        {showMoveExplanation && (
+          <motion.div
+            className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-60 z-[9999] flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 max-w-lg w-full relative">
+              <button
+                onClick={() => setShowMoveExplanation(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-black dark:hover:text-white text-2xl"
+              >
+                ×
+              </button>
+              <MoveExplanationPanel
+                gameId={gameId || 'demo-game'}
+                move={selectedMoveIndex}
+                player={'player'}
+                isVisible={showMoveExplanation}
+                onClose={() => setShowMoveExplanation(false)}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Game History Panel */}
+      <AnimatePresence>
+        {showGameHistory && (
+          <motion.div
+            className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-60 z-[9999] flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 max-w-2xl w-full relative">
+              <button
+                onClick={() => setShowGameHistory(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-black dark:hover:text-white text-2xl"
+              >
+                ×
+              </button>
+              <GameHistory
+                playerId={gameId || 'demo-user'}
+                isVisible={showGameHistory}
+                onClose={() => setShowGameHistory(false)}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* User Settings Panel */}
+      <AnimatePresence>
+        {showUserSettings && (
+          <motion.div
+            className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-60 z-[9999] flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 max-w-2xl w-full relative">
+              <button
+                onClick={() => setShowUserSettings(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-black dark:hover:text-white text-2xl"
+              >
+                ×
+              </button>
+              <UserSettings playerId={gameId || 'demo-user'} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* AI Insights Side Panel - Slides in from right */}
       <AnimatePresence>
