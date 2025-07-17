@@ -13,6 +13,26 @@
 
 ---
 
+## 🎮 Platform Showcase
+
+### 🏠 Landing Page
+![Connect Four AI Landing Page](https://via.placeholder.com/800x450/1e3a8a/ffffff?text=Connect+Four+AI+Landing+Page)
+*Modern landing page with AI challenge selection and difficulty levels*
+
+### 🔧 System Initialization
+![System Initialization](https://via.placeholder.com/800x450/1e3a8a/ffffff?text=System+Initialization+Screen)
+*Real-time system initialization with health monitoring and progress tracking*
+
+### 🎯 Game Interface
+![Game Interface](https://via.placeholder.com/800x450/1e3a8a/ffffff?text=Connect+Four+vs+AI+Game+Interface)
+*Clean game interface with AI opponent information and comprehensive sidebar navigation*
+
+### 🪙 Coin Toss Feature
+![Coin Toss Modal](https://via.placeholder.com/800x450/1e3a8a/ffffff?text=Coin+Toss+Modal)
+*Interactive coin toss to determine starting player with keyboard shortcuts and accessibility features*
+
+---
+
 ## 🚀 Project Overview
 
 **Connect-Four-AI** represents a breakthrough in AI game systems, combining cutting-edge research algorithms with enterprise software architecture and a revolutionary **AI Stability Architecture** that ensures 100% reliability, optimal performance, and intelligent resource management.
@@ -31,6 +51,22 @@
 - **📈 Performance**: 15-25x faster startup through parallel execution
 - **🎮 Human-AI Alignment**: +178% session duration, +191% return rate through RLHF
 - **🤖 AI-Powered Development**: Built with Cursor AI for accelerated engineering
+
+### 🎨 Modern UI Features
+- **🎭 Interactive Coin Toss**: Determine starting player with animations and sound effects
+- **📊 Real-Time Analytics**: Player stats, move explanations, and game history
+- **🎯 AI Insights**: Comprehensive move analysis and strategic explanations
+- **⚙️ User Settings**: Personalized preferences and configuration management
+- **🎮 Responsive Design**: Beautiful interface across all devices
+- **♿ Accessibility**: Keyboard navigation, screen reader support, and color blind options
+
+### 🚀 Current Status & Recent Improvements
+- **✅ All Core Services Operational**: Backend, Frontend, and ML services running smoothly
+- **⚡ Optimized Performance**: 15-25x faster startup times through parallel execution
+- **🎯 Enhanced User Experience**: Modern UI with organized component structure
+- **🔧 Robust API Integration**: Enterprise-grade socket management and API modules
+- **📊 Comprehensive Analytics**: Real-time player insights and game analysis
+- **🛡️ Enterprise Stability**: AI Stability Architecture ensuring 100% reliability
 
 ---
 
@@ -76,7 +112,7 @@ npm run install:all
 npm run start:all
 ```
 
-🎉 **That's it!** Open `http://localhost:3000` and start playing!
+🎉 **That's it!** Open `http://localhost:3001` and start playing!
 
 ### **🔧 Detailed Setup Instructions**
 
