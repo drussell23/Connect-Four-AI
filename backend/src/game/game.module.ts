@@ -1,5 +1,6 @@
 // backend/src/game/game.module.ts
 import { Module } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GameController } from './game.controller';
 import { GameService } from './game.service';
 import { GameGateway } from './game.gateway';
@@ -11,7 +12,7 @@ import { TrainingService } from './training.service';
 import { MlModule } from '../ml/ml.module';
 
 @Module({
-  imports: [MlModule],
+  imports: [MlModule, EventEmitterModule.forRoot()],
   controllers: [GameController, AIProfileController],
   providers: [GameService, GameGateway, AiProfileService, GameAIService, DashboardService, TrainingService],
   exports: [GameService, GameGateway],
