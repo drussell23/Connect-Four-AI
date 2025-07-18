@@ -28,13 +28,15 @@ async function bootstrap() {
     logger.log(`   📈 Performance Monitoring: ${configService.get('performanceMonitoring') ? '✅' : '❌'}`);
 
     // Enterprise CORS Configuration
-    const corsEnabled = configService.get('corsEnabled');
-    const corsOrigins = configService.get('corsOrigins');
+    const corsEnabled = configService.get('corsEnabled') !== false; // Default to true
+    const corsOrigins = configService.get('corsOrigins') || ['*'];
 
     if (corsEnabled) {
       app.enableCors({
         origin: corsOrigins,
         credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
       });
       logger.log(`✅ CORS enabled for origins: ${corsOrigins.join(', ')}`);
     } else {
@@ -51,11 +53,11 @@ async function bootstrap() {
     logger.log('✅ Frontend static files served from: ' + frontendPath);
 
     // Enterprise Server Startup
-    const port = configService.get('port');
+    const port = process.env.PORT || configService.get('port') || 3000;
     const frontendUrl = configService.get('frontendUrl');
 
     await app.listen(port);
-    logger.log(`🚀 Enterprise Connect Four Backend running on http://localhost:${port}`);
+    logger.log(`🚀 Enterprise Connect Four Backend running on port ${port}`);
     logger.log(`💚 Health check: http://localhost:${port}/api/health`);
     logger.log(`🎮 Game ready at: ${frontendUrl}`);
     logger.log(`🧠 ML Service integration: ${configService.get('mlServiceUrl')}`);
