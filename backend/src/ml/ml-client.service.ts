@@ -1,8 +1,7 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import type { AxiosResponse } from 'axios';
-import { HttpService } from '@nestjs/axios';   // now resolves correctly
+import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
-import { lastValueFrom, Observable } from 'rxjs';
 import type { CellValue } from '../ai/connect4AI';
 
 /**
@@ -28,7 +27,6 @@ export class MlClientService {
     private readonly predictEndpoint: string;
 
     constructor(
-        private readonly httpService: HttpService,
         private readonly configService: ConfigService
     ) {
         const baseUrl = this.configService.get('mlServiceUrl');
@@ -51,11 +49,10 @@ export class MlClientService {
      */
     async getBestMove(board: CellValue[][], player: CellValue): Promise<number> {
         try {
-            const response$ = this.httpService.post<{ move: number }>(
+            const response = await axios.post<{ move: number }>(
                 this.predictMoveEndpoint,
                 { board, player },
             );
-            const response = await lastValueFrom(response$);
             return response.data.move;
         } catch (err: any) {
             console.error('MlClientService.getBestMove error:', err.message ?? err);
@@ -74,11 +71,10 @@ export class MlClientService {
      */
     async getPrediction(board: CellValue[][]): Promise<{ probs: number[] }> {
         try {
-            const response$ = this.httpService.post<{ probs: number[] }>(
+            const response = await axios.post<{ probs: number[] }>(
                 this.predictEndpoint,
                 { board },
             );
-            const response = await lastValueFrom(response$);
             return response.data;
         } catch (err: any) {
             console.error('MlClientService.getPrediction error:', err.message ?? err);
@@ -94,9 +90,7 @@ export class MlClientService {
      */
     async logGame(payload: LogGameDto): Promise<void> {
         try {
-            const response$: Observable<AxiosResponse<any>> =
-                this.httpService.post<any>(this.logGameEndpoint, payload);
-            const response: AxiosResponse<any> = await lastValueFrom(response$);
+            const response = await axios.post<any>(this.logGameEndpoint, payload);
             if (response.status !== 200) {
                 throw new HttpException(
                     `Failed to log game: ${response.status}`,

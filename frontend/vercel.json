@@ -1,0 +1,32 @@
+{
+    "version": 2,
+    "name": "connect-four-ai-frontend",
+    "builds": [
+        {
+            "src": "package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "build"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/static/(.*)",
+            "dest": "/static/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.html"
+        }
+    ],
+    "env": {
+        "REACT_APP_BACKEND_URL": "@backend-url",
+        "REACT_APP_ML_SERVICE_URL": "@ml-service-url"
+    },
+    "functions": {
+        "api/**/*.js": {
+            "runtime": "nodejs18.x"
+        }
+    }
+}
