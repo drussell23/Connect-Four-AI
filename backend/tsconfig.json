@@ -27,7 +27,6 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "noImplicitAny": false,
-    "suppressImplicitAnyIndexErrors": true,
     "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": false
   },
