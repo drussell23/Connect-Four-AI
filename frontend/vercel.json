@@ -23,10 +23,5 @@
     "env": {
         "REACT_APP_BACKEND_URL": "@backend-url",
         "REACT_APP_ML_SERVICE_URL": "@ml-service-url"
-    },
-    "functions": {
-        "api/**/*.js": {
-            "runtime": "nodejs18.x"
-        }
     }
 }
