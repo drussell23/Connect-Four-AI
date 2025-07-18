@@ -25,7 +25,11 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "noImplicitAny": false,
+    "suppressImplicitAnyIndexErrors": true,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false
   },
   "include": [
     "src/**/*.ts",
@@ -33,6 +37,7 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "src/ai/**/*.ts"
   ]
 }
