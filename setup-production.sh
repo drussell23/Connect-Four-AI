@@ -10,8 +10,9 @@ echo "📝 Creating production configuration files..."
 # Frontend production config
 cat > frontend/env.production << EOF
 # Production Environment Variables
-REACT_APP_BACKEND_URL=https://your-backend.railway.app
-REACT_APP_ML_SERVICE_URL=https://your-ml-service.railway.app
+REACT_APP_API_URL=https://connect-four-ai-roge.onrender.com
+REACT_APP_WS_URL=wss://connect-four-ai-roge.onrender.com
+REACT_APP_ML_SERVICE_URL=https://connect-four-ai-roge.onrender.com
 REACT_APP_ENVIRONMENT=production
 REACT_APP_VERSION=1.0.0
 REACT_APP_ANALYTICS_ENABLED=true

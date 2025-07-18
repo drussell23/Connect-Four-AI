@@ -90,9 +90,11 @@ vercel --prod
 
 ### **Environment Variables for Frontend**
 ```
-REACT_APP_BACKEND_URL=https://your-backend.railway.app
-REACT_APP_ML_SERVICE_URL=https://your-ml-service.railway.app
-REACT_APP_ENVIRONMENT=production
+    # Frontend Environment Variables
+    REACT_APP_API_URL=https://connect-four-ai-roge.onrender.com
+    REACT_APP_WS_URL=wss://connect-four-ai-roge.onrender.com
+    REACT_APP_ML_SERVICE_URL=https://connect-four-ai-roge.onrender.com
+    REACT_APP_ENVIRONMENT=production
 ```
 
 ## **🤖 Step 4: Deploy ML Service (Railway)**
