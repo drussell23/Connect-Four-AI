@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "scripts": {
         "start:dev": "nest start --watch",
-        "build": "npm install --legacy-peer-deps && nest build",
+        "build": "nest build",
         "start:prod": "node dist/main.js",
         "start": "npm run start:prod",
         "test": "jest",
@@ -11,6 +11,7 @@
         "test:coverage": "jest --coverage"
     },
     "dependencies": {
+        "@nestjs/cli": "^11.0.7",
         "@nestjs/common": "^11.1.3",
         "@nestjs/config": "^4.0.2",
         "@nestjs/core": "^11.1.3",
@@ -29,7 +30,6 @@
         "typeorm": "^0.3.25"
     },
     "devDependencies": {
-        "@nestjs/cli": "^11.0.7",
         "@types/serve-static": "^1.15.7",
         "typescript": "^4.9.0"
     },
