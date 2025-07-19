@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Fireworks } from 'fireworks-js';
-import { SpeedInsights } from '@vercel/speed-insights';
+import { injectSpeedInsights } from '@vercel/speed-insights';
 import Board from './components/core/Board';
 import Sidebar from './components/ui/Sidebar';
 import LandingPage from './components/ui/LandingPage';
@@ -154,7 +154,7 @@ const App: React.FC = () => {
 
   // Initialize Speed Insights
   useEffect(() => {
-    SpeedInsights();
+    injectSpeedInsights();
   }, []);
 
   // Save stats to localStorage
