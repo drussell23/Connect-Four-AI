@@ -151,7 +151,6 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
 
             clearTimeout(timeoutId);
             console.log('✅ Health check response:', response.status, response.statusText);
-            console.log('📋 Response headers:', Object.fromEntries(response.headers.entries()));
 
             if (response.ok) {
                 const data = await response.json();
