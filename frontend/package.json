@@ -8,6 +8,7 @@
     "test": "react-scripts test"
   },
   "dependencies": {
+    "@vercel/speed-insights": "^1.2.0",
     "chart.js": "^4.5.0",
     "fireworks-js": "^2.10.8",
     "framer-motion": "^12.23.3",
