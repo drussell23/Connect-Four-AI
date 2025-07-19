@@ -90,12 +90,23 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
     // Real-time health checking
     const checkBackendHealth = useCallback(async (endpoint: string): Promise<boolean> => {
         try {
+            // Use AbortController for proper timeout handling
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
             const response = await fetch(endpoint, {
                 method: 'GET',
-                timeout: 2000
-            } as any);
+                signal: controller.signal,
+                mode: 'cors',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            });
+
+            clearTimeout(timeoutId);
             return response.ok;
         } catch (error) {
+            console.warn('Health check failed:', error);
             return false;
         }
     }, []);
@@ -113,12 +124,22 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
 
         for (const [name, url] of Object.entries(endpoints)) {
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+
                 const response = await fetch(url, {
                     method: 'GET',
-                    timeout: 1000
-                } as any);
+                    signal: controller.signal,
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
+
+                clearTimeout(timeoutId);
                 results[name] = response.status < 500; // Accept 404s as "service exists"
             } catch (error) {
+                console.warn(`Service check failed for ${name}:`, error);
                 results[name] = false;
             }
         }
@@ -335,9 +356,22 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
         // Check WebSocket endpoint
         let wsReady = false;
         try {
-            const wsResponse = await fetch(`${appConfig.api.baseUrl}/socket.io/?transport=polling`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+
+            const wsResponse = await fetch(`${appConfig.api.baseUrl}/socket.io/?transport=polling`, {
+                method: 'GET',
+                signal: controller.signal,
+                mode: 'cors',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            });
+
+            clearTimeout(timeoutId);
             wsReady = wsResponse.status < 500;
         } catch (error) {
+            console.warn('WebSocket check failed:', error);
             wsReady = false;
         }
 
