@@ -29,7 +29,11 @@ const envConfiguration = () => ({
 
   // CORS Configuration
   corsEnabled: process.env.CORS_ENABLED === 'true',
-  corsOrigins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3001'],
+  corsOrigins: process.env.CORS_ORIGINS?.split(',') || [
+    'http://localhost:3001',
+    'https://connect-four-ai-derek.vercel.app',
+    'https://connect-four-ai-derek.vercel.app/'
+  ],
 
   // Security
   jwtSecret: process.env.JWT_SECRET || 'your_jwt_secret_key_here',

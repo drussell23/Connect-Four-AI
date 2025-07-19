@@ -92,9 +92,9 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
 // Load and export enterprise configuration
 export const appConfig: AppConfig = {
     api: {
-        baseUrl: getEnvVar('REACT_APP_API_URL', 'https://connect-four-ai-roge.onrender.com'),
-        wsUrl: getEnvVar('REACT_APP_WS_URL', 'wss://connect-four-ai-roge.onrender.com'),
-        mlServiceUrl: getEnvVar('REACT_APP_ML_SERVICE_URL', 'https://connect-four-ai-roge.onrender.com'),
+        baseUrl: getEnvVar('REACT_APP_API_URL', 'https://connect-four-ai-backend.onrender.com'),
+        wsUrl: getEnvVar('REACT_APP_WS_URL', 'wss://connect-four-ai-backend.onrender.com'),
+        mlServiceUrl: getEnvVar('REACT_APP_ML_SERVICE_URL', 'https://connect-four-ai-backend.onrender.com'),
         orchestrationDashboardUrl: getEnvVar('REACT_APP_ORCHESTRATION_DASHBOARD_URL', 'http://localhost:3011'),
         performanceAnalyticsUrl: getEnvVar('REACT_APP_PERFORMANCE_ANALYTICS_URL', 'http://localhost:3014'),
         aiDiagnosticsUrl: getEnvVar('REACT_APP_AI_DIAGNOSTICS_URL', 'http://localhost:3012'),
