@@ -25,10 +25,5 @@
         "REACT_APP_WS_URL": "wss://connect-four-ai-roge.onrender.com",
         "REACT_APP_ML_SERVICE_URL": "https://connect-four-ai-roge.onrender.com",
         "REACT_APP_ENVIRONMENT": "production"
-    },
-    "functions": {
-        "api/**/*.js": {
-            "runtime": "nodejs18.x"
-        }
     }
 }
