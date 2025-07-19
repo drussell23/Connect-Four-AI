@@ -29,19 +29,24 @@ async function bootstrap() {
 
     // Enterprise CORS Configuration
     const corsEnabled = configService.get('corsEnabled') !== false; // Default to true
-    const corsOrigins = configService.get('corsOrigins') || ['*'];
+    const corsOrigins = configService.get('corsOrigins') || [
+      'http://localhost:3001',
+      'https://connect-four-ai-derek.vercel.app',
+      'https://connect-four-ai-derek.vercel.app/',
+      '*' // Allow all origins for now
+    ];
 
-    if (corsEnabled) {
-      app.enableCors({
-        origin: corsOrigins,
-        credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
-      });
-      logger.log(`✅ CORS enabled for origins: ${corsOrigins.join(', ')}`);
-    } else {
-      logger.log('❌ CORS disabled');
-    }
+    // Always enable CORS for production
+    app.enableCors({
+      origin: corsOrigins,
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+      exposedHeaders: ['Content-Length', 'X-Requested-With'],
+      maxAge: 86400, // 24 hours
+    });
+
+    logger.log(`✅ CORS enabled for origins: ${corsOrigins.join(', ')}`);
 
     // Set API prefix
     app.setGlobalPrefix('api');

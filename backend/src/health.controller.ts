@@ -1,9 +1,19 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Options, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
 
 @Controller('health')
 export class HealthController {
     constructor(private readonly configService: ConfigService) { }
+
+    @Options()
+    handleOptions(@Res() res: Response) {
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With');
+        res.header('Access-Control-Max-Age', '86400');
+        res.status(200).send();
+    }
 
     @Get()
     getHealth() {
