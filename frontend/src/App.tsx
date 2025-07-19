@@ -198,58 +198,23 @@ const App: React.FC = () => {
         name: 'Nemesis',
         description: 'Calculating victory paths',
         difficulty: level,
-        specialAbilities: ['Perfect Endgame', 'Psychological Pressure'],
+        specialAbilities: ['Endgame Mastery', 'Tactical Brilliance'],
         threatLevel: 'EXPERT',
         color: '#ef4444'
       };
-    } else if (level <= 15) {
-      return {
-        name: 'Chronos',
-        description: 'Time-space optimization',
-        difficulty: level,
-        specialAbilities: ['Temporal Analysis', 'Probability Mastery'],
-        threatLevel: 'MASTER',
-        color: '#dc2626'
-      };
-    } else if (level <= 18) {
-      return {
-        name: 'Omega',
-        description: 'Transcendent intelligence',
-        difficulty: level,
-        specialAbilities: ['Mind Reading', 'Future Sight', 'Perfect Play'],
-        threatLevel: 'GRANDMASTER',
-        color: '#991b1b'
-      };
-    } else if (level <= 21) {
-      return {
-        name: 'Singularity',
-        description: 'Beyond human comprehension',
-        difficulty: level,
-        specialAbilities: ['Omniscience', 'Reality Manipulation'],
-        threatLevel: 'LEGENDARY',
-        color: '#7c2d12'
-      };
-    } else if (level <= 24) {
-      return {
-        name: 'Nightmare',
-        description: 'The stuff of legends',
-        difficulty: level,
-        specialAbilities: ['Existential Dread', 'Quantum Computing'],
-        threatLevel: 'NIGHTMARE',
-        color: '#1f2937'
-      };
     } else {
       return {
-        name: 'The Ultimate',
-        description: 'Perfection incarnate',
+        name: 'Nightmare',
+        description: 'Beyond human comprehension',
         difficulty: level,
-        specialAbilities: ['Universal Knowledge', 'Infinite Calculation'],
-        threatLevel: 'ULTIMATE',
-        color: '#000000'
+        specialAbilities: ['Quantum Analysis', 'Temporal Manipulation'],
+        threatLevel: 'NIGHTMARE',
+        color: '#7c3aed'
       };
     }
   };
 
+  // Get current AI personality - properly scoped
   const currentAI = getAIPersonality(aiLevel);
 
   // Audio and haptic feedback setup
@@ -519,8 +484,6 @@ const App: React.FC = () => {
 
     // Create new game directly with determined starting player
     if (socket) {
-      const currentAI = getAIPersonality(aiLevel + 1);
-
       // Set game state immediately - no "Creating new game..." delay
       setCurrentPlayer(nextStartingPlayer);
       setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
