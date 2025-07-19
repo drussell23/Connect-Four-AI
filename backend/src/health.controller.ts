@@ -53,6 +53,15 @@ export class HealthController {
         };
     }
 
+    @Get('test')
+    getTest() {
+        return {
+            message: 'CORS test successful',
+            timestamp: new Date().toISOString(),
+            cors: 'working'
+        };
+    }
+
     @Get('enterprise')
     getEnterpriseStatus() {
         return {

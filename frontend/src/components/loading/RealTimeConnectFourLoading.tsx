@@ -87,26 +87,85 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
         }
     ]);
 
+    // Test function to debug browser issues
+    const testBackendConnection = useCallback(async () => {
+        const testUrl = `${appConfig.api.baseUrl}/api/health/test`;
+        console.log('🧪 Testing backend connection to:', testUrl);
+
+        try {
+            // Test 1: Simple fetch
+            console.log('📡 Test 1: Simple fetch...');
+            const response1 = await fetch(testUrl);
+            console.log('✅ Test 1 result:', response1.status, response1.statusText);
+
+            // Test 2: With CORS headers
+            console.log('📡 Test 2: With CORS headers...');
+            const response2 = await fetch(testUrl, {
+                method: 'GET',
+                mode: 'cors',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            });
+            console.log('✅ Test 2 result:', response2.status, response2.statusText);
+
+            // Test 3: OPTIONS preflight
+            console.log('📡 Test 3: OPTIONS preflight...');
+            const response3 = await fetch(testUrl, {
+                method: 'OPTIONS',
+                mode: 'cors',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            });
+            console.log('✅ Test 3 result:', response3.status, response3.statusText);
+
+        } catch (error) {
+            console.error('❌ Test failed:', error);
+        }
+    }, []);
+
     // Real-time health checking
     const checkBackendHealth = useCallback(async (endpoint: string): Promise<boolean> => {
+        console.log('🔍 Health check starting for:', endpoint);
         try {
             // Use AbortController for proper timeout handling
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+            const timeoutId = setTimeout(() => {
+                console.log('⏰ Health check timeout for:', endpoint);
+                controller.abort();
+            }, 5000); // 5 second timeout
 
+            console.log('📡 Making fetch request to:', endpoint);
             const response = await fetch(endpoint, {
                 method: 'GET',
                 signal: controller.signal,
                 mode: 'cors',
                 headers: {
                     'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                 }
             });
 
             clearTimeout(timeoutId);
+            console.log('✅ Health check response:', response.status, response.statusText);
+            console.log('📋 Response headers:', Object.fromEntries(response.headers.entries()));
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('📊 Health check data:', data);
+            }
+
             return response.ok;
         } catch (error) {
-            console.warn('Health check failed:', error);
+            console.error('❌ Health check failed for', endpoint, ':', error);
+            console.error('Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
             return false;
         }
     }, []);
@@ -440,6 +499,9 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
     useEffect(() => {
         if (!isVisible) return;
 
+        // Run connection test first
+        testBackendConnection();
+
         // Start backend log simulation
         simulateBackendLogs();
 
@@ -458,7 +520,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                 }
             }
         };
-    }, [isVisible, simulateBackendLogs, monitorBackendStartup]);
+    }, [isVisible, simulateBackendLogs, monitorBackendStartup, testBackendConnection]);
 
     if (!isVisible) return null;
 
