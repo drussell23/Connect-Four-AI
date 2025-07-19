@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { appConfig } from '../../config/environment';
 import './ConnectFourLoading.css';
 
 interface RealLoadingStep {
@@ -47,7 +48,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
             label: 'Starting NestJS application',
             progress: 0,
             status: 'pending',
-            endpoint: 'http://localhost:3000/api/health',
+            endpoint: `${appConfig.api.baseUrl}/api/health`,
             color: 'yellow',
             realTimeMessage: 'Initializing server...'
         },
@@ -80,7 +81,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
             label: 'Final system health check',
             progress: 0,
             status: 'pending',
-            endpoint: 'http://localhost:3000/api/health',
+            endpoint: `${appConfig.api.baseUrl}/api/health`,
             color: 'yellow',
             realTimeMessage: 'Verifying all systems...'
         }
@@ -102,10 +103,10 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
     // Check specific service endpoints
     const checkServiceEndpoints = useCallback(async (): Promise<{ [key: string]: boolean }> => {
         const endpoints = {
-            health: 'http://localhost:3000/api/health',
-            game: 'http://localhost:3000/api/game',
-            dashboard: 'http://localhost:3000/api/dashboard',
-            websocket: 'http://localhost:3000/socket.io/?transport=polling'
+            health: `${appConfig.api.baseUrl}/api/health`,
+            game: `${appConfig.api.baseUrl}/api/game`,
+            dashboard: `${appConfig.api.baseUrl}/api/dashboard`,
+            websocket: `${appConfig.api.baseUrl}/socket.io/?transport=polling`
         };
 
         const results: { [key: string]: boolean } = {};
@@ -230,7 +231,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
             ));
 
             try {
-                backendReady = await checkBackendHealth('http://localhost:3000/api/health');
+                backendReady = await checkBackendHealth(`${appConfig.api.baseUrl}/api/health`);
                 if (backendReady) {
                     setSteps(prev => prev.map((s, i) =>
                         i === 1 ? {
@@ -334,7 +335,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
         // Check WebSocket endpoint
         let wsReady = false;
         try {
-            const wsResponse = await fetch('http://localhost:3000/socket.io/?transport=polling');
+            const wsResponse = await fetch(`${appConfig.api.baseUrl}/socket.io/?transport=polling`);
             wsReady = wsResponse.status < 500;
         } catch (error) {
             wsReady = false;
@@ -364,7 +365,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
 
         if (soundEnabled) playConnectFourSound(784, 0.2);
 
-        const finalHealth = await checkBackendHealth('http://localhost:3000/api/health');
+        const finalHealth = await checkBackendHealth(`${appConfig.api.baseUrl}/api/health`);
 
         for (let progress = 0; progress <= 100; progress += 33) {
             setSteps(prev => prev.map((s, i) =>
