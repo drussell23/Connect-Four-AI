@@ -160,11 +160,13 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
             return response.ok;
         } catch (error) {
             console.error('❌ Health check failed for', endpoint, ':', error);
-            console.error('Error details:', {
-                name: error.name,
-                message: error.message,
-                stack: error.stack
-            });
+            if (error instanceof Error) {
+                console.error('Error details:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                });
+            }
             return false;
         }
     }, []);
