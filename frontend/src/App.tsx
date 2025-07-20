@@ -1,5 +1,5 @@
 // src/App.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, startTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Fireworks } from 'fireworks-js';
 import { injectSpeedInsights } from '@vercel/speed-insights';
@@ -47,6 +47,7 @@ const App: React.FC = () => {
   const [showLoadingProgress, setShowLoadingProgress] = useState<boolean>(false);
   const [isInitializing, setIsInitializing] = useState<boolean>(false);
   const [showLoadingPreferences, setShowLoadingPreferences] = useState<boolean>(false);
+  const [appInitialized, setAppInitialized] = useState<boolean>(false);
   const [loadingPreferences, setLoadingPreferences] = useState(() => {
     const saved = localStorage.getItem('loadingPreferences');
     return saved ? JSON.parse(saved) : {
@@ -157,6 +158,15 @@ const App: React.FC = () => {
     injectSpeedInsights();
   }, []);
 
+  // App initialization effect
+  useEffect(() => {
+    // Delay app initialization to prevent Suspense during render
+    const timer = setTimeout(() => {
+      setAppInitialized(true);
+    }, 200);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Save stats to localStorage
   const saveStats = (newStats: PlayerStats) => {
     localStorage.setItem('connect4EnhancedStats', JSON.stringify(newStats));
@@ -214,8 +224,8 @@ const App: React.FC = () => {
     }
   };
 
-  // Get current AI personality - properly scoped
-  const currentAI = getAIPersonality(aiLevel);
+  // Simple function to get current AI personality - no complex React patterns
+  const getCurrentAI = () => getAIPersonality(aiLevel);
 
   // Audio and haptic feedback setup
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -338,7 +348,7 @@ const App: React.FC = () => {
     setStatus(
       firstPlayer === 'Red'
         ? 'Your turn (Red)'
-        : `${currentAI.name} AI is thinking…`
+        : `${getCurrentAI().name} AI is thinking…`
     );
 
     socket.emit(
@@ -492,7 +502,7 @@ const App: React.FC = () => {
       setStatus(
         nextStartingPlayer === 'Red'
           ? 'Your turn (Red)'
-          : `${currentAI.name} AI is thinking…`
+          : `${getCurrentAI().name} AI is thinking…`
       );
 
       socket.emit(
@@ -619,15 +629,17 @@ const App: React.FC = () => {
 
   // Handler for when loading progress completes
   const handleLoadingComplete = () => {
-    setShowLoadingProgress(false);
-    setIsInitializing(false);
+    startTransition(() => {
+      setShowLoadingProgress(false);
+      setIsInitializing(false);
+    });
 
     // Set the appropriate game status after loading completes
     if (gameId && currentPlayer) {
       setStatus(
         currentPlayer === 'Red'
           ? 'Your turn (Red)'
-          : `${currentAI.name} AI is thinking…`
+          : `${getCurrentAI().name} AI is thinking…`
       );
     } else {
       // If gameId isn't set yet, wait a bit more
@@ -636,7 +648,7 @@ const App: React.FC = () => {
           setStatus(
             currentPlayer === 'Red'
               ? 'Your turn (Red)'
-              : `${currentAI.name} AI is thinking…`
+              : `${getCurrentAI().name} AI is thinking…`
           );
         } else {
           setStatus('Connection ready - click to start');
@@ -664,7 +676,9 @@ const App: React.FC = () => {
 
     // Only show coin toss if it hasn't been done yet
     if (!hasDoneCoinToss) {
-      setShowCoinToss(true);
+      startTransition(() => {
+        setShowCoinToss(true);
+      });
     } else {
       // If coin toss has already been done, just create a new game
       const nextStartingPlayer: CellValue = Math.random() < 0.5 ? 'Red' : 'Yellow';
@@ -687,24 +701,30 @@ const App: React.FC = () => {
 
     // Enterprise loading control
     if (ui.loadingAnimations) {
-      setShowLoadingProgress(true);
-      setIsInitializing(true);
+      startTransition(() => {
+        setShowLoadingProgress(true);
+        setIsInitializing(true);
+      });
     }
     setSocket(apiSocket);
 
     apiSocket.on('connect', () => {
       console.log('🔗 connected, id=', apiSocket.id);
       // Don't create game immediately - let loading complete first
-      setShowLoadingProgress(false);
-      setIsInitializing(false);
-      setStatus('Connection ready - click to start');
+      startTransition(() => {
+        setShowLoadingProgress(false);
+        setIsInitializing(false);
+        setStatus('Connection ready - click to start');
+      });
     });
 
     apiSocket.on('disconnect', () => {
       console.log('❌ disconnected');
-      setStatus('Disconnected');
-      setShowLoadingProgress(false);
-      setIsInitializing(false);
+      startTransition(() => {
+        setStatus('Disconnected');
+        setShowLoadingProgress(false);
+        setIsInitializing(false);
+      });
     });
 
     apiSocket.on(
@@ -744,14 +764,18 @@ const App: React.FC = () => {
 
     if (!socket) {
       // If no socket, trigger the initialization
-      setShowLoadingProgress(true);
-      setIsInitializing(true);
+      startTransition(() => {
+        setShowLoadingProgress(true);
+        setIsInitializing(true);
+      });
       return;
     }
 
     // Use coin toss to determine who goes first
     if (!hasDoneCoinToss) {
-      setShowCoinToss(true);
+      startTransition(() => {
+        setShowCoinToss(true);
+      });
     } else {
       // If coin toss has already been done, just create a new game
       const nextStartingPlayer: CellValue = Math.random() < 0.5 ? 'Red' : 'Yellow';
@@ -781,7 +805,7 @@ const App: React.FC = () => {
         const randomMessage = thinkingMessages[Math.floor(Math.random() * thinkingMessages.length)];
         setStatus(randomMessage);
       } else {
-        setStatus(`${currentAI.name} AI is thinking…`);
+        setStatus(`${getCurrentAI().name} AI is thinking…`);
       }
     });
 
@@ -942,8 +966,7 @@ const App: React.FC = () => {
           return;
         }
 
-        const currentAI = getAIPersonality(aiLevel);
-        setStatus(`${currentAI.name} AI is thinking…`);
+        setStatus(`${getCurrentAI().name} AI is thinking…`);
         setCurrentPlayer('Yellow');
       }
     );
@@ -981,7 +1004,7 @@ const App: React.FC = () => {
       socket.off('aiThinking');
       socket.off('aiMove');
     };
-  }, [socket, currentAI.name]);
+  }, [socket, aiLevel]);
 
   const handleLoadingPreferencesChange = (preferences: any) => {
     setLoadingPreferences(preferences);
@@ -1141,10 +1164,12 @@ const App: React.FC = () => {
       style={{ fontFamily: "'Poppins', sans-serif" }}>
 
       {/* Real-Time Connect Four Loading System */}
-      <RealTimeConnectFourLoading
-        isVisible={showLoadingProgress || isInitializing}
-        onComplete={handleLoadingComplete}
-      />
+      {appInitialized && (
+        <RealTimeConnectFourLoading
+          isVisible={showLoadingProgress || isInitializing}
+          onComplete={handleLoadingComplete}
+        />
+      )}
 
       {/* Loading Preferences Modal */}
       <LoadingPreferences
@@ -1176,7 +1201,7 @@ const App: React.FC = () => {
       <CoinToss
         isVisible={showCoinToss}
         onComplete={handleCoinTossComplete}
-        aiPersonality={currentAI.name}
+        aiPersonality={getCurrentAI().name}
       />
 
       {/* Nightmare Mode Notification */}
@@ -1229,11 +1254,11 @@ const App: React.FC = () => {
         </h1>
         <div className="flex items-center justify-center gap-4">
           <div className="ai-info-display bg-white bg-opacity-10 rounded-lg px-4 py-2">
-            <div className="text-lg font-bold" style={{ color: currentAI.color }}>
-              {currentAI.name} AI - Level {aiLevel}
+            <div className="text-lg font-bold" style={{ color: getCurrentAI().color }}>
+              {getCurrentAI().name} AI - Level {aiLevel}
             </div>
             <div className="text-sm text-white opacity-80">
-              {currentAI.description}
+              {getCurrentAI().description}
             </div>
           </div>
           {currentStreak > 1 && (
@@ -1329,7 +1354,7 @@ const App: React.FC = () => {
             aiLevel={aiLevel}
             aiJustLeveledUp={aiJustLeveledUp}
             playerStats={playerStats}
-            currentAI={currentAI}
+            currentAI={getCurrentAI()}
           />
         )}
       </AnimatePresence>
@@ -1369,7 +1394,7 @@ const App: React.FC = () => {
         isVisible={showVictoryModal}
         gameResult={gameResult}
         currentLevel={aiLevel}
-        aiPersonality={currentAI.name}
+        aiPersonality={getCurrentAI().name}
         onNextLevel={handleNextLevel}
         onReplayLevel={handleReplayLevel}
         onQuitToMenu={handleQuitToMenu}
@@ -1544,7 +1569,7 @@ const App: React.FC = () => {
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
                   <span className="text-blue-300">🧠</span>
-                  {currentAI.name}'s Analysis
+                  {getCurrentAI().name}'s Analysis
                 </h3>
                 <button
                   onClick={() => setShowAIInsightsPanel(false)}

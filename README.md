@@ -94,6 +94,63 @@ npm run start:all
 
 🎉 **That's it!** Open `http://localhost:3001` and start playing!
 
+### **🔄 Quick Restart Commands**
+
+**For normal development (recommended):**
+```bash
+npm run restart:turbo:build:enhanced:force:clean
+```
+
+**This comprehensive command:**
+- ✅ **Kills all processes** (frontend, backend, launcher)
+- ✅ **Detects and kills zombie processes** on port 3001
+- ✅ **Cleans up stale state and PID files**  
+- ✅ **Forces a fresh rebuild** with clean cache
+- ✅ **Prevents "Rendered more hooks than during the previous render" errors**
+- ✅ **Provides browser cache clearing instructions** for React Suspense fixes
+
+**Other useful commands:**
+```bash
+# Stop all services
+npm run stop:turbo:enhanced
+
+# Start services
+npm run start:turbo:build:enhanced
+
+# Check service status
+npm run status:turbo:enhanced
+```
+
+### **🧟 Zombie Process Prevention & React Suspense Fixes**
+
+**Problem:** React development servers can become "zombie processes" that continue running even after you think you've shut them down, serving stale bundles and causing React Suspense errors.
+
+**Solution:** Enhanced restart command that automatically detects and kills zombie processes:
+
+```bash
+# 🧟 Enhanced restart with zombie process detection & browser instructions
+npm run restart:turbo:build:enhanced:force:clean
+
+# 🔍 Check for zombie processes
+npm run zombie:check
+
+# 💀 Kill zombie processes manually
+npm run zombie:kill
+```
+
+**What this command does:**
+- ✅ **Detect zombie processes** on port 3001 and other common ports
+- ✅ **Kill stale React development servers** automatically
+- ✅ **Clear build cache** to remove stale files
+- ✅ **Provide browser cache clearing instructions** for React Suspense fixes
+- ✅ **Prevent "Rendered more hooks than during the previous render" errors**
+- ✅ **Ensure fresh code is always running**
+
+**If you still see React Suspense errors:**
+1. **Clear browser cache**: `Cmd+Shift+R` (Chrome) or DevTools → Empty Cache and Hard Reload
+2. **Unregister service workers**: DevTools → Application → Service Workers → Unregister
+3. **Clear all data**: `chrome://settings/clearBrowserData`
+
 ### **🔧 Detailed Setup Instructions**
 
 #### **Backend Setup (Node.js + NestJS)**

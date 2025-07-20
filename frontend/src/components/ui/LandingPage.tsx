@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, startTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './LandingPage.css';
 
@@ -191,7 +191,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
         <div className="secondary-buttons flex gap-4">
           <motion.button
             className="secondary-action-button"
-            onClick={() => setShowDifficultySelector(true)}
+            onClick={() => startTransition(() => setShowDifficultySelector(true))}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onTap={() => navigator.vibrate?.(30)}
@@ -203,7 +203,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
 
           <motion.button
             className="secondary-action-button"
-            onClick={() => setShowInfo(true)}
+            onClick={() => startTransition(() => setShowInfo(true))}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onTap={() => navigator.vibrate?.(30)}
@@ -282,7 +282,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
 
               <div className="flex gap-4 justify-center">
                 <motion.button
-                  onClick={() => setShowDifficultySelector(false)}
+                  onClick={() => startTransition(() => setShowDifficultySelector(false))}
                   className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-bold transition-colors"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -359,8 +359,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                 </div>
               </div>
 
-              <motion.button
-                onClick={() => setShowInfo(false)}
+                              <motion.button
+                  onClick={() => startTransition(() => setShowInfo(false))}
                 className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl font-bold transition-colors"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
