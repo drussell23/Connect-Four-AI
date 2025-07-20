@@ -48,7 +48,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
     return { name: 'The Ultimate', color: '#000000', threat: 'ULTIMATE', description: 'Perfection incarnate' };
   };
 
-  const currentAI = getAIInfo(selectedDifficulty);
+  const currentAI = getAIInfo(selectedDifficulty) || { name: 'Genesis', color: '#10b981', threat: 'ROOKIE', description: 'Perfect for beginners learning the ropes' };
 
   const handleStartWithDifficulty = () => {
     localStorage.setItem('selectedDifficulty', selectedDifficulty.toString());
@@ -149,15 +149,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
         <div className="current-ai-display bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20">
           <div className="text-lg font-bold text-white mb-2">Current Challenge</div>
           <div className="flex items-center gap-4">
-            <div className="ai-avatar" style={{ backgroundColor: currentAI.color }}>
+            <div className="ai-avatar" style={{ backgroundColor: currentAI.color || '#10b981' }}>
               <span className="text-white font-bold text-xl">{currentAI.name.charAt(0)}</span>
             </div>
             <div>
-              <div className="text-2xl font-bold" style={{ color: currentAI.color }}>
+              <div className="text-2xl font-bold" style={{ color: currentAI.color || '#10b981' }}>
                 {currentAI.name} AI
               </div>
               <div className="text-white opacity-80">{currentAI.description}</div>
-              <div className="threat-badge" style={{ backgroundColor: currentAI.color }}>
+              <div className="threat-badge" style={{ backgroundColor: currentAI.color || '#10b981' }}>
                 Level {selectedDifficulty} • {currentAI.threat}
               </div>
             </div>
@@ -181,7 +181,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           whileTap={{ scale: 0.95 }}
           onTap={() => navigator.vibrate?.(50)}
           transition={{ type: 'spring', stiffness: 300, delay: 1.4 }}
-          style={{ background: `linear-gradient(135deg, ${currentAI.color}, #10b981)` }}
+          style={{ background: `linear-gradient(135deg, ${currentAI.color || '#10b981'}, #10b981)` }}
         >
           <span className="button-icon">🚀</span>
           <span className="button-text">CHALLENGE {currentAI.name.toUpperCase()}</span>
@@ -250,7 +250,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                       onClick={() => setSelectedDifficulty(level)}
                       whileHover={{ scale: 1.02, backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
                       whileTap={{ scale: 0.98 }}
-                      style={isSelected ? { boxShadow: `0 0 20px ${aiInfo.color}40` } : {}}
+                      style={isSelected ? { boxShadow: `0 0 20px ${aiInfo.color || '#10b981'}40` } : {}}
                     >
                       <div className="flex items-center gap-3">
                         <div
@@ -295,8 +295,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                     handleStartWithDifficulty();
                   }}
                   className="px-8 py-3 text-white rounded-xl font-bold transition-colors"
-                  style={{ background: `linear-gradient(135deg, ${currentAI.color}, #10b981)` }}
-                  whileHover={{ scale: 1.05, boxShadow: `0 0 20px ${currentAI.color}40` }}
+                                      style={{ background: `linear-gradient(135deg, ${currentAI.color || '#10b981'}, #10b981)` }}
+                  whileHover={{ scale: 1.05, boxShadow: `0 0 20px ${currentAI.color || '#10b981'}40` }}
                   whileTap={{ scale: 0.95 }}
                 >
                   Challenge {currentAI.name}
@@ -359,8 +359,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                 </div>
               </div>
 
-                              <motion.button
-                  onClick={() => startTransition(() => setShowInfo(false))}
+              <motion.button
+                onClick={() => startTransition(() => setShowInfo(false))}
                 className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl font-bold transition-colors"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}

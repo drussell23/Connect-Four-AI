@@ -189,7 +189,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                             </motion.div>
                             <h1
                                 className="result-title"
-                                style={{ color: '#ffffff', textShadow: `0 0 20px ${resultData.primaryColor}` }}
+                                style={{ color: '#ffffff', textShadow: `0 0 20px ${resultData.primaryColor || '#10b981'}` }}
                             >
                                 {resultData.title}
                             </h1>
@@ -283,7 +283,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                                 <motion.button
                                     className="action-button next-level-button"
                                     onClick={onNextLevel}
-                                    whileHover={{ scale: 1.05, boxShadow: `0 0 25px ${nextThreat.color}` }}
+                                    whileHover={{ scale: 1.05, boxShadow: `0 0 25px ${nextThreat.color || '#10b981'}` }}
                                     whileTap={{ scale: 0.95 }}
                                     style={{
                                         background: `linear-gradient(135deg, ${nextThreat.color}, ${resultData.primaryColor})`,
@@ -300,7 +300,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                             <motion.button
                                 className="action-button replay-button"
                                 onClick={onReplayLevel}
-                                whileHover={{ scale: 1.05, boxShadow: `0 0 25px ${resultData.primaryColor}` }}
+                                whileHover={{ scale: 1.05, boxShadow: `0 0 25px ${resultData.primaryColor || '#10b981'}` }}
                                 whileTap={{ scale: 0.95 }}
                                 style={{
                                     background: `linear-gradient(135deg, ${resultData.primaryColor}, ${resultData.secondaryColor})`,

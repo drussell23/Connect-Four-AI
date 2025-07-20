@@ -19,7 +19,7 @@ export class GameController {
         private readonly mlClient: MlClientService
     ) { }
 
-    @Post() 
+    @Post()
     async createGame(@Body() dto: CreateGameDto) {
         const gameId = await this.gameService.createGame(dto.playerId, dto.clientId, dto.startingPlayer);
         return { gameId };
@@ -35,7 +35,7 @@ export class GameController {
 
     @Post(':id/drop')
     async dropDisc(
-        @Param('id') gameId: string, 
+        @Param('id') gameId: string,
         @Body() dto: DropDiscDto
     ) {
         // 1) Delegate to GameService.
@@ -50,7 +50,7 @@ export class GameController {
         // 2) If the service tells us there was a win or draw, log to ML.
         if (result.winner || result.draw) {
             const payload: LogGameDto = {
-                gameId, 
+                gameId,
                 finalBoard: result.board!,
                 outcome: result.winner ? 'win' : 'draw',
                 winner: result.winner ?? null,
@@ -75,11 +75,42 @@ export class GameController {
 
     @Get(':id/ai-move')
     async getAIMove(
-        @Param('id') gameId: string, 
+        @Param('id') gameId: string,
         @Query('aiDisc') aiDisc: CellValue
     ) {
         try {
             return await this.gameService.getAIMove(gameId, aiDisc);
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Post(':id/analyze-move')
+    async analyzeMove(
+        @Param('id') gameId: string,
+        @Body() dto: {
+            column: number;
+            player: 'player' | 'ai';
+            aiLevel?: number;
+        }
+    ) {
+        try {
+            return await this.gameService.analyzeMove(gameId, dto.column, dto.player, dto.aiLevel);
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Post(':id/analyze-position')
+    async analyzePosition(
+        @Param('id') gameId: string,
+        @Body() dto: {
+            currentPlayer: 'player' | 'ai';
+            aiLevel?: number;
+        }
+    ) {
+        try {
+            return await this.gameService.analyzePosition(gameId, dto.currentPlayer, dto.aiLevel);
         } catch (e: any) {
             throw new HttpException(e.message, 400);
         }

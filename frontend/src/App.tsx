@@ -16,7 +16,9 @@ import AIAnalysisDashboard from './components/analytics/AIAnalysisDashboard';
 import AITrainingGround from './components/analytics/AITrainingGround';
 import PlayerStatsComponent from './components/analytics/PlayerStats';
 import { updatePlayerStats } from './services/playerStatsService';
+import { analyzeCurrentPosition } from './services/moveAnalysisService';
 import MoveExplanationPanel from './components/ai-insights/MoveExplanation';
+import MoveAnalysis from './components/ai-insights/MoveAnalysis';
 import GameHistory from './components/game-history/GameHistory';
 import UserSettings from './components/settings/UserSettings';
 import apiSocket from './api/socket';
@@ -136,6 +138,7 @@ const App: React.FC = () => {
   // New API Components state
   const [showPlayerStats, setShowPlayerStats] = useState<boolean>(false);
   const [showMoveExplanation, setShowMoveExplanation] = useState<boolean>(false);
+  const [showMoveAnalysis, setShowMoveAnalysis] = useState<boolean>(false);
   const [showGameHistory, setShowGameHistory] = useState<boolean>(false);
   const [showUserSettings, setShowUserSettings] = useState<boolean>(false);
   const [selectedMoveIndex, setSelectedMoveIndex] = useState<number>(-1);
@@ -143,6 +146,12 @@ const App: React.FC = () => {
   const [aiInsightsData, setAiInsightsData] = useState<any>(null);
   const [gameHistoryData, setGameHistoryData] = useState<any>(null);
   const [settingsData, setSettingsData] = useState<any>(null);
+
+  // Board state tracking for move analysis
+  const [boardBeforeMove, setBoardBeforeMove] = useState<string[][]>([]);
+  const [boardAfterMove, setBoardAfterMove] = useState<string[][]>([]);
+  const [lastMoveColumn, setLastMoveColumn] = useState<number>(-1);
+  const [lastMovePlayer, setLastMovePlayer] = useState<'player' | 'ai'>('player');
 
   // Load stats from localStorage
   useEffect(() => {
@@ -882,6 +891,13 @@ const App: React.FC = () => {
       }) => {
         console.log('⬅️ Enhanced aiMove', data);
         setBoard(data.board);
+
+        // Capture board state after AI move for analysis
+        setBoardAfterMove(data.board);
+        setLastMoveColumn(data.lastMove.column);
+        setLastMovePlayer('ai');
+        console.log('📸 Board state captured after AI move');
+
         playDrop();
         setWinningLine(data.winningLine || []);
         setHistory(prev => [...prev, {
@@ -958,6 +974,13 @@ const App: React.FC = () => {
       }) => {
         console.log('⬅️ Enhanced playerMove', data);
         setBoard(data.board);
+
+        // Capture board state after player move for analysis
+        setBoardAfterMove(data.board);
+        setLastMoveColumn(data.lastMove.column);
+        setLastMovePlayer('player');
+        console.log('📸 Board state captured after player move');
+
         playDrop();
         setWinningLine(data.winningLine || []);
         setHistory(prev => [...prev, {
@@ -1040,6 +1063,29 @@ const App: React.FC = () => {
     }
   };
 
+  const analyzeCurrentMove = async () => {
+    if (!board || !currentPlayer || !gameId || lastMoveColumn === -1) return;
+
+    try {
+      // Use the captured board states and last move information
+      const analysis = await analyzeCurrentPosition(
+        board,
+        lastMovePlayer,
+        aiLevel,
+        gameId,
+        boardBeforeMove,
+        boardAfterMove,
+        lastMoveColumn
+      );
+      console.log('Real AI move analysis completed:', analysis);
+
+      // Show the comprehensive move analysis modal
+      setShowMoveAnalysis(true);
+    } catch (error) {
+      console.error('Failed to analyze current move:', error);
+    }
+  };
+
   const submitPlayerFeedback = (feedback: {
     rating: number;
     satisfaction: number;
@@ -1107,7 +1153,7 @@ const App: React.FC = () => {
     return stageNames[curriculumInfo.currentStage] || 'Custom Learning Path';
   };
 
-  // Enhanced column click handler with debugging
+  // Enhanced column click handler with debugging and board state tracking
   function onColumnClick(col: number) {
     console.log(`🎯 Column ${col} clicked`);
     console.log('🔍 Current state:', {
@@ -1145,6 +1191,15 @@ const App: React.FC = () => {
     if (currentPlayer !== 'Red') {
       console.log(`⏳ Not player's turn (current: ${currentPlayer})`);
       return;
+    }
+
+    // Capture board state before the move
+    if (board) {
+      const boardBefore = board.map(row => [...row]);
+      setBoardBeforeMove(boardBefore);
+      setLastMoveColumn(col);
+      setLastMovePlayer('player');
+      console.log('📸 Board state captured before move');
     }
 
     console.log(`🎯 Dropping disc in column ${col} for game ${gameId}`);
@@ -1456,6 +1511,13 @@ const App: React.FC = () => {
           💡 Move Explanation
         </button>
         <button
+          onClick={analyzeCurrentMove}
+          className="bg-orange-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
+          title="Analyze Current Position"
+        >
+          🔍 Move Analysis
+        </button>
+        <button
           onClick={() => setShowGameHistory(true)}
           className="bg-pink-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
           title="Game History"
@@ -1570,6 +1632,19 @@ const App: React.FC = () => {
               <UserSettings playerId={gameId || 'demo-user'} />
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Move Analysis Modal */}
+      <AnimatePresence>
+        {showMoveAnalysis && (
+          <MoveAnalysis
+            boardState={board}
+            currentPlayer={currentPlayer === 'Red' ? 'player' : 'ai'}
+            aiLevel={aiLevel}
+            isVisible={showMoveAnalysis}
+            onClose={() => setShowMoveAnalysis(false)}
+          />
         )}
       </AnimatePresence>
 

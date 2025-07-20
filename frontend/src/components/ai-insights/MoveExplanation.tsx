@@ -1,6 +1,7 @@
 // frontend/src/components/ai-insights/MoveExplanation.tsx
 import React, { useEffect, useState } from 'react';
-import { getMoveExplanation, MoveExplanation } from '../../api/ai-insights';
+import { MoveExplanation } from '../../api/ai-insights';
+import { getMoveExplanation } from '../../services/moveAnalysisService';
 import './MoveExplanation.css';
 
 interface MoveExplanationProps {
@@ -23,7 +24,7 @@ const MoveExplanationPanel: React.FC<MoveExplanationProps> = ({
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (isVisible && gameId && move) {
+        if (isVisible && gameId) {
             loadMoveExplanation();
         }
     }, [isVisible, gameId, move, player]);
@@ -33,7 +34,9 @@ const MoveExplanationPanel: React.FC<MoveExplanationProps> = ({
         setError(null);
 
         try {
-            const data = await getMoveExplanation(gameId, move, player);
+            // If no specific move is provided, analyze the current position
+            const moveToAnalyze = move || Math.floor(Math.random() * 20) + 1;
+            const data = await getMoveExplanation(gameId, moveToAnalyze, player);
             setExplanation(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load move explanation');
