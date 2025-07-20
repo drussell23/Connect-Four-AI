@@ -1,6 +1,7 @@
 // frontend/src/components/analytics/PlayerStats.tsx
 import React, { useEffect, useState } from 'react';
-import { getPlayerPerformance, PlayerPerformance, getWinRateAnalysis, WinRateAnalysis } from '../../api/analytics';
+import { PlayerPerformance, WinRateAnalysis } from '../../api/analytics';
+import { getPlayerStats, getWinRateAnalysis as getWinRateData } from '../../services/playerStatsService';
 import './PlayerStats.css';
 
 interface PlayerStatsProps {
@@ -28,8 +29,8 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ playerId, isVisible, onClose 
 
         try {
             const [playerStats, winRate] = await Promise.all([
-                getPlayerPerformance(playerId),
-                getWinRateAnalysis(timeframe)
+                getPlayerStats(playerId),
+                getWinRateData(playerId, timeframe)
             ]);
 
             setStats(playerStats);

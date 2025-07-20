@@ -15,6 +15,7 @@ import CoinToss, { type CoinResult, type CoinTossResult } from './components/gam
 import AIAnalysisDashboard from './components/analytics/AIAnalysisDashboard';
 import AITrainingGround from './components/analytics/AITrainingGround';
 import PlayerStatsComponent from './components/analytics/PlayerStats';
+import { updatePlayerStats } from './services/playerStatsService';
 import MoveExplanationPanel from './components/ai-insights/MoveExplanation';
 import GameHistory from './components/game-history/GameHistory';
 import UserSettings from './components/settings/UserSettings';
@@ -38,6 +39,7 @@ const App: React.FC = () => {
   const [status, setStatus] = useState<string>('Ready to play');
   const [winningLine, setWinningLine] = useState<[number, number][]>([]);
   const [history, setHistory] = useState<Move[]>([]);
+  const [gameStartTime, setGameStartTime] = useState<number>(Date.now());
 
   // UI state
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
@@ -338,6 +340,7 @@ const App: React.FC = () => {
     setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
     setWinningLine([]);
     setHistory([]);
+    setGameStartTime(Date.now()); // Track when the game starts
 
     // Clear any previous AI explanation
     setAiExplanation('');
@@ -440,6 +443,19 @@ const App: React.FC = () => {
     }
 
     saveStats(newStats);
+
+    // Update player stats using the new service
+    const gameResult = isVictory ? 'win' : isDefeat ? 'loss' : 'draw';
+    const gameData = {
+      duration: Date.now() - gameStartTime, // You'll need to track game start time
+      moveCount: movesPlayed,
+      averageMoveTime: 2000, // Default value, can be calculated from move timestamps
+      accuracyRate: 75.0 // Default value, can be calculated from move quality
+    };
+
+    updatePlayerStats(gameId || 'demo-user', gameResult, gameData).catch(err => {
+      console.error('Failed to update player stats:', err);
+    });
 
     // Show victory modal after a short delay
     setTimeout(() => {
@@ -735,6 +751,7 @@ const App: React.FC = () => {
         setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
         setWinningLine([]);
         setHistory([]);
+        setGameStartTime(Date.now()); // Track when the game starts
         // Loading progress will complete and set the status
         console.log('✅ Game board ready:', data.gameId);
       }
@@ -752,6 +769,7 @@ const App: React.FC = () => {
     setHistory([]);
     setSidebarOpen(false);
     setGameResult(null);
+    setGameStartTime(Date.now()); // Reset game start time
 
     // Read selected difficulty from localStorage if available
     const storedDifficulty = localStorage.getItem('selectedDifficulty');
