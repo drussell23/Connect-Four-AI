@@ -3,6 +3,7 @@ import { Server } from 'socket.io';
 import { getBestAIMove, UltimateConnect4AI, AIDecision, UltimateAIConfig, tryDrop } from '../ai/connect4AI';
 import type { CellValue } from '../ai/connect4AI';
 import { getAIMoveViaAPI } from '../services/ml_inference';
+import { GameHistoryService, GameHistoryEntry } from './game-history.service';
 
 export interface GameMove {
   playerId: string;
@@ -81,7 +82,7 @@ export class GameService {
   private lastHealthCheck = new Date();
   private recoveryInProgress = false;
 
-  constructor() {
+  constructor(private readonly gameHistoryService: GameHistoryService) {
     this.logger.log('🚀 GameService initialized - AI will be loaded on demand');
     // Disable self-healing monitor to prevent CPU loops
     // this.startSelfHealingMonitor();
@@ -571,6 +572,60 @@ export class GameService {
     if (!game) return;
 
     this.logger.log(`🏁 Enhanced game ${gameId} ended: ${winner ? `Winner: ${winner}` : 'Draw'}`);
+
+    // Save game history
+    try {
+      const humanPlayerId = Array.from(game.playerProfiles.keys()).find(id => id !== 'AI');
+      if (humanPlayerId) {
+        const gameHistoryEntry: GameHistoryEntry = {
+          gameId,
+          playerId: humanPlayerId,
+          startTime: new Date(game.startTime),
+          endTime: new Date(),
+          duration: Date.now() - game.startTime,
+          winner: winner === humanPlayerId ? 'player' : winner === 'AI' ? 'ai' : 'draw',
+          totalMoves: game.moves.length,
+          playerMoves: game.moves.filter(m => m.playerId === humanPlayerId).map(m => m.column),
+          aiMoves: game.moves.filter(m => m.playerId === 'AI').map(m => m.column),
+          finalBoard: game.board,
+          gameMode: 'standard',
+          aiLevel: game.difficulty,
+          playerSkill: 'intermediate',
+          metadata: {
+            deviceType: 'web',
+            sessionId: gameId,
+            version: '1.0.0',
+            features: ['ai_analysis', 'real_time_tracking'],
+          },
+          tags: [],
+          notes: '',
+          rating: this.calculateGameRating(game),
+          isFavorite: false,
+          isPublic: false,
+        };
+
+        await this.gameHistoryService.saveGameHistory(gameHistoryEntry);
+
+        // Create and save game replay
+        const replayMoves = game.moves.map(move => ({
+          player: move.playerId === humanPlayerId ? 'player' as const : 'ai' as const,
+          column: move.column,
+          timestamp: move.timestamp,
+          boardState: game.board, // This would need to be the board state at that move
+        }));
+
+        const replay = this.gameHistoryService.createGameReplay(
+          gameId,
+          replayMoves,
+          gameHistoryEntry.winner
+        );
+
+        await this.gameHistoryService.saveGameReplay(gameId, replay);
+        this.logger.log(`💾 Game history saved for game ${gameId}`);
+      }
+    } catch (error) {
+      this.logger.error(`🚨 Error saving game history: ${error}`);
+    }
 
     // Update player profiles based on game outcome
     for (const [playerId, profile] of game.playerProfiles) {

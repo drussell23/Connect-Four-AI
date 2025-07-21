@@ -127,8 +127,8 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                     }}
                     style={{
                         background: `linear-gradient(135deg, ${resultData.gradientFrom}, ${resultData.gradientTo})`,
-                        border: `3px solid ${resultData.primaryColor}`,
-                        boxShadow: `0 0 50px ${resultData.primaryColor}40`
+                        border: `3px solid ${resultData.primaryColor || '#10b981'}`,
+                        boxShadow: `0 0 50px ${resultData.primaryColor || '#10b981'}40`
                     }}
                 >
                     {/* Particle Effects */}
@@ -204,12 +204,12 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                             transition={{ delay: 0.4, duration: 0.6 }}
                         >
                             <div className="current-level-display">
-                                <div className="level-badge" style={{ backgroundColor: currentThreat.color }}>
+                                <div className="level-badge" style={{ backgroundColor: currentThreat.color || '#10b981' }}>
                                     <span className="level-number">{currentLevel}</span>
                                     <span className="level-label">LEVEL</span>
                                 </div>
                                 <div className="threat-level-info">
-                                    <div className="threat-level-name" style={{ color: currentThreat.color }}>
+                                    <div className="threat-level-name" style={{ color: currentThreat.color || '#10b981' }}>
                                         {currentThreat.name}
                                     </div>
                                     <div className="ai-personality">vs {aiPersonality} AI</div>
@@ -225,12 +225,12 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                                 >
                                     <div className="progression-arrow">→</div>
                                     <div className="next-level-display">
-                                        <div className="level-badge" style={{ backgroundColor: nextThreat.color }}>
+                                        <div className="level-badge" style={{ backgroundColor: nextThreat.color || '#10b981' }}>
                                             <span className="level-number">{currentLevel + 1}</span>
                                             <span className="level-label">NEXT</span>
                                         </div>
                                         <div className="threat-level-info">
-                                            <div className="threat-level-name" style={{ color: nextThreat.color }}>
+                                            <div className="threat-level-name" style={{ color: nextThreat.color || '#10b981' }}>
                                                 {nextThreat.name}
                                             </div>
                                             <div className="unlock-text">UNLOCKED!</div>
@@ -286,8 +286,8 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                                     whileHover={{ scale: 1.05, boxShadow: `0 0 25px ${nextThreat.color || '#10b981'}` }}
                                     whileTap={{ scale: 0.95 }}
                                     style={{
-                                        background: `linear-gradient(135deg, ${nextThreat.color}, ${resultData.primaryColor})`,
-                                        border: `2px solid ${nextThreat.color}`
+                                        background: `linear-gradient(135deg, ${nextThreat.color}, ${resultData.primaryColor || '#10b981'})`,
+                                        border: `2px solid ${nextThreat.color || '#10b981'}`
                                     }}
                                 >
                                     <span className="button-text">
@@ -303,8 +303,8 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                                 whileHover={{ scale: 1.05, boxShadow: `0 0 25px ${resultData.primaryColor || '#10b981'}` }}
                                 whileTap={{ scale: 0.95 }}
                                 style={{
-                                    background: `linear-gradient(135deg, ${resultData.primaryColor}, ${resultData.secondaryColor})`,
-                                    border: `2px solid ${resultData.primaryColor}`
+                                    background: `linear-gradient(135deg, ${resultData.primaryColor || '#10b981'}, ${resultData.secondaryColor || '#059669'})`,
+                                    border: `2px solid ${resultData.primaryColor || '#10b981'}`
                                 }}
                             >
                                 <span className="button-text">

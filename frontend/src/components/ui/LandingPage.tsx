@@ -255,7 +255,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                       <div className="flex items-center gap-3">
                         <div
                           className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
-                          style={{ backgroundColor: aiInfo.color }}
+                          style={{ backgroundColor: aiInfo.color || '#10b981' }}
                         >
                           {aiInfo.name.charAt(0)}
                         </div>
@@ -264,7 +264,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                           <div className="text-sm text-white opacity-80">{aiInfo.description}</div>
                           <div
                             className="inline-block px-2 py-1 rounded-full text-xs font-bold text-white mt-1"
-                            style={{ backgroundColor: aiInfo.color }}
+                            style={{ backgroundColor: aiInfo.color || '#10b981' }}
                           >
                             Level {level} • {aiInfo.threat}
                           </div>
@@ -295,7 +295,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                     handleStartWithDifficulty();
                   }}
                   className="px-8 py-3 text-white rounded-xl font-bold transition-colors"
-                                      style={{ background: `linear-gradient(135deg, ${currentAI.color || '#10b981'}, #10b981)` }}
+                  style={{ background: `linear-gradient(135deg, ${currentAI.color || '#10b981'}, #10b981)` }}
                   whileHover={{ scale: 1.05, boxShadow: `0 0 20px ${currentAI.color || '#10b981'}40` }}
                   whileTap={{ scale: 0.95 }}
                 >

@@ -1,6 +1,7 @@
 // backend/src/game/game.controller.ts
 import { Controller, Post, Get, Param, Body, Query, HttpException } from "@nestjs/common";
 import { GameService } from "./game.service";
+import { GameHistoryService, GameSearchFilters } from "./game-history.service";
 import { MlClientService, LogGameDto } from "../ml/ml-client.service";
 import type { CellValue } from "../ai/connect4AI";
 
@@ -16,6 +17,7 @@ interface DropDiscDto { playerId: string; column: number; }
 export class GameController {
     constructor(
         private readonly gameService: GameService,
+        private readonly gameHistoryService: GameHistoryService,
         private readonly mlClient: MlClientService
     ) { }
 
@@ -113,6 +115,69 @@ export class GameController {
             return await this.gameService.analyzePosition(gameId, dto.currentPlayer, dto.aiLevel);
         } catch (e: any) {
             throw new HttpException(e.message, 400);
+        }
+    }
+
+    // Game History Endpoints
+    @Get('history/:playerId')
+    async getGameHistory(
+        @Param('playerId') playerId: string,
+        @Query('limit') limit: number = 50
+    ) {
+        try {
+            return await this.gameHistoryService.getGameHistory(playerId, limit);
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Get('replay/:gameId')
+    async getGameReplay(@Param('gameId') gameId: string) {
+        try {
+            return await this.gameHistoryService.getGameReplay(gameId);
+        } catch (e: any) {
+            throw new HttpException(e.message, 404);
+        }
+    }
+
+    @Post('search')
+    async searchGames(
+        @Body() filters: GameSearchFilters,
+        @Query('page') page: number = 1,
+        @Query('pageSize') pageSize: number = 20
+    ) {
+        try {
+            return await this.gameHistoryService.searchGames(filters, page, pageSize);
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Get('statistics/:playerId')
+    async getGameStatistics(@Param('playerId') playerId: string) {
+        try {
+            return await this.gameHistoryService.getGameStatistics(playerId);
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Get('history/status')
+    async getHistoryStatus() {
+        try {
+            return this.gameHistoryService.getStatus();
+        } catch (e: any) {
+            throw new HttpException(e.message, 500);
+        }
+    }
+
+    @Post('history/sample-data')
+    async createSampleData() {
+        try {
+            await this.gameHistoryService.createSampleData();
+            return { success: true, message: 'Sample data created successfully' };
+        } catch (e: any) {
+            throw new HttpException(e.message, 500);
         }
     }
 }

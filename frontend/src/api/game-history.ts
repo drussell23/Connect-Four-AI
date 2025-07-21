@@ -1,6 +1,8 @@
 // frontend/src/api/game-history.ts
 import { appConfig } from '../config/environment';
-import { emit, on, off } from './socket';
+
+// API base URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 // Types for game history functionality
 export interface GameHistory {
@@ -198,7 +200,7 @@ class GameHistoryManager {
 
     // Setup event listeners
     this.setupEventListeners();
-    
+
     // Start auto-save timer if enabled
     if (this.config.enableAutoSave) {
       this.startAutoSaveTimer();
@@ -209,30 +211,8 @@ class GameHistoryManager {
   }
 
   private setupEventListeners(): void {
-    // Listen for game events to auto-save
-    on('gameOver', (data: any) => {
-      if (this.config.enableAutoSave) {
-        this.autoSaveGame(data);
-      }
-    });
-
-    on('gameCreated', (data: any) => {
-      if (this.config.enableAutoSave) {
-        this.trackGameStart(data);
-      }
-    });
-
-    on('playerMove', (data: any) => {
-      if (this.config.enableHighlights) {
-        this.checkForHighlights(data);
-      }
-    });
-
-    on('aiMove', (data: any) => {
-      if (this.config.enableHighlights) {
-        this.checkForHighlights(data);
-      }
-    });
+    // WebSocket event listeners removed - using REST API instead
+    console.log('📡 Game history using REST API - WebSocket listeners disabled');
   }
 
   private startAutoSaveTimer(): void {
@@ -282,28 +262,13 @@ class GameHistoryManager {
   }
 
   private async trackGameStart(data: any): Promise<void> {
-    try {
-      emit('track_game_start', {
-        gameId: data.gameId,
-        playerId: data.playerId,
-        startTime: new Date(),
-        gameMode: data.gameMode,
-        aiLevel: data.aiLevel,
-      });
-    } catch (error) {
-      console.error('🚨 Error tracking game start:', error);
-    }
+    // WebSocket tracking removed - using REST API instead
+    console.log('📡 Game start tracking disabled - using REST API');
   }
 
   private async checkForHighlights(data: any): Promise<void> {
-    try {
-      const highlight = await this.detectHighlight(data);
-      if (highlight) {
-        emit('game_highlight_detected', highlight);
-      }
-    } catch (error) {
-      console.error('🚨 Error checking for highlights:', error);
-    }
+    // WebSocket highlight detection removed - using REST API instead
+    console.log('📡 Highlight detection disabled - using REST API');
   }
 
   private async detectHighlight(data: any): Promise<GameHighlight | null> {
@@ -311,13 +276,13 @@ class GameHistoryManager {
     // For now, we'll use simple heuristics
     const moveQuality = data.moveQuality || 'average';
     const isCritical = data.isCritical || false;
-    
+
     if (moveQuality === 'brilliant' || moveQuality === 'blunder' || isCritical) {
       return {
         gameId: data.gameId,
         moveNumber: data.moveNumber,
-        type: moveQuality === 'brilliant' ? 'brilliant' : 
-              moveQuality === 'blunder' ? 'mistake' : 'critical',
+        type: moveQuality === 'brilliant' ? 'brilliant' :
+          moveQuality === 'blunder' ? 'mistake' : 'critical',
         description: data.description || 'Notable move detected',
         impact: 'high',
         timestamp: Date.now(),
@@ -331,20 +296,13 @@ class GameHistoryManager {
         tags: data.tags || [],
       };
     }
-    
+
     return null;
   }
 
   private async performAutoSave(): Promise<void> {
-    try {
-      emit('auto_save_games', {}, (response: any) => {
-        if (response.success) {
-          console.log('💾 Auto-save completed');
-        }
-      });
-    } catch (error) {
-      console.error('🚨 Error during auto-save:', error);
-    }
+    // WebSocket auto-save removed - using REST API instead
+    console.log('📡 Auto-save disabled - using REST API');
   }
 
   private getCacheKey(prefix: string, identifier: string): string {
@@ -382,60 +340,20 @@ class GameHistoryManager {
     data: any,
     cacheKey?: string
   ): Promise<T> {
-    // Check cache first
-    if (cacheKey) {
-      const cached = this.getCached<T>(cacheKey);
-      if (cached) return cached;
-    }
-
-    // Check if request is already in progress
-    const requestKey = `${event}_${JSON.stringify(data)}`;
-    if (this.requestQueue.has(requestKey)) {
-      return this.requestQueue.get(requestKey) as Promise<T>;
-    }
-
-    // Make new request
-    const request = new Promise<T>((resolve, reject) => {
-      emit(event, data, (response: any) => {
-        if (response.success) {
-          const result = response.data;
-          
-          // Cache the result
-          if (cacheKey) {
-            this.setCached(cacheKey, result);
-          }
-          
-          resolve(result);
-        } else {
-          reject(new Error(response.error || `Failed to ${event}`));
-        }
-      });
-    });
-
-    this.requestQueue.set(requestKey, request);
-
-    try {
-      const result = await request;
-      this.requestQueue.delete(requestKey);
-      return result;
-    } catch (error) {
-      this.requestQueue.delete(requestKey);
-      throw error;
-    }
+    // WebSocket makeRequest removed - using direct REST API calls instead
+    throw new Error(`WebSocket event '${event}' not supported - use REST API methods directly`);
   }
 
   // Public API Methods
 
   /**
-   * Save game history
-   */
+ * Save game history
+ */
   public async saveGameHistory(gameHistory: GameHistory): Promise<void> {
     try {
-      await this.makeRequest<void>(
-        'save_game_history',
-        gameHistory
-      );
-      console.log(`💾 Saved game history: ${gameHistory.gameId}`);
+      // Note: Game history is now saved automatically by the backend when games end
+      // This method is kept for compatibility but doesn't need to do anything
+      console.log(`💾 Game history will be saved automatically by backend for: ${gameHistory.gameId}`);
     } catch (error) {
       console.error('🚨 Error saving game history:', error);
       throw error;
@@ -447,13 +365,31 @@ class GameHistoryManager {
    */
   public async getGameHistory(playerId: string, limit: number = 50): Promise<GameHistory[]> {
     try {
+      if (!playerId) {
+        throw new Error('Player ID is required');
+      }
       const cacheKey = this.getCacheKey('game_history', `${playerId}_${limit}`);
-      
-      return await this.makeRequest<GameHistory[]>(
-        'get_game_history',
-        { playerId, limit },
-        cacheKey
-      );
+
+      // Use REST API instead of WebSocket
+      const response = await fetch(`${API_BASE_URL}/api/games/history/${playerId}?limit=${limit}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Cache the result
+      if (cacheKey) {
+        this.setCached(cacheKey, data);
+      }
+
+      return data;
     } catch (error) {
       console.error('🚨 Error getting game history:', error);
       throw error;
@@ -466,12 +402,27 @@ class GameHistoryManager {
   public async getGameReplay(gameId: string): Promise<GameReplay> {
     try {
       const cacheKey = this.getCacheKey('game_replay', gameId);
-      
-      return await this.makeRequest<GameReplay>(
-        'get_game_replay',
-        { gameId },
-        cacheKey
-      );
+
+      // Use REST API instead of WebSocket
+      const response = await fetch(`${API_BASE_URL}/api/games/replay/${gameId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Cache the result
+      if (cacheKey) {
+        this.setCached(cacheKey, data);
+      }
+
+      return data;
     } catch (error) {
       console.error('🚨 Error getting game replay:', error);
       throw error;
@@ -484,7 +435,7 @@ class GameHistoryManager {
   public async getMoveHistory(gameId: string): Promise<MoveHistory> {
     try {
       const cacheKey = this.getCacheKey('move_history', gameId);
-      
+
       return await this.makeRequest<MoveHistory>(
         'get_move_history',
         { gameId },
@@ -497,8 +448,8 @@ class GameHistoryManager {
   }
 
   /**
-   * Search games with filters
-   */
+ * Search games with filters
+ */
   public async searchGames(
     filters: GameSearchFilters,
     page: number = 1,
@@ -506,12 +457,28 @@ class GameHistoryManager {
   ): Promise<GameSearchResult> {
     try {
       const cacheKey = this.getCacheKey('game_search', `${JSON.stringify(filters)}_${page}_${pageSize}`);
-      
-      return await this.makeRequest<GameSearchResult>(
-        'search_games',
-        { filters, page, pageSize },
-        cacheKey
-      );
+
+      // Use REST API instead of WebSocket
+      const response = await fetch(`${API_BASE_URL}/api/games/search?page=${page}&pageSize=${pageSize}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(filters),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Cache the result
+      if (cacheKey) {
+        this.setCached(cacheKey, data);
+      }
+
+      return data;
     } catch (error) {
       console.error('🚨 Error searching games:', error);
       throw error;
@@ -524,7 +491,7 @@ class GameHistoryManager {
   public async getGameHighlights(gameId: string): Promise<GameHighlight[]> {
     try {
       const cacheKey = this.getCacheKey('game_highlights', gameId);
-      
+
       return await this.makeRequest<GameHighlight[]>(
         'get_game_highlights',
         { gameId },
@@ -583,17 +550,35 @@ class GameHistoryManager {
   }
 
   /**
-   * Get game statistics
-   */
+ * Get game statistics
+ */
   public async getGameStatistics(playerId: string): Promise<any> {
     try {
+      if (!playerId) {
+        throw new Error('Player ID is required');
+      }
       const cacheKey = this.getCacheKey('game_statistics', playerId);
-      
-      return await this.makeRequest<any>(
-        'get_game_statistics',
-        { playerId },
-        cacheKey
-      );
+
+      // Use REST API instead of WebSocket
+      const response = await fetch(`${API_BASE_URL}/api/games/statistics/${playerId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Cache the result
+      if (cacheKey) {
+        this.setCached(cacheKey, data);
+      }
+
+      return data;
     } catch (error) {
       console.error('🚨 Error getting game statistics:', error);
       throw error;
@@ -662,16 +647,16 @@ const gameHistoryManager = new GameHistoryManager({
 });
 
 // Export enhanced functions
-export const saveGameHistory = (gameHistory: GameHistory): Promise<void> => 
+export const saveGameHistory = (gameHistory: GameHistory): Promise<void> =>
   gameHistoryManager.saveGameHistory(gameHistory);
 
-export const getGameHistory = (playerId: string, limit?: number): Promise<GameHistory[]> => 
-  gameHistoryManager.getGameHistory(playerId, limit);
+export const getGameHistory = (playerId: string, limit?: number): Promise<GameHistory[]> =>
+  gameHistoryManager.getGameHistory(playerId || '', limit);
 
-export const getGameReplay = (gameId: string): Promise<GameReplay> => 
+export const getGameReplay = (gameId: string): Promise<GameReplay> =>
   gameHistoryManager.getGameReplay(gameId);
 
-export const getMoveHistory = (gameId: string): Promise<MoveHistory> => 
+export const getMoveHistory = (gameId: string): Promise<MoveHistory> =>
   gameHistoryManager.getMoveHistory(gameId);
 
 export const searchGames = (
@@ -680,34 +665,34 @@ export const searchGames = (
   pageSize?: number
 ): Promise<GameSearchResult> => gameHistoryManager.searchGames(filters, page, pageSize);
 
-export const getGameHighlights = (gameId: string): Promise<GameHighlight[]> => 
+export const getGameHighlights = (gameId: string): Promise<GameHighlight[]> =>
   gameHistoryManager.getGameHighlights(gameId);
 
-export const saveGameReplay = (gameId: string, replay: GameReplay): Promise<void> => 
+export const saveGameReplay = (gameId: string, replay: GameReplay): Promise<void> =>
   gameHistoryManager.saveGameReplay(gameId, replay);
 
-export const exportGameData = (gameId: string, format: 'json' | 'pgn' | 'html'): Promise<string> => 
+export const exportGameData = (gameId: string, format: 'json' | 'pgn' | 'html'): Promise<string> =>
   gameHistoryManager.exportGameData(gameId, format);
 
-export const importGameData = (data: string, format: 'json' | 'pgn'): Promise<GameHistory> => 
+export const importGameData = (data: string, format: 'json' | 'pgn'): Promise<GameHistory> =>
   gameHistoryManager.importGameData(data, format);
 
-export const getGameStatistics = (playerId: string): Promise<any> => 
-  gameHistoryManager.getGameStatistics(playerId);
+export const getGameStatistics = (playerId: string): Promise<any> =>
+  gameHistoryManager.getGameStatistics(playerId || '');
 
-export const clearHistoryCache = (): void => 
+export const clearHistoryCache = (): void =>
   gameHistoryManager.clearCache();
 
-export const updateHistoryConfig = (config: Partial<GameHistoryConfig>): void => 
+export const updateHistoryConfig = (config: Partial<GameHistoryConfig>): void =>
   gameHistoryManager.updateConfig(config);
 
-export const getHistoryConfig = (): GameHistoryConfig => 
+export const getHistoryConfig = (): GameHistoryConfig =>
   gameHistoryManager.getConfig();
 
-export const getHistoryStatus = (): any => 
+export const getHistoryStatus = (): any =>
   gameHistoryManager.getStatus();
 
-export const destroyHistory = (): void => 
+export const destroyHistory = (): void =>
   gameHistoryManager.destroy();
 
 
