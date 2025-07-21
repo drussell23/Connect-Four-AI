@@ -161,7 +161,7 @@ intelligent_cleanup() {
 advanced_cache_clearing() {
     log "🧹 ADVANCED CACHE CLEARING & OPTIMIZATION"
     
-    # Clear frontend build cache
+    # Clear frontend build cache with enhanced cleanup
     echo -e "   🎨 Clearing frontend build cache..."
     cd frontend
     rm -rf build node_modules/.cache .next .nuxt dist .parcel-cache .eslintcache 2>/dev/null || true
@@ -183,14 +183,66 @@ advanced_cache_clearing() {
     rm -rf /tmp/react-* /tmp/npm-* /tmp/node-* /tmp/connect-four-* 2>/dev/null || true
     echo -e "   ${GREEN}✅ System temp files cleared${NC}"
     
-    # Clear browser cache instructions
-    echo -e "   🌐 Clearing browser cache..."
+    # Enhanced browser cache clearing instructions
+    echo -e "   🌐 BROWSER CACHE CLEARING INSTRUCTIONS:"
     echo -e "      📱 Chrome: Cmd+Shift+R (hard refresh) or"
     echo -e "      🔧 DevTools: Right-click refresh → Empty Cache and Hard Reload"
     echo -e "      🧹 Service Workers: DevTools → Application → Service Workers → Unregister"
     echo -e "      🗑️  Or clear all data: chrome://settings/clearBrowserData"
+    echo -e "      🗑️  Firefox: Cmd+Shift+Delete → Select 'Everything' → 'Clear Now'"
+    echo -e "      🗑️  Safari: Cmd+Option+E → 'Empty Caches'"
+    echo -e "      🔄 Incognito Mode: Test in private/incognito browser window"
     
     cd ..
+    echo ""
+}
+
+# Function to perform comprehensive process management and cache prevention
+comprehensive_process_management() {
+    log "🛠️  COMPREHENSIVE PROCESS MANAGEMENT & CACHE PREVENTION"
+    
+    # Enhanced process detection and cleanup
+    echo -e "   🔍 Enhanced process detection and cleanup..."
+    
+    # Kill processes by port with enhanced detection
+    for port in 3000 3001 8000; do
+        if lsof -i :$port >/dev/null 2>&1; then
+            echo -e "   ${YELLOW}⚠️  Found process on port $port - killing it...${NC}"
+            lsof -ti :$port | xargs -r kill -TERM 2>/dev/null || true
+            sleep 2
+            lsof -ti :$port | xargs -r kill -KILL 2>/dev/null || true
+            echo -e "   ${GREEN}✅ Port $port cleaned${NC}"
+        else
+            echo -e "   ${GREEN}✅ Port $port already clean${NC}"
+        fi
+    done
+    
+    # Enhanced React development server cleanup
+    echo -e "   🎨 Enhanced React development server cleanup..."
+    pkill -f "react-scripts start" 2>/dev/null || true
+    pkill -f "npm start" 2>/dev/null || true
+    pkill -f "node.*start" 2>/dev/null || true
+    
+    # Kill any hanging npm processes with enhanced detection
+    if ps aux | grep -E 'npm.*start|npm.*run' | grep -v grep | grep -q .; then
+        echo -e "   ${YELLOW}⚠️  Found hanging npm processes - killing them...${NC}"
+        pkill -f 'npm.*start|npm.*run' 2>/dev/null || true
+        echo -e "   ${GREEN}✅ NPM processes killed${NC}"
+    fi
+    
+    # Enhanced enterprise process cleanup
+    echo -e "   🏢 Enhanced enterprise process cleanup..."
+    pkill -f 'unified-enterprise-launcher|enterprise-parallel-launcher|ai-stability-manager|intelligent-resource-manager|performance-analytics-suite|ai-orchestration-dashboard|advanced-ai-diagnostics|enterprise-model-manager' 2>/dev/null || true
+    
+    # Enhanced ML service cleanup
+    echo -e "   🤖 Enhanced ML service cleanup..."
+    pkill -f 'python.*ml_service|uvicorn' 2>/dev/null || true
+    
+    # Enhanced NestJS backend cleanup
+    echo -e "   🔧 Enhanced NestJS backend cleanup..."
+    pkill -f 'nest.*start|node.*dist/main' 2>/dev/null || true
+    
+    echo -e "   ${GREEN}✅ All processes cleaned up${NC}"
     echo ""
 }
 
@@ -331,6 +383,9 @@ user_experience_enhancements() {
     echo -e "      🔧 DevTools: Right-click refresh → Empty Cache and Hard Reload"
     echo -e "      🧹 Service Workers: DevTools → Application → Service Workers → Unregister"
     echo -e "      🗑️  Or clear all data: chrome://settings/clearBrowserData"
+    echo -e "      🗑️  Firefox: Cmd+Shift+Delete → Select 'Everything' → 'Clear Now'"
+    echo -e "      🗑️  Safari: Cmd+Option+E → 'Empty Caches'"
+    echo -e "      🔄 Incognito Mode: Test in private/incognito browser window"
     
     echo -e "   📱 MOBILE OPTIMIZATION:"
     echo -e "      📲 Clear mobile browser cache"
@@ -349,6 +404,20 @@ user_experience_enhancements() {
     echo -e "      🧹 Force Cleanup: npm run cleanup:force"
     echo -e "      📊 System Status: npm run system:status"
     echo -e "      🔌 Port Management: npm run ports"
+    
+    echo -e "   🚨 PROCESS MANAGEMENT COMMANDS:"
+    echo -e "      🛑 Stop Frontend: pkill -f 'react-scripts start'"
+    echo -e "      🛑 Stop Backend: pkill -f 'nest.*start'"
+    echo -e "      🛑 Stop ML Service: pkill -f 'python.*ml_service'"
+    echo -e "      🛑 Kill by Port: lsof -ti:3001 | xargs kill -9"
+    echo -e "      🛑 Kill by Port: lsof -ti:3000 | xargs kill -9"
+    echo -e "      🛑 Kill by Port: lsof -ti:8000 | xargs kill -9"
+    
+    echo -e "   🔍 MOVE ANALYSIS TROUBLESHOOTING:"
+    echo -e "      ✅ Expected: '🎯 Using frontend board state for analysis'"
+    echo -e "      ❌ Problem: 'POST http://localhost:3000/games/.../analyze-move 404'"
+    echo -e "      🔧 Solution: Clear browser cache and restart frontend"
+    echo -e "      🧪 Test: npm run test:move-analysis"
     
     echo ""
 }
@@ -402,6 +471,9 @@ comprehensive_port_cleanup
 
 # Perform intelligent cleanup
 intelligent_cleanup
+
+# Perform comprehensive process management and cache prevention
+comprehensive_process_management
 
 # Perform advanced cache clearing
 advanced_cache_clearing

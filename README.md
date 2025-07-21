@@ -126,6 +126,12 @@ npm run restart:turbo:build:enhanced:force:clean
 - **Advanced Port Manager**: Uses `port-manager-v2.sh` for robust port management
 - **Zombie Process Detection**: Automatically detects and kills stale processes
 - **Process Cleanup**: Comprehensive cleanup of React, npm, and Python processes
+- **Enhanced Process Management**: Comprehensive process detection and cleanup
+- **Port-Specific Cleanup**: Kills processes on ports 3000, 3001, and 8000
+- **React Development Server Cleanup**: Enhanced cleanup of React development servers
+- **Enterprise Process Cleanup**: Comprehensive enterprise launcher process cleanup
+- **ML Service Cleanup**: Enhanced ML service process cleanup
+- **NestJS Backend Cleanup**: Enhanced NestJS backend process cleanup
 
 #### **🧹 Advanced Cache Clearing & Optimization**
 - **Frontend Cache**: Clears React build cache and node_modules
@@ -133,12 +139,17 @@ npm run restart:turbo:build:enhanced:force:clean
 - **NPM Cache**: Comprehensive npm cache clearing
 - **System Temp Files**: Clears system temporary files
 - **Browser Cache Instructions**: Provides detailed browser cache clearing instructions
+- **Enhanced Browser Support**: Chrome, Firefox, Safari, and Incognito mode instructions
+- **Cache Prevention**: Prevents future cache issues with comprehensive cleanup
 
 #### **🎮 Comprehensive User Experience Enhancements**
 - **Browser Cache Instructions**: Detailed Chrome/DevTools instructions
 - **Mobile Optimization**: Mobile browser cache clearing guidance
 - **Quick Access Links**: Direct links to game, API, and ML services
 - **Troubleshooting Commands**: Emergency stop, force cleanup, system status
+- **Process Management Commands**: Direct commands to stop frontend, backend, and ML services
+- **Move Analysis Troubleshooting**: Specific guidance for 404 error resolution
+- **Enhanced Browser Support**: Chrome, Firefox, Safari, and Incognito mode instructions
 
 #### **⚡ Advanced Performance Optimization**
 - **Node.js Memory Optimization**: Optimizes memory settings for better performance

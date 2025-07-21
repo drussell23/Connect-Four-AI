@@ -616,203 +616,203 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                     </div>
                 </div>
             }>
-                <AnimatePresence>
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 flex items-center justify-center z-50 overflow-hidden loading-background"
-                    >
-                        {/* Sound Toggle */}
-                        <motion.button
-                            onClick={() => setSoundEnabled(!soundEnabled)}
-                            className="absolute top-4 right-4 bg-black/20 backdrop-blur-lg rounded-xl p-3 border border-white/20 text-white hover:bg-black/30 transition-all"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            <span className="text-xl">{soundEnabled ? '🔊' : '🔇'}</span>
-                        </motion.button>
+        <AnimatePresence>
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 flex items-center justify-center z-50 overflow-hidden loading-background"
+            >
+                {/* Sound Toggle */}
+                <motion.button
+                    onClick={() => setSoundEnabled(!soundEnabled)}
+                    className="absolute top-4 right-4 bg-black/20 backdrop-blur-lg rounded-xl p-3 border border-white/20 text-white hover:bg-black/30 transition-all"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                >
+                    <span className="text-xl">{soundEnabled ? '🔊' : '🔇'}</span>
+                </motion.button>
 
-                        {/* Backend Logs Panel */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -100 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="absolute top-4 left-4 bg-black/20 backdrop-blur-lg rounded-xl p-4 border border-white/10 max-w-sm"
-                        >
-                            <h3 className="text-white text-sm font-bold mb-2">Backend Status</h3>
-                            <div className="space-y-1 text-xs font-mono">
-                                {backendLogs.slice(-4).map((log, i) => (
-                                    <motion.div
-                                        key={i}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        className="text-green-300"
-                                    >
-                                        {log}
-                                    </motion.div>
-                                ))}
-                                {connectionAttempts > 0 && (
-                                    <div className="text-yellow-300">
-                                        Connection attempts: {connectionAttempts}
-                                    </div>
-                                )}
+                {/* Backend Logs Panel */}
+                <motion.div
+                    initial={{ opacity: 0, x: -100 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="absolute top-4 left-4 bg-black/20 backdrop-blur-lg rounded-xl p-4 border border-white/10 max-w-sm"
+                >
+                    <h3 className="text-white text-sm font-bold mb-2">Backend Status</h3>
+                    <div className="space-y-1 text-xs font-mono">
+                        {backendLogs.slice(-4).map((log, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className="text-green-300"
+                            >
+                                {log}
+                            </motion.div>
+                        ))}
+                        {connectionAttempts > 0 && (
+                            <div className="text-yellow-300">
+                                Connection attempts: {connectionAttempts}
                             </div>
-                        </motion.div>
+                        )}
+                    </div>
+                </motion.div>
 
-                        {/* Main Loading Container */}
+                {/* Main Loading Container */}
+                <motion.div
+                    initial={{ scale: 0.9, y: 30, opacity: 0 }}
+                    animate={{ scale: 1, y: 0, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    className="relative bg-black/30 backdrop-blur-xl rounded-3xl p-8 max-w-lg w-full mx-4 border border-white/20 shadow-2xl"
+                >
+                    {/* Header with Connect Four Discs */}
+                    <div className="text-center mb-8">
                         <motion.div
-                            initial={{ scale: 0.9, y: 30, opacity: 0 }}
-                            animate={{ scale: 1, y: 0, opacity: 1 }}
-                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                            className="relative bg-black/30 backdrop-blur-xl rounded-3xl p-8 max-w-lg w-full mx-4 border border-white/20 shadow-2xl"
+                            className="flex justify-center space-x-2 mb-6"
+                            animate={{ y: [0, -5, 0] }}
+                            transition={{ duration: 2, repeat: Infinity }}
                         >
-                            {/* Header with Connect Four Discs */}
-                            <div className="text-center mb-8">
+                            {[0, 1, 2, 3].map((i) => (
                                 <motion.div
-                                    className="flex justify-center space-x-2 mb-6"
-                                    animate={{ y: [0, -5, 0] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                >
-                                    {[0, 1, 2, 3].map((i) => (
-                                        <motion.div
-                                            key={i}
-                                            className={`w-12 h-12 rounded-full ${i % 2 === 0 ? 'bg-red-500' : 'bg-yellow-500'
-                                                } shadow-lg`}
-                                            animate={{
-                                                scale: [1, 1.1, 1],
-                                                rotate: [0, 5, -5, 0]
-                                            }}
-                                            transition={{
-                                                duration: 2,
-                                                repeat: Infinity,
-                                                delay: i * 0.2
-                                            }}
-                                        />
-                                    ))}
-                                </motion.div>
-
-                                <motion.h2
-                                    className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent"
-                                >
-                                    Connect Four AI
-                                </motion.h2>
-
-                                <motion.p
-                                    className="text-blue-200 text-sm"
-                                >
-                                    Real-time system initialization...
-                                </motion.p>
-                            </div>
-
-                            {/* Overall Progress */}
-                            <div className="mb-6">
-                                <div className="flex justify-between items-center mb-3">
-                                    <span className="text-white font-medium">System Status</span>
-                                    <motion.span
-                                        className="text-2xl font-bold text-blue-300"
-                                        animate={{ scale: [1, 1.05, 1] }}
-                                        transition={{ duration: 0.8, repeat: Infinity }}
-                                    >
-                                        {Math.round(overallProgress)}%
-                                    </motion.span>
-                                </div>
-
-                                <div className="relative w-full bg-gray-800/50 rounded-xl h-4 overflow-hidden border border-white/10">
-                                    <motion.div
-                                        className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-xl relative"
-                                        animate={{ width: `${overallProgress}%` }}
-                                        transition={{ duration: 0.3, ease: "easeOut" }}
-                                    >
-                                        <motion.div
-                                            className="absolute inset-0 bg-white/20 rounded-xl"
-                                            animate={{ x: ['-100%', '100%'] }}
-                                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                        />
-                                    </motion.div>
-                                </div>
-                            </div>
-
-                            {/* Real-time Messages */}
-                            <div className="mb-6 bg-black/20 rounded-lg p-3 border border-white/10">
-                                <div className="text-sm font-mono text-blue-300">
-                                    {realTimeMessages.slice(-1).map((message, i) => (
-                                        <motion.div
-                                            key={i}
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="flex items-center"
-                                        >
-                                            <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse" />
-                                            {message}
-                                        </motion.div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Loading Steps List */}
-                            <div className="space-y-2">
-                                {steps.map((step, index) => (
-                                    <motion.div
-                                        key={step.id}
-                                        className={`flex items-center text-sm p-3 rounded-lg transition-all duration-300 ${step.status === 'complete' ? 'bg-green-500/20' :
-                                            step.status === 'loading' ? 'bg-blue-500/20' :
-                                                step.status === 'error' ? 'bg-red-500/20' : 'bg-gray-500/10'
-                                            }`}
-                                    >
-                                        <div className="w-6 h-6 mr-3 flex items-center justify-center">
-                                            {step.status === 'complete' ? (
-                                                <motion.div
-                                                    initial={{ scale: 0 }}
-                                                    animate={{ scale: 1 }}
-                                                    className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center"
-                                                >
-                                                    <span className="text-white text-xs">✓</span>
-                                                </motion.div>
-                                            ) : step.status === 'loading' ? (
-                                                <motion.div
-                                                    className={`w-4 h-4 rounded-full ${step.color === 'red' ? 'bg-red-500' : 'bg-yellow-500'
-                                                        }`}
-                                                    animate={{ scale: [1, 1.3, 1] }}
-                                                    transition={{ duration: 0.8, repeat: Infinity }}
-                                                />
-                                            ) : step.status === 'error' ? (
-                                                <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                                                    <span className="text-white text-xs">!</span>
-                                                </div>
-                                            ) : (
-                                                <div className="w-4 h-4 bg-gray-600 rounded-full opacity-50" />
-                                            )}
-                                        </div>
-
-                                        <div className="flex-1">
-                                            <div className={`font-medium ${step.status === 'complete' ? 'text-green-300' :
-                                                step.status === 'loading' ? 'text-blue-300' :
-                                                    step.status === 'error' ? 'text-red-300' : 'text-gray-400'
-                                                }`}>
-                                                {step.label}
-                                            </div>
-                                            {step.status === 'loading' && step.realTimeMessage && (
-                                                <div className="text-xs text-blue-200 opacity-75 mt-1">
-                                                    {step.realTimeMessage}
-                                                </div>
-                                            )}
-                                            {step.status === 'loading' && (
-                                                <div className="w-full bg-gray-700/50 rounded-full h-1 mt-2">
-                                                    <motion.div
-                                                        className={`h-full rounded-full ${step.color === 'red' ? 'bg-red-500' : 'bg-yellow-500'
-                                                            }`}
-                                                        animate={{ width: `${step.progress}%` }}
-                                                        transition={{ duration: 0.1 }}
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
+                                    key={i}
+                                    className={`w-12 h-12 rounded-full ${i % 2 === 0 ? 'bg-red-500' : 'bg-yellow-500'
+                                        } shadow-lg`}
+                                    animate={{
+                                        scale: [1, 1.1, 1],
+                                        rotate: [0, 5, -5, 0]
+                                    }}
+                                    transition={{
+                                        duration: 2,
+                                        repeat: Infinity,
+                                        delay: i * 0.2
+                                    }}
+                                />
+                            ))}
                         </motion.div>
-                    </motion.div>
-                </AnimatePresence>
+
+                        <motion.h2
+                            className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent"
+                        >
+                            Connect Four AI
+                        </motion.h2>
+
+                        <motion.p
+                            className="text-blue-200 text-sm"
+                        >
+                            Real-time system initialization...
+                        </motion.p>
+                    </div>
+
+                    {/* Overall Progress */}
+                    <div className="mb-6">
+                        <div className="flex justify-between items-center mb-3">
+                            <span className="text-white font-medium">System Status</span>
+                            <motion.span
+                                className="text-2xl font-bold text-blue-300"
+                                animate={{ scale: [1, 1.05, 1] }}
+                                transition={{ duration: 0.8, repeat: Infinity }}
+                            >
+                                {Math.round(overallProgress)}%
+                            </motion.span>
+                        </div>
+
+                        <div className="relative w-full bg-gray-800/50 rounded-xl h-4 overflow-hidden border border-white/10">
+                            <motion.div
+                                className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-xl relative"
+                                animate={{ width: `${overallProgress}%` }}
+                                transition={{ duration: 0.3, ease: "easeOut" }}
+                            >
+                                <motion.div
+                                    className="absolute inset-0 bg-white/20 rounded-xl"
+                                    animate={{ x: ['-100%', '100%'] }}
+                                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                />
+                            </motion.div>
+                        </div>
+                    </div>
+
+                    {/* Real-time Messages */}
+                    <div className="mb-6 bg-black/20 rounded-lg p-3 border border-white/10">
+                        <div className="text-sm font-mono text-blue-300">
+                            {realTimeMessages.slice(-1).map((message, i) => (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="flex items-center"
+                                >
+                                    <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse" />
+                                    {message}
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Loading Steps List */}
+                    <div className="space-y-2">
+                        {steps.map((step, index) => (
+                            <motion.div
+                                key={step.id}
+                                className={`flex items-center text-sm p-3 rounded-lg transition-all duration-300 ${step.status === 'complete' ? 'bg-green-500/20' :
+                                    step.status === 'loading' ? 'bg-blue-500/20' :
+                                        step.status === 'error' ? 'bg-red-500/20' : 'bg-gray-500/10'
+                                    }`}
+                            >
+                                <div className="w-6 h-6 mr-3 flex items-center justify-center">
+                                    {step.status === 'complete' ? (
+                                        <motion.div
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center"
+                                        >
+                                            <span className="text-white text-xs">✓</span>
+                                        </motion.div>
+                                    ) : step.status === 'loading' ? (
+                                        <motion.div
+                                            className={`w-4 h-4 rounded-full ${step.color === 'red' ? 'bg-red-500' : 'bg-yellow-500'
+                                                }`}
+                                            animate={{ scale: [1, 1.3, 1] }}
+                                            transition={{ duration: 0.8, repeat: Infinity }}
+                                        />
+                                    ) : step.status === 'error' ? (
+                                        <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                                            <span className="text-white text-xs">!</span>
+                                        </div>
+                                    ) : (
+                                        <div className="w-4 h-4 bg-gray-600 rounded-full opacity-50" />
+                                    )}
+                                </div>
+
+                                <div className="flex-1">
+                                    <div className={`font-medium ${step.status === 'complete' ? 'text-green-300' :
+                                        step.status === 'loading' ? 'text-blue-300' :
+                                            step.status === 'error' ? 'text-red-300' : 'text-gray-400'
+                                        }`}>
+                                        {step.label}
+                                    </div>
+                                    {step.status === 'loading' && step.realTimeMessage && (
+                                        <div className="text-xs text-blue-200 opacity-75 mt-1">
+                                            {step.realTimeMessage}
+                                        </div>
+                                    )}
+                                    {step.status === 'loading' && (
+                                        <div className="w-full bg-gray-700/50 rounded-full h-1 mt-2">
+                                            <motion.div
+                                                className={`h-full rounded-full ${step.color === 'red' ? 'bg-red-500' : 'bg-yellow-500'
+                                                    }`}
+                                                animate={{ width: `${step.progress}%` }}
+                                                transition={{ duration: 0.1 }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.div>
+            </motion.div>
+        </AnimatePresence>
             </Suspense>
         </LoadingErrorBoundary>
     );
