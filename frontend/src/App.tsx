@@ -16,7 +16,7 @@ import AIAnalysisDashboard from './components/analytics/AIAnalysisDashboard';
 import AITrainingGround from './components/analytics/AITrainingGround';
 import PlayerStatsComponent from './components/analytics/PlayerStats';
 import { updatePlayerStats } from './services/playerStatsService';
-import { analyzeCurrentPosition } from './services/moveAnalysisService';
+import { analyzeCurrentPosition, clearMoveAnalysisCache } from './services/moveAnalysisService';
 import MoveExplanationPanel from './components/ai-insights/MoveExplanation';
 import MoveAnalysis from './components/ai-insights/MoveAnalysis';
 import GameHistory from './components/game-history/GameHistory';
@@ -42,6 +42,7 @@ const App: React.FC = () => {
   const [winningLine, setWinningLine] = useState<[number, number][]>([]);
   const [history, setHistory] = useState<Move[]>([]);
   const [gameStartTime, setGameStartTime] = useState<number>(Date.now());
+  const [gameInitialized, setGameInitialized] = useState<boolean>(false);
 
   // UI state
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
@@ -350,6 +351,7 @@ const App: React.FC = () => {
     setWinningLine([]);
     setHistory([]);
     setGameStartTime(Date.now()); // Track when the game starts
+    setGameInitialized(false); // Reset initialization flag
 
     // Clear any previous AI explanation
     setAiExplanation('');
@@ -383,6 +385,10 @@ const App: React.FC = () => {
         }
         if (res.gameId && res.nextPlayer) {
           setGameId(res.gameId);
+          // Clear move analysis cache for new game
+          clearMoveAnalysisCache();
+          // Mark game as initialized
+          setGameInitialized(true);
           // Game state is already set above, so we just confirm the gameId
           console.log('✅ Game ready with starting player:', firstPlayer, res.gameId, res.nextPlayer);
         }
@@ -550,6 +556,8 @@ const App: React.FC = () => {
           }
           if (res.gameId && res.nextPlayer) {
             setGameId(res.gameId);
+            // Clear move analysis cache for new game
+            clearMoveAnalysisCache();
             // Game state is already set above, just confirm the gameId
             console.log('✅ Next level game ready:', res.gameId, res.nextPlayer);
           }
@@ -715,6 +723,9 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!started) return;
 
+    // Clear any stale game IDs on startup
+    setGameId('');
+
     // Read selected difficulty from localStorage if available
     const storedDifficulty = localStorage.getItem('selectedDifficulty');
     if (storedDifficulty) {
@@ -761,6 +772,8 @@ const App: React.FC = () => {
         setWinningLine([]);
         setHistory([]);
         setGameStartTime(Date.now()); // Track when the game starts
+        // Clear move analysis cache for new game
+        clearMoveAnalysisCache();
         // Loading progress will complete and set the status
         console.log('✅ Game board ready:', data.gameId);
       }
@@ -779,6 +792,7 @@ const App: React.FC = () => {
     setSidebarOpen(false);
     setGameResult(null);
     setGameStartTime(Date.now()); // Reset game start time
+    setGameInitialized(false); // Reset game initialization flag
 
     // Read selected difficulty from localStorage if available
     const storedDifficulty = localStorage.getItem('selectedDifficulty');
@@ -1064,9 +1078,36 @@ const App: React.FC = () => {
   };
 
   const analyzeCurrentMove = async () => {
-    if (!board || !currentPlayer || !gameId || lastMoveColumn === -1) return;
+    if (!board || !currentPlayer || !gameId || lastMoveColumn === -1 || !gameInitialized) {
+      console.log('Cannot analyze move - missing required data:', {
+        hasBoard: !!board,
+        hasCurrentPlayer: !!currentPlayer,
+        hasGameId: !!gameId,
+        gameInitialized,
+        lastMoveColumn
+      });
+      if (!gameInitialized) {
+        alert('Please wait for the game to be fully initialized before analyzing moves.');
+      }
+      return;
+    }
+
+    // Ensure we have a valid game ID (at least 8 characters)
+    if (!gameId || gameId.length < 8) {
+      console.log('Invalid game ID for analysis:', gameId);
+      alert('Please start a new game before analyzing moves.');
+      return;
+    }
 
     try {
+      console.log('🚀 Starting move analysis for game:', gameId);
+      console.log('📊 Analysis parameters:', {
+        gameId,
+        gameInitialized,
+        lastMoveColumn,
+        aiLevel,
+        boardState: board ? 'present' : 'missing'
+      });
       // Use the captured board states and last move information
       const analysis = await analyzeCurrentPosition(
         board,
@@ -1077,12 +1118,22 @@ const App: React.FC = () => {
         boardAfterMove,
         lastMoveColumn
       );
-      console.log('Real AI move analysis completed:', analysis);
+      console.log('✅ Real AI move analysis completed:', analysis);
 
       // Show the comprehensive move analysis modal
       setShowMoveAnalysis(true);
     } catch (error) {
-      console.error('Failed to analyze current move:', error);
+      console.error('❌ Failed to analyze current move:', error);
+
+      // Check if the error is due to game not found
+      if (error instanceof Error && error.message && error.message.includes('Game not found')) {
+        alert('Game session has expired. Please start a new game to continue.');
+        // Reset game state
+        setGameId('');
+        setGameInitialized(false);
+      } else {
+        alert('Move analysis failed. Please try again.');
+      }
     }
   };
 
@@ -1579,6 +1630,7 @@ const App: React.FC = () => {
                 gameId={gameId || 'demo-game'}
                 move={selectedMoveIndex}
                 player={'player'}
+                boardState={board}
                 isVisible={showMoveExplanation}
                 onClose={() => setShowMoveExplanation(false)}
               />

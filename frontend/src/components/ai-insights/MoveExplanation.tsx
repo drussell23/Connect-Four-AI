@@ -8,6 +8,7 @@ interface MoveExplanationProps {
     gameId: string;
     move: number;
     player: 'player' | 'ai';
+    boardState?: string[][];
     isVisible: boolean;
     onClose: () => void;
 }
@@ -16,6 +17,7 @@ const MoveExplanationPanel: React.FC<MoveExplanationProps> = ({
     gameId,
     move,
     player,
+    boardState,
     isVisible,
     onClose
 }) => {
@@ -36,7 +38,7 @@ const MoveExplanationPanel: React.FC<MoveExplanationProps> = ({
         try {
             // If no specific move is provided, analyze the current position
             const moveToAnalyze = move || Math.floor(Math.random() * 20) + 1;
-            const data = await getMoveExplanation(gameId, moveToAnalyze, player);
+            const data = await getMoveExplanation(gameId, moveToAnalyze, player, boardState);
             setExplanation(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load move explanation');

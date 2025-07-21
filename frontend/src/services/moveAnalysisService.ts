@@ -88,30 +88,74 @@ class RealMoveAnalysisService {
         }
 
         try {
-            // First check if the game exists by trying to get its board
-            const gameCheckResponse = await fetch(`${API_BASE_URL}/games/${gameId}/board`);
+            // Validate game ID before making API calls
+            if (!gameId || gameId.length < 8) {
+                console.log(`Invalid game ID: ${gameId}, using fallback analysis`);
+                return this.getFallbackMoveExplanation(gameId, move, player, boardState, aiLevel);
+            }
 
-            if (!gameCheckResponse.ok) {
-                // Game doesn't exist, use fallback analysis
-                console.log(`Game ${gameId} not found, using fallback analysis`);
+            // If we have a valid board state from the frontend, use it directly
+            if (boardState && boardState.length > 0) {
+                console.log(`🎯 Using frontend board state for analysis of game ${gameId}`);
+                // Use the provided board state instead of fetching from backend
+                return this.analyzeWithBoardState(gameId, move, player, boardState, aiLevel);
+            }
+
+            // Try to get the game board to verify it exists
+            let gameExists = false;
+            let retryCount = 0;
+            const maxRetries = 3;
+
+            while (!gameExists && retryCount < maxRetries) {
+                try {
+                    console.log(`🔍 Checking if game ${gameId} exists... (attempt ${retryCount + 1}/${maxRetries})`);
+                    const gameCheckResponse = await fetch(`${API_BASE_URL}/games/${gameId}/board`);
+                    gameExists = gameCheckResponse.ok;
+                    console.log(`✅ Game ${gameId} check result: ${gameCheckResponse.status} ${gameCheckResponse.statusText}`);
+
+                    if (gameExists) break;
+                } catch (error) {
+                    console.log(`❌ Error checking game ${gameId} (attempt ${retryCount + 1}):`, error);
+                    gameExists = false;
+                }
+
+                if (!gameExists && retryCount < maxRetries - 1) {
+                    console.log(`⏳ Game ${gameId} not found, retrying in 500ms...`);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                retryCount++;
+            }
+
+            if (!gameExists) {
+                // Game doesn't exist after retries, use fallback analysis
+                console.log(`Game ${gameId} not found after ${maxRetries} attempts, using fallback analysis`);
+                console.log(`💡 This usually means the game session has expired. Please start a new game.`);
                 return this.getFallbackMoveExplanation(gameId, move, player, boardState, aiLevel);
             }
 
             // Call the real backend AI analysis
-            const response = await fetch(`${API_BASE_URL}/games/${gameId}/analyze-move`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    column: move,
-                    player,
-                    aiLevel
-                })
-            });
+            let response;
+            try {
+                console.log(`🧠 Calling analyze-move API for game ${gameId}...`);
+                response = await fetch(`${API_BASE_URL}/games/${gameId}/analyze-move`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        column: move,
+                        player,
+                        aiLevel
+                    })
+                });
 
-            if (!response.ok) {
-                throw new Error(`AI analysis failed: ${response.statusText}`);
+                console.log(`📊 Analyze-move response: ${response.status} ${response.statusText}`);
+                if (!response.ok) {
+                    throw new Error(`AI analysis failed: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error(`❌ Error calling analyze-move API for game ${gameId}:`, error);
+                throw error;
             }
 
             const realAnalysis: RealMoveAnalysis = await response.json();
@@ -175,67 +219,11 @@ class RealMoveAnalysisService {
         }
 
         try {
-            // For now, we'll use the position analysis endpoint
-            // In a real implementation, you might have a separate strategic insights endpoint
-            const gameId = 'current-game'; // This would need to be passed from the game context
-
-            const response = await fetch(`${API_BASE_URL}/games/${gameId}/analyze-position`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    currentPlayer,
-                    aiLevel: 1
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Strategic analysis failed: ${response.statusText}`);
-            }
-
-            const realAnalysis: RealPositionAnalysis = await response.json();
-
-            // Convert real AI insights to StrategicInsights format
-            const insights: StrategicInsights = {
-                boardState,
-                currentPlayer,
-                insights: {
-                    immediate: {
-                        threats: realAnalysis.insights.threats,
-                        opportunities: realAnalysis.insights.opportunities,
-                        defensiveMoves: realAnalysis.insights.defensiveMoves,
-                        offensiveMoves: realAnalysis.insights.offensiveMoves
-                    },
-                    strategic: {
-                        control: realAnalysis.insights.control,
-                        patterns: realAnalysis.insights.patterns,
-                        weaknesses: realAnalysis.insights.weaknesses,
-                        strengths: realAnalysis.insights.strengths
-                    },
-                    tactical: {
-                        combinations: realAnalysis.insights.combinations,
-                        traps: realAnalysis.insights.traps,
-                        counters: realAnalysis.insights.counters
-                    }
-                },
-                recommendations: {
-                    bestMoves: realAnalysis.insights.bestMoves,
-                    avoidMoves: realAnalysis.insights.avoidMoves
-                },
-                evaluation: {
-                    position: realAnalysis.insights.position,
-                    score: realAnalysis.insights.score,
-                    confidence: 0.8,
-                    complexity: realAnalysis.insights.complexity
-                }
-            };
-
-            this.insights.set(cacheKey, insights);
-            return insights;
-
+            // Since we don't have a valid game ID for strategic insights, use fallback analysis
+            console.log('No valid game ID provided for strategic insights, using fallback analysis');
+            return this.getFallbackStrategicInsights(boardState, currentPlayer);
         } catch (error) {
-            console.error('Failed to get real strategic insights:', error);
+            console.error('Failed to get strategic insights:', error);
             // Fallback to mock data if AI is unavailable
             return this.getFallbackStrategicInsights(boardState, currentPlayer);
         }
@@ -257,9 +245,16 @@ class RealMoveAnalysisService {
         insights: StrategicInsights;
     }> {
         try {
-            const actualGameId = gameId || 'current-game'; // Use passed gameId or fallback
+            // If no valid game ID is provided, use fallback analysis
+            if (!gameId || gameId.length < 8) {
+                console.log('No valid game ID provided for position analysis, using fallback analysis');
+                return {
+                    explanation: this.getFallbackMoveExplanation(gameId || 'fallback', 1, currentPlayer, boardState, aiLevel),
+                    insights: this.getFallbackStrategicInsights(boardState, currentPlayer)
+                };
+            }
 
-            const response = await fetch(`${API_BASE_URL}/games/${actualGameId}/analyze-position`, {
+            const response = await fetch(`${API_BASE_URL}/games/${gameId}/analyze-position`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -278,7 +273,7 @@ class RealMoveAnalysisService {
 
             // Convert to MoveExplanation format
             const explanation: MoveExplanation = {
-                gameId: actualGameId,
+                gameId: gameId,
                 move: realAnalysis.explanation.move,
                 player: currentPlayer,
                 column: realAnalysis.explanation.move,
@@ -352,6 +347,84 @@ class RealMoveAnalysisService {
             console.error('Failed to analyze current position with real AI:', error);
             // Fallback to mock data if AI is unavailable
             return this.getFallbackPositionAnalysis(boardState, currentPlayer, aiLevel);
+        }
+    }
+
+    /**
+     * Analyze move using provided board state instead of fetching from backend
+     */
+    private async analyzeWithBoardState(
+        gameId: string,
+        move: number,
+        player: 'player' | 'ai',
+        boardState: string[][],
+        aiLevel: number
+    ): Promise<MoveExplanation> {
+        try {
+            console.log(`🧠 Analyzing move ${move} for ${player} using frontend board state`);
+
+            // Call the analyze-move API with the current board state
+            const response = await fetch(`${API_BASE_URL}/games/${gameId}/analyze-move`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    column: move,
+                    player,
+                    aiLevel
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`AI analysis failed: ${response.statusText}`);
+            }
+
+            const realAnalysis: RealMoveAnalysis = await response.json();
+
+            // Convert real AI analysis to MoveExplanation format
+            const explanation: MoveExplanation = {
+                gameId,
+                move,
+                player,
+                column: realAnalysis.move,
+                explanation: {
+                    primary: realAnalysis.primaryReasoning,
+                    secondary: realAnalysis.secondaryInsights,
+                    strategic: realAnalysis.strategicContext,
+                    tactical: realAnalysis.tacticalElements
+                },
+                analysis: {
+                    quality: realAnalysis.quality,
+                    score: realAnalysis.score,
+                    confidence: realAnalysis.confidence,
+                    alternatives: realAnalysis.alternativeMoves.map(alt => ({
+                        column: alt.column,
+                        score: alt.score,
+                        reasoning: alt.reasoning
+                    }))
+                },
+                boardState: {
+                    before: boardState,
+                    after: boardState, // We'll use the same state for now
+                    highlights: [realAnalysis.move]
+                },
+                metadata: {
+                    moveNumber: move,
+                    gamePhase: this.determineGamePhase(move),
+                    timeSpent: realAnalysis.aiDecision?.thinkingTime || 1000,
+                    aiLevel: aiLevel.toString()
+                }
+            };
+
+            const cacheKey = `${gameId}-${move}-${player}`;
+            this.explanations.set(cacheKey, explanation);
+            return explanation;
+
+        } catch (error) {
+            console.error(`❌ Error analyzing with board state:`, error);
+            // Fallback to mock analysis if API call fails
+            return this.getFallbackMoveExplanation(gameId, move, player, boardState, aiLevel);
         }
     }
 

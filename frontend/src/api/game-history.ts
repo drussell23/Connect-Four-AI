@@ -326,7 +326,9 @@ class GameHistoryManager {
     // Implement LRU cache eviction
     if (this.cache.size >= this.config.maxCacheSize) {
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey) {
+        this.cache.delete(firstKey);
+      }
     }
 
     this.cache.set(key, {
@@ -371,7 +373,7 @@ class GameHistoryManager {
       const cacheKey = this.getCacheKey('game_history', `${playerId}_${limit}`);
 
       // Use REST API instead of WebSocket
-      const response = await fetch(`${API_BASE_URL}/api/games/history/${playerId}?limit=${limit}`, {
+      const response = await fetch(`${API_BASE_URL}/games/history/${playerId}?limit=${limit}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -404,7 +406,7 @@ class GameHistoryManager {
       const cacheKey = this.getCacheKey('game_replay', gameId);
 
       // Use REST API instead of WebSocket
-      const response = await fetch(`${API_BASE_URL}/api/games/replay/${gameId}`, {
+      const response = await fetch(`${API_BASE_URL}/games/replay/${gameId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -459,7 +461,7 @@ class GameHistoryManager {
       const cacheKey = this.getCacheKey('game_search', `${JSON.stringify(filters)}_${page}_${pageSize}`);
 
       // Use REST API instead of WebSocket
-      const response = await fetch(`${API_BASE_URL}/api/games/search?page=${page}&pageSize=${pageSize}`, {
+      const response = await fetch(`${API_BASE_URL}/games/search?page=${page}&pageSize=${pageSize}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -560,7 +562,7 @@ class GameHistoryManager {
       const cacheKey = this.getCacheKey('game_statistics', playerId);
 
       // Use REST API instead of WebSocket
-      const response = await fetch(`${API_BASE_URL}/api/games/statistics/${playerId}`, {
+      const response = await fetch(`${API_BASE_URL}/games/statistics/${playerId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -651,7 +653,7 @@ export const saveGameHistory = (gameHistory: GameHistory): Promise<void> =>
   gameHistoryManager.saveGameHistory(gameHistory);
 
 export const getGameHistory = (playerId: string, limit?: number): Promise<GameHistory[]> =>
-  gameHistoryManager.getGameHistory(playerId || '', limit);
+  gameHistoryManager.getGameHistory(playerId, limit);
 
 export const getGameReplay = (gameId: string): Promise<GameReplay> =>
   gameHistoryManager.getGameReplay(gameId);
@@ -678,7 +680,7 @@ export const importGameData = (data: string, format: 'json' | 'pgn'): Promise<Ga
   gameHistoryManager.importGameData(data, format);
 
 export const getGameStatistics = (playerId: string): Promise<any> =>
-  gameHistoryManager.getGameStatistics(playerId || '');
+  gameHistoryManager.getGameStatistics(playerId);
 
 export const clearHistoryCache = (): void =>
   gameHistoryManager.clearCache();

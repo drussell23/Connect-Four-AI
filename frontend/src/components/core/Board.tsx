@@ -120,11 +120,11 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
                   ...cellStyle,
                   border: highlight ? '4px solid #06d6a0' : cellStyle.border,
                   background: displayBoard[rowIndex][colIndex] === 'Empty' && hoveredCol === colIndex ? 'rgba(255,255,255,0.2)' : cellStyle.background,
-                   transform: displayBoard[rowIndex][colIndex] === 'Empty' && hoveredCol === colIndex ? 'scale(1.05)' : 'scale(1)',
+                  transform: displayBoard[rowIndex][colIndex] === 'Empty' && hoveredCol === colIndex ? 'scale(1.05)' : 'scale(1)',
                   boxShadow: highlight
                     ? '0 0 8px 4px rgba(6,214,160,0.7)'
-                    : undefined,
-                   animation: highlight ? 'glow 1s ease-in-out infinite alternate' : undefined,
+                    : 'none',
+                  animation: highlight ? 'glow 1s ease-in-out infinite alternate' : 'none',
                   cursor:
                     displayBoard[rowIndex][colIndex] === 'Empty'
                       ? 'pointer'
