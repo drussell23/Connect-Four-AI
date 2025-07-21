@@ -183,7 +183,7 @@ class SettingsManager {
 
     // Setup event listeners
     this.setupEventListeners();
-    
+
     // Start timers if enabled
     if (this.config.enableSync) {
       this.startSyncTimer();
@@ -237,7 +237,7 @@ class SettingsManager {
       // Clear relevant cache entries
       const cacheKey = this.getCacheKey('user_settings', data.playerId);
       this.cache.delete(cacheKey);
-      
+
       console.log(`🔄 Settings updated for player: ${data.playerId}`);
     } catch (error) {
       console.error('🚨 Error handling settings update:', error);
@@ -317,8 +317,9 @@ class SettingsManager {
   }
 
   private async makeRequest<T>(
-    event: string,
-    data: any,
+    method: 'GET' | 'POST',
+    endpoint: string,
+    data?: any,
     cacheKey?: string
   ): Promise<T> {
     // Check cache first
@@ -328,27 +329,43 @@ class SettingsManager {
     }
 
     // Check if request is already in progress
-    const requestKey = `${event}_${JSON.stringify(data)}`;
+    const requestKey = `${method}_${endpoint}_${JSON.stringify(data || {})}`;
     if (this.requestQueue.has(requestKey)) {
       return this.requestQueue.get(requestKey) as Promise<T>;
     }
 
     // Make new request
-    const request = new Promise<T>((resolve, reject) => {
-      emit(event, data, (response: any) => {
-        if (response.success) {
-          const result = response.data;
-          
-          // Cache the result
-          if (cacheKey) {
-            this.setCached(cacheKey, result);
-          }
-          
-          resolve(result);
-        } else {
-          reject(new Error(response.error || `Failed to ${event}`));
+    const request = new Promise<T>(async (resolve, reject) => {
+      try {
+        const url = `${appConfig.api.baseUrl}/api/games${endpoint}`;
+        const options: RequestInit = {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        };
+
+        if (data && method === 'POST') {
+          options.body = JSON.stringify(data);
         }
-      });
+
+        const response = await fetch(url, options);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // Cache the result
+        if (cacheKey) {
+          this.setCached(cacheKey, result);
+        }
+
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      }
     });
 
     this.requestQueue.set(requestKey, request);
@@ -371,10 +388,11 @@ class SettingsManager {
   public async getUserSettings(playerId: string): Promise<UserSettings> {
     try {
       const cacheKey = this.getCacheKey('user_settings', playerId);
-      
+
       return await this.makeRequest<UserSettings>(
-        'get_user_settings',
-        { playerId },
+        'GET',
+        `/settings/user/${playerId}`,
+        undefined,
         cacheKey
       );
     } catch (error) {
@@ -389,8 +407,9 @@ class SettingsManager {
   public async updateUserSettings(playerId: string, settings: Partial<UserSettings>): Promise<UserSettings> {
     try {
       const updatedSettings = await this.makeRequest<UserSettings>(
-        'update_user_settings',
-        { playerId, settings }
+        'POST',
+        `/settings/user/${playerId}`,
+        settings
       );
 
       // Clear cache for this player
@@ -411,10 +430,11 @@ class SettingsManager {
   public async getGameSettings(playerId: string): Promise<GameSettings> {
     try {
       const cacheKey = this.getCacheKey('game_settings', playerId);
-      
+
       return await this.makeRequest<GameSettings>(
-        'get_game_settings',
-        { playerId },
+        'GET',
+        `/settings/game/${playerId}`,
+        undefined,
         cacheKey
       );
     } catch (error) {
@@ -429,8 +449,9 @@ class SettingsManager {
   public async updateGameSettings(playerId: string, settings: Partial<GameSettings>): Promise<GameSettings> {
     try {
       const updatedSettings = await this.makeRequest<GameSettings>(
-        'update_game_settings',
-        { playerId, settings }
+        'POST',
+        `/settings/game/${playerId}`,
+        settings
       );
 
       // Clear cache for this player
@@ -451,10 +472,11 @@ class SettingsManager {
   public async getUISettings(playerId: string): Promise<UISettings> {
     try {
       const cacheKey = this.getCacheKey('ui_settings', playerId);
-      
+
       return await this.makeRequest<UISettings>(
-        'get_ui_settings',
-        { playerId },
+        'GET',
+        `/settings/ui/${playerId}`,
+        undefined,
         cacheKey
       );
     } catch (error) {
@@ -469,8 +491,9 @@ class SettingsManager {
   public async updateUISettings(playerId: string, settings: Partial<UISettings>): Promise<UISettings> {
     try {
       const updatedSettings = await this.makeRequest<UISettings>(
-        'update_ui_settings',
-        { playerId, settings }
+        'POST',
+        `/settings/ui/${playerId}`,
+        settings
       );
 
       // Clear cache for this player
@@ -491,10 +514,11 @@ class SettingsManager {
   public async getAIPreferences(playerId: string): Promise<AIPreferences> {
     try {
       const cacheKey = this.getCacheKey('ai_preferences', playerId);
-      
+
       return await this.makeRequest<AIPreferences>(
-        'get_ai_preferences',
-        { playerId },
+        'GET',
+        `/settings/ai/${playerId}`,
+        undefined,
         cacheKey
       );
     } catch (error) {
@@ -509,8 +533,9 @@ class SettingsManager {
   public async updateAIPreferences(playerId: string, preferences: Partial<AIPreferences>): Promise<AIPreferences> {
     try {
       const updatedPreferences = await this.makeRequest<AIPreferences>(
-        'update_ai_preferences',
-        { playerId, preferences }
+        'POST',
+        `/settings/ai/${playerId}`,
+        preferences
       );
 
       // Clear cache for this player
@@ -555,8 +580,9 @@ class SettingsManager {
   public async resetSettings(playerId: string, type: 'user' | 'game' | 'ui' | 'ai' | 'all'): Promise<void> {
     try {
       await this.makeRequest<void>(
-        'reset_settings',
-        { playerId, type }
+        'POST',
+        `/settings/reset/${playerId}`,
+        { type }
       );
 
       // Clear relevant cache entries
@@ -586,8 +612,9 @@ class SettingsManager {
   public async exportSettings(playerId: string, format: 'json' | 'xml'): Promise<string> {
     try {
       return await this.makeRequest<string>(
-        'export_settings',
-        { playerId, format }
+        'GET',
+        `/settings/export/${playerId}?format=${format}`,
+        undefined
       );
     } catch (error) {
       console.error('🚨 Error exporting settings:', error);
@@ -601,8 +628,9 @@ class SettingsManager {
   public async importSettings(playerId: string, data: string, format: 'json' | 'xml'): Promise<void> {
     try {
       await this.makeRequest<void>(
-        'import_settings',
-        { playerId, data, format }
+        'POST',
+        `/settings/import/${playerId}`,
+        { data, format }
       );
 
       // Clear all cache entries for this player
@@ -682,28 +710,28 @@ const settingsManager = new SettingsManager({
 });
 
 // Export enhanced functions
-export const getUserSettings = (playerId: string): Promise<UserSettings> => 
+export const getUserSettings = (playerId: string): Promise<UserSettings> =>
   settingsManager.getUserSettings(playerId);
 
-export const updateUserSettings = (playerId: string, settings: Partial<UserSettings>): Promise<UserSettings> => 
+export const updateUserSettings = (playerId: string, settings: Partial<UserSettings>): Promise<UserSettings> =>
   settingsManager.updateUserSettings(playerId, settings);
 
-export const getGameSettings = (playerId: string): Promise<GameSettings> => 
+export const getGameSettings = (playerId: string): Promise<GameSettings> =>
   settingsManager.getGameSettings(playerId);
 
-export const updateGameSettings = (playerId: string, settings: Partial<GameSettings>): Promise<GameSettings> => 
+export const updateGameSettings = (playerId: string, settings: Partial<GameSettings>): Promise<GameSettings> =>
   settingsManager.updateGameSettings(playerId, settings);
 
-export const getUISettings = (playerId: string): Promise<UISettings> => 
+export const getUISettings = (playerId: string): Promise<UISettings> =>
   settingsManager.getUISettings(playerId);
 
-export const updateUISettings = (playerId: string, settings: Partial<UISettings>): Promise<UISettings> => 
+export const updateUISettings = (playerId: string, settings: Partial<UISettings>): Promise<UISettings> =>
   settingsManager.updateUISettings(playerId, settings);
 
-export const getAIPreferences = (playerId: string): Promise<AIPreferences> => 
+export const getAIPreferences = (playerId: string): Promise<AIPreferences> =>
   settingsManager.getAIPreferences(playerId);
 
-export const updateAIPreferences = (playerId: string, preferences: Partial<AIPreferences>): Promise<AIPreferences> => 
+export const updateAIPreferences = (playerId: string, preferences: Partial<AIPreferences>): Promise<AIPreferences> =>
   settingsManager.updateAIPreferences(playerId, preferences);
 
 export const getAllSettings = (playerId: string): Promise<{
@@ -713,28 +741,28 @@ export const getAllSettings = (playerId: string): Promise<{
   ai: AIPreferences;
 }> => settingsManager.getAllSettings(playerId);
 
-export const resetSettings = (playerId: string, type: 'user' | 'game' | 'ui' | 'ai' | 'all'): Promise<void> => 
+export const resetSettings = (playerId: string, type: 'user' | 'game' | 'ui' | 'ai' | 'all'): Promise<void> =>
   settingsManager.resetSettings(playerId, type);
 
-export const exportSettings = (playerId: string, format: 'json' | 'xml'): Promise<string> => 
+export const exportSettings = (playerId: string, format: 'json' | 'xml'): Promise<string> =>
   settingsManager.exportSettings(playerId, format);
 
-export const importSettings = (playerId: string, data: string, format: 'json' | 'xml'): Promise<void> => 
+export const importSettings = (playerId: string, data: string, format: 'json' | 'xml'): Promise<void> =>
   settingsManager.importSettings(playerId, data, format);
 
-export const clearSettingsCache = (): void => 
+export const clearSettingsCache = (): void =>
   settingsManager.clearCache();
 
-export const updateSettingsConfig = (config: Partial<SettingsConfig>): void => 
+export const updateSettingsConfig = (config: Partial<SettingsConfig>): void =>
   settingsManager.updateConfig(config);
 
-export const getSettingsConfig = (): SettingsConfig => 
+export const getSettingsConfig = (): SettingsConfig =>
   settingsManager.getConfig();
 
-export const getSettingsStatus = (): any => 
+export const getSettingsStatus = (): any =>
   settingsManager.getStatus();
 
-export const destroySettings = (): void => 
+export const destroySettings = (): void =>
   settingsManager.destroy();
 
 

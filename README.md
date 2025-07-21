@@ -9,6 +9,7 @@
 ![Architecture](https://img.shields.io/badge/Architecture-Enterprise%20Grade-orange)
 ![Stability](https://img.shields.io/badge/Stability-99.9%25%20Uptime-success)
 ![Real-Time](https://img.shields.io/badge/Real--Time-Board%20State%20Tracking-blue)
+![Enhanced Restart](https://img.shields.io/badge/Enhanced%20Restart-Bulletproof%20System-green)
 
 > **Enterprise-grade AI research platform implementing 15+ state-of-the-art deep reinforcement learning algorithms with groundbreaking RLHF (Reinforcement Learning from Human Feedback), Constitutional AI, production-ready architecture, real-time multiplayer capabilities, comprehensive MLOps pipeline, revolutionary AI Stability Architecture for 100% reliability, and real-time board state tracking for live move analysis.**
 
@@ -33,6 +34,7 @@
 - **🎮 Human-AI Alignment**: +178% session duration, +191% return rate through RLHF
 - **📊 Real-Time Board Tracking**: Live before/after move analysis with actual board states
 - **🤖 AI-Powered Development**: Built with Cursor AI for accelerated engineering
+- **🚀 Bulletproof Restart System**: Enterprise-grade restart with comprehensive health monitoring
 
 ### 🎨 Modern UI Features
 - **🎭 Interactive Coin Toss**: Determine starting player with animations and sound effects
@@ -51,6 +53,7 @@
 - **📊 Comprehensive Analytics**: Real-time player insights and game analysis
 - **🛡️ Enterprise Stability**: AI Stability Architecture ensuring 100% reliability
 - **📸 Real-Time Board Tracking**: Live capture and analysis of board states during gameplay
+- **🚀 Bulletproof Restart System**: Enterprise-grade restart with comprehensive health monitoring and error handling
 
 ---
 
@@ -92,13 +95,217 @@ cd ConnectFourGame
 # 2. Install dependencies (parallel execution)
 npm run install:all
 
-# 3. Start the complete system
-npm run start:all
+# 3. Start the complete system with enhanced restart
+npm run restart:turbo:build:enhanced:force:clean
 ```
 
 🎉 **That's it!** Open `http://localhost:3001` and start playing!
 
-### **🔄 Quick Restart Commands**
+---
+
+## 🚀 Enhanced Restart System
+
+### **🎯 Enterprise-Grade Restart Command**
+
+Our enhanced restart system provides bulletproof service management with comprehensive health monitoring:
+
+```bash
+# 🚀 Enterprise-grade restart with full health monitoring
+npm run restart:turbo:build:enhanced:force:clean
+```
+
+### **🔍 What the Enhanced Restart System Does**
+
+#### **📊 Advanced System Resource Analysis**
+- **Memory Usage Monitoring**: Real-time memory analysis with recommendations
+- **Disk Space Analysis**: Comprehensive disk usage monitoring
+- **CPU Load Tracking**: Intelligent CPU load analysis
+- **Network Connectivity**: Latency testing and connectivity verification
+
+#### **🔌 Comprehensive Port Cleanup & Management**
+- **Advanced Port Manager**: Uses `port-manager-v2.sh` for robust port management
+- **Zombie Process Detection**: Automatically detects and kills stale processes
+- **Process Cleanup**: Comprehensive cleanup of React, npm, and Python processes
+
+#### **🧹 Advanced Cache Clearing & Optimization**
+- **Frontend Cache**: Clears React build cache and node_modules
+- **Backend Cache**: Clears NestJS build cache and dependencies
+- **NPM Cache**: Comprehensive npm cache clearing
+- **System Temp Files**: Clears system temporary files
+- **Browser Cache Instructions**: Provides detailed browser cache clearing instructions
+
+#### **🎮 Comprehensive User Experience Enhancements**
+- **Browser Cache Instructions**: Detailed Chrome/DevTools instructions
+- **Mobile Optimization**: Mobile browser cache clearing guidance
+- **Quick Access Links**: Direct links to game, API, and ML services
+- **Troubleshooting Commands**: Emergency stop, force cleanup, system status
+
+#### **⚡ Advanced Performance Optimization**
+- **Node.js Memory Optimization**: Optimizes memory settings for better performance
+- **Python ML Service Optimization**: Unbuffered output and performance tuning
+- **Network Connectivity**: Verifies network connectivity and latency
+- **Intelligent Resource Management**: Runs enterprise resource optimization
+
+#### **🚀 Intelligent Service Orchestration**
+- **Graceful Service Shutdown**: Stops all services gracefully
+- **Force Process Killing**: Kills any remaining processes
+- **Sequential Service Startup**: Starts services in optimal order
+- **Backend Build**: Ensures backend is built before starting
+- **Health Monitoring**: Real-time service health tracking
+
+#### **🔍 Advanced Health Monitoring & Optimization**
+- **Intelligent Polling**: Monitors service startup with smart polling
+- **Service Status Tracking**: Tracks backend, frontend, and ML service status
+- **Timeout Handling**: Graceful timeout handling for slow services
+- **Performance Metrics**: Real-time performance monitoring
+
+#### **🏢 Enterprise-Level Health Checks**
+- **Comprehensive Health Checks**: Runs enterprise health check scripts
+- **Advanced System Monitoring**: Real-time system monitoring
+- **Port Manager Health**: Advanced port management health checks
+- **Enterprise Integration**: Runs enterprise integration scripts
+
+### **🎊 Sample Output**
+
+```
+🎮 CONNECT FOUR AI - ENTERPRISE-GRADE RESTART SYSTEM
+=====================================================
+
+[11:34:43] 🔍 ADVANCED SYSTEM RESOURCE ANALYSIS
+   📊 Memory Usage: 98%
+   ⚠️  High memory usage detected - consider closing other applications
+   💡 Recommendation: Close browser tabs and other applications
+   📊 Disk Usage: 13%
+   ✅ Disk space is sufficient
+   📊 CPU Load: 33%
+   ✅ CPU load is optimal
+   🌐 Network Connectivity Test...
+   ✅ Network connected (Latency: 6.500)
+
+[11:34:45] 🔌 COMPREHENSIVE PORT CLEANUP & MANAGEMENT
+   🔧 Using advanced port manager...
+   ✅ Advanced port cleanup completed
+
+[11:34:47] 🧟 ADVANCED ZOMBIE PROCESS DETECTION & PREVENTION
+   ✅ No zombie processes found on port 3001
+   🔍 Checking for other Node.js processes...
+   ✅ No React development servers found
+   ⚠️  Found hanging npm processes - killing them...
+   ✅ NPM processes killed
+
+[11:34:48] 🧹 ADVANCED CACHE CLEARING & OPTIMIZATION
+   🎨 Clearing frontend build cache...
+   ✅ Frontend cache cleared
+   🔧 Clearing backend cache...
+   ✅ Backend cache cleared
+   📦 Clearing npm cache...
+   ✅ NPM cache cleared
+   🗂️  Clearing system temp files...
+   ✅ System temp files cleared
+
+[11:34:50] 🎮 COMPREHENSIVE USER EXPERIENCE ENHANCEMENTS
+   🌐 BROWSER CACHE CLEARING INSTRUCTIONS:
+      📱 Chrome: Cmd+Shift+R (hard refresh) or
+      🔧 DevTools: Right-click refresh → Empty Cache and Hard Reload
+      🧹 Service Workers: DevTools → Application → Service Workers → Unregister
+      🗑️  Or clear all data: chrome://settings/clearBrowserData
+   📱 MOBILE OPTIMIZATION:
+      📲 Clear mobile browser cache
+      🔄 Restart mobile browser
+      📶 Ensure stable internet connection
+   🎯 QUICK ACCESS LINKS:
+      🎮 Game: http://localhost:3001
+      🔧 API: http://localhost:3000/api
+      🤖 ML: http://localhost:8000
+      📊 Health: npm run health:check
+      🔍 Monitor: npm run monitor:advanced
+   🛠️  TROUBLESHOOTING COMMANDS:
+      🔧 Emergency Stop: npm run emergency
+      🧹 Force Cleanup: npm run cleanup:force
+      📊 System Status: npm run system:status
+      🔌 Port Management: npm run ports
+
+[11:34:50] ⚡ ADVANCED PERFORMANCE OPTIMIZATION
+   🧠 Optimizing Node.js memory settings...
+   ✅ Node.js memory optimized
+   🐍 Optimizing Python ML service...
+   ✅ Python ML service optimized
+   🌐 Checking network connectivity...
+   ✅ Network connectivity confirmed
+   🔧 Running intelligent resource optimization...
+   ✅ Resource optimization completed
+
+[11:34:50] 🚀 INTELLIGENT SERVICE ORCHESTRATION
+   🛑 Stopping services gracefully...
+   🔥 Force killing any remaining processes...
+   🚀 Starting services with intelligent sequencing...
+   🔧 Building backend service...
+   🔧 Starting backend service...
+   ⏳ Waiting for backend to initialize...
+
+[Nest] 42480  - 07/21/2025, 11:35:15 AM     LOG [Bootstrap] 🚀 Starting Enterprise Connect Four Backend...
+[Nest] 42480  - 07/21/2025, 11:35:15 AM     LOG [Bootstrap] 🚀 Enterprise Connect Four Backend running on port 3000
+[Nest] 42480  - 07/21/2025, 11:35:15 AM     LOG [Bootstrap] 💚 Health check: http://localhost:3000/api/health
+[Nest] 42480  - 07/21/2025, 11:35:15 AM     LOG [Bootstrap] 🎮 Game ready at: http://localhost:3001
+[Nest] 42480  - 07/21/2025, 11:35:15 AM     LOG [Bootstrap] 🧠 ML Service integration: http://localhost:8000
+
+🎊 ENTERPRISE-GRADE RESTART COMPLETE - All systems operational! 🎊
+🚀 Your Connect Four AI game is ready for action!
+🏆 Enterprise-grade performance and reliability achieved!
+```
+
+### **🛠️ Additional Enterprise Commands**
+
+```bash
+# Emergency stop all services
+npm run emergency
+
+# Force cleanup with cache clearing
+npm run cleanup:force
+
+# Check system status
+npm run system:status
+
+# Advanced monitoring
+npm run monitor:advanced
+
+# Port management
+npm run ports
+
+# Enterprise integration
+npm run enterprise:integration
+
+# Enterprise status
+npm run enterprise:status
+```
+
+### **🔧 Troubleshooting Commands**
+
+```bash
+# Emergency stop
+npm run emergency
+
+# Force cleanup
+npm run cleanup:force
+
+# System status
+npm run system:status
+
+# Port management
+npm run ports
+
+# Health check
+npm run health:check
+
+# Advanced monitoring
+npm run monitor:advanced
+```
+
+---
+
+## 🚀 Quick Start Commands
+
+### **🔄 Enhanced Restart Commands**
 
 **For normal development (recommended):**
 ```bash
@@ -112,6 +319,9 @@ npm run restart:turbo:build:enhanced:force:clean
 - ✅ **Forces a fresh rebuild** with clean cache
 - ✅ **Prevents "Rendered more hooks than during the previous render" errors**
 - ✅ **Provides browser cache clearing instructions** for React Suspense fixes
+- ✅ **Performs comprehensive system resource analysis**
+- ✅ **Runs enterprise-grade health monitoring**
+- ✅ **Provides detailed user experience enhancements**
 
 **Other useful commands:**
 ```bash

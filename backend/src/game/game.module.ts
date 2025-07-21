@@ -10,12 +10,13 @@ import { AiProfileService } from './ai-profile.service';
 import { GameAIService } from './game-ai.service';
 import { DashboardService } from './dashboard.service';
 import { TrainingService } from './training.service';
+import { SettingsService } from './settings.service';
 import { MlModule } from '../ml/ml.module';
 
 @Module({
   imports: [MlModule, EventEmitterModule.forRoot()],
   controllers: [GameController, AIProfileController],
-  providers: [GameService, GameHistoryService, GameGateway, AiProfileService, GameAIService, DashboardService, TrainingService],
+  providers: [GameService, GameHistoryService, GameGateway, AiProfileService, GameAIService, DashboardService, TrainingService, SettingsService],
   exports: [GameService, GameGateway],
 })
 export class GameModule { }

@@ -329,7 +329,8 @@ class EnhancedSocketManager {
   // Enhanced emit with queue support
   public emit(event: string, data: any, callback?: Function): void {
     if (!this.socket) {
-      console.error('🚨 Socket not initialized');
+      console.warn('🚨 Socket not initialized, attempting to initialize...');
+      this.initialize();
       return;
     }
 

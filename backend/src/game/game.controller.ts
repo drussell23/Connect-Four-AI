@@ -2,6 +2,7 @@
 import { Controller, Post, Get, Param, Body, Query, HttpException } from "@nestjs/common";
 import { GameService } from "./game.service";
 import { GameHistoryService, GameSearchFilters } from "./game-history.service";
+import { SettingsService } from "./settings.service";
 import { MlClientService, LogGameDto } from "../ml/ml-client.service";
 import type { CellValue } from "../ai/connect4AI";
 
@@ -18,6 +19,7 @@ export class GameController {
     constructor(
         private readonly gameService: GameService,
         private readonly gameHistoryService: GameHistoryService,
+        private readonly settingsService: SettingsService,
         private readonly mlClient: MlClientService
     ) { }
 
@@ -178,6 +180,129 @@ export class GameController {
             return { success: true, message: 'Sample data created successfully' };
         } catch (e: any) {
             throw new HttpException(e.message, 500);
+        }
+    }
+
+    // Settings Endpoints
+    @Get('settings/user/:playerId')
+    async getUserSettings(@Param('playerId') playerId: string) {
+        try {
+            return await this.settingsService.getUserSettings(playerId);
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Post('settings/user/:playerId')
+    async updateUserSettings(
+        @Param('playerId') playerId: string,
+        @Body() settings: any
+    ) {
+        try {
+            return await this.settingsService.updateUserSettings(playerId, settings);
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Get('settings/game/:playerId')
+    async getGameSettings(@Param('playerId') playerId: string) {
+        try {
+            return await this.settingsService.getGameSettings(playerId);
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Post('settings/game/:playerId')
+    async updateGameSettings(
+        @Param('playerId') playerId: string,
+        @Body() settings: any
+    ) {
+        try {
+            return await this.settingsService.updateGameSettings(playerId, settings);
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Get('settings/ui/:playerId')
+    async getUISettings(@Param('playerId') playerId: string) {
+        try {
+            return await this.settingsService.getUISettings(playerId);
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Post('settings/ui/:playerId')
+    async updateUISettings(
+        @Param('playerId') playerId: string,
+        @Body() settings: any
+    ) {
+        try {
+            return await this.settingsService.updateUISettings(playerId, settings);
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Get('settings/ai/:playerId')
+    async getAIPreferences(@Param('playerId') playerId: string) {
+        try {
+            return await this.settingsService.getAIPreferences(playerId);
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Post('settings/ai/:playerId')
+    async updateAIPreferences(
+        @Param('playerId') playerId: string,
+        @Body() preferences: any
+    ) {
+        try {
+            return await this.settingsService.updateAIPreferences(playerId, preferences);
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Post('settings/reset/:playerId')
+    async resetSettings(
+        @Param('playerId') playerId: string,
+        @Body() dto: { type: 'user' | 'game' | 'ui' | 'ai' | 'all' }
+    ) {
+        try {
+            await this.settingsService.resetSettings(playerId, dto.type);
+            return { success: true, message: 'Settings reset successfully' };
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Get('settings/export/:playerId')
+    async exportSettings(
+        @Param('playerId') playerId: string,
+        @Query('format') format: 'json' | 'xml' = 'json'
+    ) {
+        try {
+            return await this.settingsService.exportSettings(playerId, format);
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
+        }
+    }
+
+    @Post('settings/import/:playerId')
+    async importSettings(
+        @Param('playerId') playerId: string,
+        @Body() dto: { data: string; format: 'json' | 'xml' }
+    ) {
+        try {
+            await this.settingsService.importSettings(playerId, dto.data, dto.format);
+            return { success: true, message: 'Settings imported successfully' };
+        } catch (e: any) {
+            throw new HttpException(e.message, 400);
         }
     }
 }
