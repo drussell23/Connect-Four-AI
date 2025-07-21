@@ -170,11 +170,43 @@ npm run restart:turbo:build:enhanced:force:clean
 - **Timeout Handling**: Graceful timeout handling for slow services
 - **Performance Metrics**: Real-time performance monitoring
 
+#### **🔗 Comprehensive Script Integration**
+- **ML Pipeline Manager**: ML service health checks and management
+- **Model Management**: Advanced model cleanup and repository monitoring
+- **Testing Workflows**: GitHub Actions workflow validation
+- **Performance Demo**: Performance testing and benchmarking
+- **Deployment Readiness**: Production deployment readiness checks
+
+#### **🤖 AI-Powered Diagnostics & Analytics**
+- **AI-Powered System Health Prediction**: Intelligent health scoring and predictions
+- **Advanced Performance Metrics**: Real-time performance tracking and logging
+- **Comprehensive Analytics**: Detailed event logging and analytics
+- **Predictive Health Analytics**: AI-driven system health assessment
+- **Performance Recommendations**: Intelligent optimization suggestions
+
+#### **🛡️ Advanced Security & Error Recovery**
+- **Advanced Security Checks**: Suspicious process detection and validation
+- **Network Security Monitoring**: Unauthorized connection detection
+- **File Modification Tracking**: Recent file change monitoring
+- **Error Recovery Mechanisms**: Automatic service restart on failure
+- **Advanced Error Recovery**: Intelligent retry mechanisms with backoff
+
+#### **📊 Comprehensive Reporting & Analytics**
+- **Real-Time Performance Monitoring**: Live performance metrics tracking
+- **Detailed Analytics Logging**: Comprehensive event and performance logging
+- **Performance Recommendations**: AI-driven optimization suggestions
+- **Comprehensive Reports**: Detailed restart reports with metrics
+- **Success Rate Analysis**: Service and health check success rate tracking
+
 #### **🏢 Enterprise-Level Health Checks**
 - **Comprehensive Health Checks**: Runs enterprise health check scripts
 - **Advanced System Monitoring**: Real-time system monitoring
 - **Port Manager Health**: Advanced port management health checks
 - **Enterprise Integration**: Runs enterprise integration scripts
+- **ML Pipeline Health**: ML service health checks and management
+- **Model Repository Health**: Model file health and repository monitoring
+- **Workflow Validation**: GitHub Actions workflow validation
+- **Deployment Readiness**: Production deployment readiness checks
 
 ### **🎊 Sample Output**
 
