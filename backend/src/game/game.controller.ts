@@ -89,6 +89,15 @@ export class GameController {
         }
     }
 
+    @Get('ai/status')
+    async getAIStatus() {
+        try {
+            return this.gameService.getAIHealthStatus();
+        } catch (e: any) {
+            throw new HttpException(e.message, 500);
+        }
+    }
+
     @Post(':id/analyze-move')
     async analyzeMove(
         @Param('id') gameId: string,

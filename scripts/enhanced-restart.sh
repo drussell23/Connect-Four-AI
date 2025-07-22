@@ -193,6 +193,11 @@ comprehensive_port_cleanup() {
 intelligent_cleanup() {
     log "🧟 ADVANCED ZOMBIE PROCESS DETECTION & PREVENTION"
     
+    # Enhanced process killing with comprehensive pattern matching (from troubleshooting)
+    echo -e "   🔥 Enhanced process killing with comprehensive patterns..."
+    pkill -f "react-scripts\|webpack\|node.*start" 2>/dev/null || true
+    echo -e "   ${GREEN}✅ React/Webpack/Node processes killed with enhanced patterns${NC}"
+    
     # Check for zombie processes on port 3001
     if lsof -iTCP:3001 -sTCP:LISTEN | grep -q .; then
         echo -e "   ${YELLOW}⚠️  Found zombie process on port 3001 - killing it...${NC}"
@@ -254,10 +259,15 @@ advanced_cache_clearing() {
     rm -rf dist node_modules/.cache .eslintcache 2>/dev/null || true
     echo -e "   ${GREEN}✅ Backend cache cleared${NC}"
     
-    # Clear npm cache with force
-    echo -e "   📦 Clearing npm cache..."
+    # Clear npm cache with force (enhanced)
+    echo -e "   📦 Clearing npm cache with force..."
     npm cache clean --force 2>/dev/null || true
-    echo -e "   ${GREEN}✅ NPM cache cleared${NC}"
+    echo -e "   ${GREEN}✅ NPM cache cleared with force${NC}"
+    
+    # Clear system caches with sudo purge (enhanced)
+    echo -e "   🗂️  Clearing system caches with sudo purge..."
+    sudo purge 2>/dev/null || true
+    echo -e "   ${GREEN}✅ System caches cleared with sudo purge${NC}"
     
     # Clear system temp files
     echo -e "   🗂️  Clearing system temp files..."
@@ -298,9 +308,9 @@ comprehensive_process_management() {
         fi
     done
     
-    # Enhanced React development server cleanup
+    # Enhanced React development server cleanup with comprehensive pattern matching
     echo -e "   🎨 Enhanced React development server cleanup..."
-    pkill -f "react-scripts start" 2>/dev/null || true
+    pkill -f "react-scripts\|webpack\|node.*start" 2>/dev/null || true
     pkill -f "npm start" 2>/dev/null || true
     pkill -f "node.*start" 2>/dev/null || true
     

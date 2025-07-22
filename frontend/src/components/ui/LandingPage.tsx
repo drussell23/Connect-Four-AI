@@ -1,5 +1,6 @@
-import React, { useState, useEffect, startTransition } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getValidBoxShadowWithOpacity } from '../../utils/animationUtils';
 import './LandingPage.css';
 
 interface LandingPageProps {
@@ -7,35 +8,24 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
-  const [showInfo, setShowInfo] = useState(false);
-  const [selectedDifficulty, setSelectedDifficulty] = useState(1);
+  const [isPending, startTransition] = useTransition();
+  const [selectedDifficulty, setSelectedDifficulty] = useState(() => {
+    const stored = localStorage.getItem('selectedDifficulty');
+    return stored ? parseInt(stored) : 1;
+  });
   const [showDifficultySelector, setShowDifficultySelector] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
 
-  // Load selected difficulty from localStorage on component mount
-  useEffect(() => {
-    const storedDifficulty = localStorage.getItem('selectedDifficulty');
-    if (storedDifficulty) {
-      const difficulty = parseInt(storedDifficulty, 10);
-      if (difficulty >= 1 && difficulty <= 25) {
-        setSelectedDifficulty(difficulty);
-      }
-    }
-  }, []);
-
-  // Keyboard controls: Enter to start, Esc to close modals
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && !showInfo && !showDifficultySelector) onStart();
-      if (e.key === 'Escape') {
-        setShowInfo(false);
-        setShowDifficultySelector(false);
+      if (e.key === 'Enter' && !showDifficultySelector && !showInfo) {
+        handleStartWithDifficulty();
       }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [onStart, showInfo, showDifficultySelector]);
+  }, [showDifficultySelector, showInfo]);
 
-  // Get AI personality info based on difficulty level
   const getAIInfo = (level: number) => {
     if (level <= 3) return { name: 'Genesis', color: '#10b981', threat: 'ROOKIE', description: 'Perfect for beginners learning the ropes' };
     if (level <= 6) return { name: 'Prometheus', color: '#84cc16', threat: 'AMATEUR', description: 'Developing tactical awareness' };
@@ -177,7 +167,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           onClick={handleStartWithDifficulty}
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(16, 185, 129, 0.5)' }}
+          whileHover={{ scale: 1.05, boxShadow: getValidBoxShadowWithOpacity(currentAI.color) }}
           whileTap={{ scale: 0.95 }}
           onTap={() => navigator.vibrate?.(50)}
           transition={{ type: 'spring', stiffness: 300, delay: 1.4 }}
@@ -250,7 +240,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                       onClick={() => setSelectedDifficulty(level)}
                       whileHover={{ scale: 1.02, backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
                       whileTap={{ scale: 0.98 }}
-                      style={isSelected ? { boxShadow: `0 0 20px ${aiInfo.color || '#10b981'}40` } : {}}
+                      style={isSelected ? { boxShadow: getValidBoxShadowWithOpacity(aiInfo.color, '#10b981', 0.5, '20px') } : {}}
                     >
                       <div className="flex items-center gap-3">
                         <div
@@ -296,7 +286,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                   }}
                   className="px-8 py-3 text-white rounded-xl font-bold transition-colors"
                   style={{ background: `linear-gradient(135deg, ${currentAI.color || '#10b981'}, #10b981)` }}
-                  whileHover={{ scale: 1.05, boxShadow: `0 0 20px ${currentAI.color || '#10b981'}40` }}
+                  whileHover={{ scale: 1.05, boxShadow: getValidBoxShadowWithOpacity(currentAI.color) }}
                   whileTap={{ scale: 0.95 }}
                 >
                   Challenge {currentAI.name}

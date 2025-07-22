@@ -43,6 +43,7 @@
     "restart:turbo:build": "npm run stop:turbo && npm run start:turbo:build",
     "restart:turbo:build:enhanced": "npm run stop:turbo:enhanced && npm run start:turbo:build:enhanced",
     "restart:turbo:build:enhanced:force:clean": "./scripts/enhanced-restart.sh",
+    "restart:turbo:build:enhanced:force:clean:fixed": "./scripts/enhanced-restart-fixed.sh",
     "restart:turbo:build:full": "npm run stop:turbo:full && npm run start:turbo:build:full",
     "restart:fast": "npm run stop && npm run start:fast",
     "restart:enterprise": "npm run stop:enterprise && npm run start:enterprise",

@@ -199,8 +199,21 @@ export class GameService {
    * Get AI instance with automatic initialization
    */
   private async getAI(): Promise<UltimateConnect4AI | null> {
-    // Temporarily disable complex AI to prevent initialization loops
-    this.logger.warn('🚫 Complex AI disabled for stability - using fallback mode');
+    if (!this.aiInitialized) {
+      try {
+        await this.initializeAI();
+      } catch (error) {
+        this.logger.error('❌ AI initialization failed in getAI:', error.message);
+        this.fallbackAIEnabled = true;
+        return null;
+      }
+    }
+
+    if (this.ultimateAI && this.aiInitialized) {
+      return this.ultimateAI;
+    }
+
+    this.logger.warn('⚠️  AI not available - using fallback mode');
     this.fallbackAIEnabled = true;
     return null;
   }

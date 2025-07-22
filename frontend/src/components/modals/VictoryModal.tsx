@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getValidBoxShadow } from '../../utils/animationUtils';
 import './VictoryModal.css';
 
 interface VictoryModalProps {
@@ -33,56 +34,52 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
     const [showStats, setShowStats] = useState(false);
 
     useEffect(() => {
-        if (isVisible && gameResult) {
-            setTimeout(() => setShowParticles(true), 500);
-            setTimeout(() => setShowStats(true), 1000);
+        if (isVisible && gameResult === 'victory') {
+            const timer = setTimeout(() => setShowParticles(true), 500);
+            return () => clearTimeout(timer);
         } else {
             setShowParticles(false);
-            setShowStats(false);
         }
     }, [isVisible, gameResult]);
 
     if (!isVisible || !gameResult) return null;
 
     const isVictory = gameResult === 'victory';
-    const isDraw = gameResult === 'draw';
     const isDefeat = gameResult === 'defeat';
+    const isDraw = gameResult === 'draw';
 
     const getResultData = () => {
         if (isVictory) {
             return {
-                title: '🎉 VICTORY! 🎉',
-                subtitle: `You defeated ${aiPersonality} AI!`,
-                message: 'Incredible! You outplayed the AI and secured victory!',
-                primaryColor: '#10b981',
-                secondaryColor: '#34d399',
-                gradientFrom: '#059669',
-                gradientTo: '#10b981',
                 emoji: '🏆',
+                title: 'VICTORY!',
+                message: `You've defeated ${aiPersonality}! Your strategic mind has prevailed.`,
+                primaryColor: '#10b981',
+                secondaryColor: '#059669',
+                gradientFrom: '#10b981',
+                gradientTo: '#059669',
                 canAdvance: currentLevel < 25
             };
-        } else if (isDraw) {
+        } else if (isDefeat) {
             return {
-                title: '🤝 DRAW GAME 🤝',
-                subtitle: `Stalemate against ${aiPersonality} AI`,
-                message: 'A strategic battle! Both minds proved equally matched.',
-                primaryColor: '#f59e0b',
-                secondaryColor: '#fbbf24',
-                gradientFrom: '#d97706',
-                gradientTo: '#f59e0b',
-                emoji: '⚖️',
+                emoji: '💀',
+                title: 'DEFEAT',
+                message: `${aiPersonality} has outmaneuvered you. The AI's superior tactics prevailed.`,
+                primaryColor: '#ef4444',
+                secondaryColor: '#dc2626',
+                gradientFrom: '#ef4444',
+                gradientTo: '#dc2626',
                 canAdvance: false
             };
         } else {
             return {
-                title: '💀 DEFEAT 💀',
-                subtitle: `${aiPersonality} AI proved superior`,
-                message: 'The AI calculated faster! Learn from this defeat and return stronger.',
-                primaryColor: '#ef4444',
-                secondaryColor: '#f87171',
-                gradientFrom: '#dc2626',
-                gradientTo: '#ef4444',
-                emoji: '🤖',
+                emoji: '🤝',
+                title: 'DRAW',
+                message: `A tactical stalemate! Neither you nor ${aiPersonality} could gain the upper hand.`,
+                primaryColor: '#f59e0b',
+                secondaryColor: '#d97706',
+                gradientFrom: '#f59e0b',
+                gradientTo: '#d97706',
                 canAdvance: false
             };
         }
@@ -193,7 +190,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                             >
                                 {resultData.title}
                             </h1>
-                            <h2 className="result-subtitle">{resultData.subtitle}</h2>
+                            <h2 className="result-subtitle">{resultData.message}</h2>
                         </motion.div>
 
                         {/* Level Information */}
@@ -283,10 +280,10 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                                 <motion.button
                                     className="action-button next-level-button"
                                     onClick={onNextLevel}
-                                    whileHover={{ scale: 1.05, boxShadow: `0 0 25px ${nextThreat.color || '#10b981'}` }}
+                                    whileHover={{ scale: 1.05, boxShadow: getValidBoxShadow(nextThreat.color) }}
                                     whileTap={{ scale: 0.95 }}
                                     style={{
-                                        background: `linear-gradient(135deg, ${nextThreat.color}, ${resultData.primaryColor || '#10b981'})`,
+                                        background: `linear-gradient(135deg, ${nextThreat.color || '#10b981'}, ${resultData.primaryColor || '#10b981'})`,
                                         border: `2px solid ${nextThreat.color || '#10b981'}`
                                     }}
                                 >
@@ -300,7 +297,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                             <motion.button
                                 className="action-button replay-button"
                                 onClick={onReplayLevel}
-                                whileHover={{ scale: 1.05, boxShadow: `0 0 25px ${resultData.primaryColor || '#10b981'}` }}
+                                whileHover={{ scale: 1.05, boxShadow: getValidBoxShadow(resultData.primaryColor) }}
                                 whileTap={{ scale: 0.95 }}
                                 style={{
                                     background: `linear-gradient(135deg, ${resultData.primaryColor || '#10b981'}, ${resultData.secondaryColor || '#059669'})`,
