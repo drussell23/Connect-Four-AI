@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getValidBoxShadow } from '../../utils/animationUtils';
+import { getValidBoxShadow, getValidBoxShadowWithOpacity } from '../../utils/animationUtils';
 import './VictoryModal.css';
 
 interface VictoryModalProps {
@@ -125,7 +125,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                     style={{
                         background: `linear-gradient(135deg, ${resultData.gradientFrom}, ${resultData.gradientTo})`,
                         border: `3px solid ${resultData.primaryColor || '#10b981'}`,
-                        boxShadow: `0 0 50px ${resultData.primaryColor || '#10b981'}40`
+                        boxShadow: getValidBoxShadowWithOpacity(resultData.primaryColor, '#10b981', 0.25, '50px')
                     }}
                 >
                     {/* Particle Effects */}
