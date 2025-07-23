@@ -159,46 +159,8 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
     const testBackendConnection = useCallback(async () => {
         if (!isInitialized) return;
 
-        startTransition(() => {
-            (async () => {
-                const testUrl = `${appConfig.api.baseUrl}/health/test`;
-                console.log('🧪 Testing backend connection to:', testUrl);
-
-                try {
-                    // Test 1: Simple fetch
-                    console.log('📡 Test 1: Simple fetch...');
-                    const response1 = await fetch(testUrl);
-                    console.log('✅ Test 1 result:', response1.status, response1.statusText);
-
-                    // Test 2: With CORS headers
-                    console.log('📡 Test 2: With CORS headers...');
-                    const response2 = await fetch(testUrl, {
-                        method: 'GET',
-                        mode: 'cors',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                        }
-                    });
-                    console.log('✅ Test 2 result:', response2.status, response2.statusText);
-
-                    // Test 3: OPTIONS preflight
-                    console.log('📡 Test 3: OPTIONS preflight...');
-                    const response3 = await fetch(testUrl, {
-                        method: 'OPTIONS',
-                        mode: 'cors',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                        }
-                    });
-                    console.log('✅ Test 3 result:', response3.status, response3.statusText);
-
-                } catch (error) {
-                    console.error('❌ Test failed:', error);
-                }
-            })();
-        });
+        // Remove the unnecessary health/test endpoint calls
+        // The real health check is done by checkHealth function
     }, [startTransition, isInitialized]);
 
     // Real-time health checking
@@ -262,16 +224,13 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                 (async () => {
                     const endpoints = {
                         health: `${appConfig.api.baseUrl}/health`,
-                        healthTest: `${appConfig.api.baseUrl}/health/test`,
-                        // Remove endpoints that don't exist yet
-                        // game: `${appConfig.api.baseUrl}/game`,
-                        // dashboard: `${appConfig.api.baseUrl}/dashboard`,
-                        // websocket: `${appConfig.api.baseUrl}/socket.io/?transport=polling`
+                        // Only check endpoints that actually exist
                     };
 
                     const results: { [key: string]: boolean } = {};
 
                     for (const [name, url] of Object.entries(endpoints)) {
+                        console.log(`🏥 Checking ${name} endpoint:`, url);
                         try {
                             const controller = new AbortController();
                             const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
@@ -286,6 +245,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                             });
 
                             clearTimeout(timeoutId);
+                            console.log(`✅ ${name} endpoint responded:`, response.status);
                             results[name] = response.status < 500; // Accept 404s as "service exists"
                         } catch (error) {
                             console.warn(`Service check failed for ${name}:`, error);
@@ -371,13 +331,13 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
 
                 if (soundEnabled) playConnectFourSound(440, 0.2);
 
-                // Simulate compilation progress
-                for (let progress = 0; progress <= 100; progress += 10) {
+                // Simulate compilation progress (faster)
+                for (let progress = 0; progress <= 100; progress += 25) {
                     setSteps(prev => prev.map((s, i) =>
                         i === 0 ? { ...s, progress } : s
                     ));
                     setOverallProgress((progress / steps.length));
-                    await new Promise(resolve => setTimeout(resolve, 200));
+                    await new Promise(resolve => setTimeout(resolve, 50)); // Much faster
                 }
 
                 setSteps(prev => prev.map((s, i) =>
@@ -424,7 +384,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                     }
 
                     attempts++;
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 300)); // Check more frequently
                 }
 
                 if (!backendReady) {
@@ -448,7 +408,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                 if (soundEnabled) playConnectFourSound(587, 0.2);
 
                 // Simulate database connection check
-                for (let progress = 0; progress <= 100; progress += 20) {
+                for (let progress = 0; progress <= 100; progress += 33) {
                     setSteps(prev => prev.map((s, i) =>
                         i === 2 ? {
                             ...s,
@@ -456,7 +416,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                             realTimeMessage: progress < 100 ? 'Establishing connections...' : 'Database connected!'
                         } : s
                     ));
-                    await new Promise(resolve => setTimeout(resolve, 300));
+                    await new Promise(resolve => setTimeout(resolve, 100)); // Faster
                 }
 
                 setSteps(prev => prev.map((s, i) =>
@@ -487,7 +447,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                             realTimeMessage: `${serviceName} service: ${isReady ? 'Ready' : 'Loading...'}`
                         } : s
                     ));
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await new Promise(resolve => setTimeout(resolve, 150)); // Faster
                 }
 
                 setSteps(prev => prev.map((s, i) =>
@@ -512,7 +472,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                 let wsReady = true; // Assume WebSocket is ready since we have a working connection
                 console.log('✅ WebSocket connection assumed ready (connection established)');
 
-                for (let progress = 0; progress <= 100; progress += 25) {
+                for (let progress = 0; progress <= 100; progress += 50) {
                     setSteps(prev => prev.map((s, i) =>
                         i === 4 ? {
                             ...s,
@@ -520,7 +480,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                             realTimeMessage: progress === 100 ? 'WebSocket ready!' : 'Configuring real-time communication...'
                         } : s
                     ));
-                    await new Promise(resolve => setTimeout(resolve, 300));
+                    await new Promise(resolve => setTimeout(resolve, 100)); // Faster
                 }
 
                 setSteps(prev => prev.map((s, i) =>
@@ -548,7 +508,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                                 'Running diagnostics...'
                         } : s
                     ));
-                    await new Promise(resolve => setTimeout(resolve, 200));
+                    await new Promise(resolve => setTimeout(resolve, 50)); // Faster final check
                 }
 
                 setSteps(prev => prev.map((s, i) =>
