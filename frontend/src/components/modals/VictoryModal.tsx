@@ -280,6 +280,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                                 <motion.button
                                     className="action-button next-level-button"
                                     onClick={onNextLevel}
+                                    initial={{ scale: 1, boxShadow: '0 0 0px rgba(0,0,0,0)' }}
                                     whileHover={{ scale: 1.05, boxShadow: getValidBoxShadow(nextThreat.color) }}
                                     whileTap={{ scale: 0.95 }}
                                     style={{
@@ -297,6 +298,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                             <motion.button
                                 className="action-button replay-button"
                                 onClick={onReplayLevel}
+                                initial={{ scale: 1, boxShadow: '0 0 0px rgba(0,0,0,0)' }}
                                 whileHover={{ scale: 1.05, boxShadow: getValidBoxShadow(resultData.primaryColor) }}
                                 whileTap={{ scale: 0.95 }}
                                 style={{
@@ -313,6 +315,7 @@ const VictoryModal: React.FC<VictoryModalProps> = ({
                             <motion.button
                                 className="action-button quit-button"
                                 onClick={onQuitToMenu}
+                                initial={{ scale: 1, boxShadow: '0 0 0px rgba(0,0,0,0)' }}
                                 whileHover={{ scale: 1.05, boxShadow: '0 0 25px #6b7280' }}
                                 whileTap={{ scale: 0.95 }}
                             >

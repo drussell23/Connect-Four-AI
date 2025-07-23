@@ -238,9 +238,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                       className={`difficulty-option cursor-pointer p-4 rounded-xl border-2 transition-all ${isSelected ? 'border-white bg-white bg-opacity-20' : 'border-white border-opacity-30 bg-white bg-opacity-5'
                         }`}
                       onClick={() => setSelectedDifficulty(level)}
+                      initial={{ scale: 1, boxShadow: '0 0 0px rgba(0,0,0,0)' }}
                       whileHover={{ scale: 1.02, backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
                       whileTap={{ scale: 0.98 }}
-                      style={isSelected ? { boxShadow: getValidBoxShadowWithOpacity(aiInfo.color, '#10b981', 0.5, '20px') } : {}}
+                      style={isSelected ? { boxShadow: getValidBoxShadowWithOpacity(aiInfo.color, '#10b981', 0.5, '20px') } : { boxShadow: '0 0 0px rgba(0,0,0,0)' }}
                     >
                       <div className="flex items-center gap-3">
                         <div

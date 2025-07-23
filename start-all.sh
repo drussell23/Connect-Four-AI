@@ -25,7 +25,7 @@ fi
 
 # Clean up existing services
 echo -e "${YELLOW}🔧 Cleaning up existing services...${NC}"
-npm run stop:gentle 2>/dev/null || true
+npm run stop:simple 2>/dev/null || true
 sleep 2
 
 # Function to start services in background with proper job control
@@ -58,7 +58,7 @@ echo -e "${BLUE}⚛️  Starting Frontend Service...${NC}"
 start_service "frontend" "frontend" "PORT=3000 npm start"
 
 echo -e "${BLUE}🤖 Starting ML Service...${NC}"
-start_service "ml_service" "ml_service" "python3 ml_service.py"
+start_service "ml_service" "ml_service" "PORT=8000 python3 ml_service.py"
 
 # Wait and check services
 echo -e "${YELLOW}⏳ Waiting for services to start...${NC}"
