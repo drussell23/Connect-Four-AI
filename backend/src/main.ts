@@ -37,6 +37,7 @@ async function bootstrap() {
       'http://localhost:3000',
       'http://localhost:3001',
       'https://connect-four-ai-derek.vercel.app',
+      'https://connect-four-ai-roge.vercel.app',
       '*' // Allow all origins for now
     ];
 
