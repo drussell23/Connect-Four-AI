@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useTransition, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { appConfig } from '../../config/environment';
+import { appConfig, buildApiEndpoint } from '../../config/environment';
 import './ConnectFourLoading.css';
 
 interface RealLoadingStep {
@@ -105,7 +105,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
             label: 'Starting NestJS application',
             progress: 0,
             status: 'pending',
-            endpoint: `${appConfig.api.baseUrl}/api/health`,
+            endpoint: buildApiEndpoint('/health'),
             color: 'yellow',
             realTimeMessage: 'Initializing server...'
         },
@@ -138,7 +138,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
             label: 'Final system health check',
             progress: 0,
             status: 'pending',
-            endpoint: `${appConfig.api.baseUrl}/api/health`,
+            endpoint: buildApiEndpoint('/health'),
             color: 'yellow',
             realTimeMessage: 'Verifying all systems...'
         }
@@ -223,7 +223,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
             startTransition(() => {
                 (async () => {
                     const endpoints = {
-                        health: `${appConfig.api.baseUrl}/api/health`,
+                        health: buildApiEndpoint('/health'),
                         // Only check endpoints that actually exist
                     };
 
@@ -367,7 +367,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                     ));
 
                     try {
-                        backendReady = await checkBackendHealth(`${appConfig.api.baseUrl}/api/health`);
+                        backendReady = await checkBackendHealth(buildApiEndpoint('/health'));
                         if (backendReady) {
                             setSteps(prev => prev.map((s, i) =>
                                 i === 1 ? {
@@ -496,7 +496,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
 
                 if (soundEnabled) playConnectFourSound(784, 0.2);
 
-                const finalHealth = await checkBackendHealth(`${appConfig.api.baseUrl}/api/health`);
+                const finalHealth = await checkBackendHealth(buildApiEndpoint('/health'));
 
                 for (let progress = 0; progress <= 100; progress += 33) {
                     setSteps(prev => prev.map((s, i) =>

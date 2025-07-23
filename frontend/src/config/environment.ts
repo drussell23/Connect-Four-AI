@@ -89,6 +89,14 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
     return isNaN(parsed) ? defaultValue : parsed;
 };
 
+// Helper to determine if we need the /api prefix
+const needsApiPrefix = (): boolean => {
+    const apiUrl = getEnvVar('REACT_APP_API_URL', 'http://localhost:3001');
+    // In production (Render), we need the /api prefix
+    // Locally, we typically don't need it (but this can be configured)
+    return apiUrl.includes('onrender.com') || getEnvVar('REACT_APP_USE_API_PREFIX', 'false') === 'true';
+};
+
 // Load and export enterprise configuration
 export const appConfig: AppConfig = {
     api: {
@@ -157,5 +165,19 @@ if (appConfig.dev.debugMode) {
 
 // Export individual sections for convenience
 export const { api, enterprise, ai, game, ui, dev, analytics } = appConfig;
+
+// Helper function to build API endpoints with correct prefix
+export const buildApiEndpoint = (path: string): string => {
+    const baseUrl = appConfig.api.baseUrl;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+
+    // Add /api prefix for production (Render) URLs
+    if (needsApiPrefix()) {
+        return `${baseUrl}/api${cleanPath}`;
+    }
+
+    // For local development, use the path as-is
+    return `${baseUrl}${cleanPath}`;
+};
 
 export default appConfig; 
