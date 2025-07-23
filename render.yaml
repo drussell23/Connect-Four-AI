@@ -1,11 +1,18 @@
 services:
   - type: web
     name: connect-four-backend
-    env: node
-    buildCommand: npm install --legacy-peer-deps && npm run build:prod
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install --legacy-peer-deps && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 3000
+      - key: CORS_ORIGINS
+        value: https://connect-four-ai-derek.vercel.app
+      - key: FRONTEND_URL
+        value: https://connect-four-ai-derek.vercel.app
+      - key: ML_SERVICE_URL
+        value: https://connect-four-ai-derek.onrender.com
