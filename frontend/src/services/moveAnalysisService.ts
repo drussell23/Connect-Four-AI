@@ -377,6 +377,15 @@ class RealMoveAnalysisService {
             });
 
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`AI analysis failed: ${response.status} ${response.statusText}`, errorText);
+
+                // If game not found (likely after backend restart), provide fallback
+                if (response.status === 400 && errorText.includes('Game not found')) {
+                    console.log('Game not found on backend, using fallback analysis');
+                    return this.getFallbackMoveExplanation(gameId, move, player, boardState || [], aiLevel);
+                }
+
                 throw new Error(`AI analysis failed: ${response.statusText}`);
             }
 

@@ -165,8 +165,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
         <motion.button
           className="primary-action-button"
           onClick={handleStartWithDifficulty}
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+          initial={{ scale: 0, opacity: 0, boxShadow: '0 0 0px rgba(0,0,0,0)' }}
+          animate={{ scale: 1, opacity: 1, boxShadow: '0 0 0px rgba(0,0,0,0)' }}
           whileHover={{ scale: 1.05, boxShadow: getValidBoxShadowWithOpacity(currentAI.color) }}
           whileTap={{ scale: 0.95 }}
           onTap={() => navigator.vibrate?.(50)}
@@ -286,6 +286,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                   }}
                   className="px-8 py-3 text-white rounded-xl font-bold transition-colors"
                   style={{ background: `linear-gradient(135deg, ${currentAI.color || '#10b981'}, #10b981)` }}
+                  initial={{ boxShadow: '0 0 0px rgba(0,0,0,0)' }}
                   whileHover={{ scale: 1.05, boxShadow: getValidBoxShadowWithOpacity(currentAI.color) }}
                   whileTap={{ scale: 0.95 }}
                 >

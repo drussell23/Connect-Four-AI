@@ -110,6 +110,13 @@ export class GameController {
         try {
             return await this.gameService.analyzeMove(gameId, dto.column, dto.player, dto.aiLevel);
         } catch (e: any) {
+            console.error(`Move analysis failed for game ${gameId}:`, e.message);
+
+            // If game not found, return a more specific error
+            if (e.message === 'Game not found') {
+                throw new HttpException('Game not found. The game may have been cleared after a server restart.', 400);
+            }
+
             throw new HttpException(e.message, 400);
         }
     }

@@ -21,7 +21,7 @@ import MoveExplanationPanel from './components/ai-insights/MoveExplanation';
 import MoveAnalysis from './components/ai-insights/MoveAnalysis';
 import GameHistory from './components/game-history/GameHistory';
 import UserSettings from './components/settings/UserSettings';
-import apiSocket from './api/socket';
+import apiSocket, { getConnectionStatus } from './api/socket';
 import { appConfig, enterprise, ai, game, ui, dev, analytics } from './config/environment';
 import type { CellValue, PlayerStats, AIPersonalityData } from './declarations';
 
@@ -1209,12 +1209,18 @@ const App: React.FC = () => {
   // Enhanced column click handler with debugging and board state tracking
   function onColumnClick(col: number) {
     console.log(`🎯 Column ${col} clicked`);
+
+    // Set the selected move for analysis
+    setSelectedMoveIndex(col);
+
+    const connStatus = getConnectionStatus();
     console.log('🔍 Current state:', {
       socket: !!socket,
-      socketConnected: socket?.connected,
+      socketConnected: connStatus.connected,
       gameId,
       currentPlayer,
-      socketId: socket?.id
+      socketId: connStatus.id,
+      transport: connStatus.transport
     });
 
     if (!socket) {
@@ -1223,8 +1229,9 @@ const App: React.FC = () => {
       return;
     }
 
-    if (!socket.connected) {
-      console.error('❌ Socket not connected');
+    const connectionStatus = getConnectionStatus();
+    if (!connectionStatus.connected) {
+      console.error('❌ Socket not connected, status:', connectionStatus);
       setStatus('Connection lost - reconnecting...');
 
       // Try to reconnect
@@ -1634,7 +1641,10 @@ const App: React.FC = () => {
                 player={'player'}
                 boardState={board}
                 isVisible={showMoveExplanation}
-                onClose={() => setShowMoveExplanation(false)}
+                onClose={() => {
+                  setShowMoveExplanation(false);
+                  setSelectedMoveIndex(-1); // Reset selection when closing
+                }}
               />
             </div>
           </motion.div>

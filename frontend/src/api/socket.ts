@@ -93,6 +93,7 @@ class EnhancedSocketManager {
     console.log('🔌 Initializing Enhanced WebSocket Manager');
     console.log('🏢 Enterprise Mode:', appConfig.enterprise.mode);
     console.log('🔗 Connecting to:', `${api.baseUrl}`);
+    console.log('📍 Will connect to namespace: /game');
 
     // Create manager for connection pooling - DO NOT include namespace in URL!
     this.manager = new Manager(api.baseUrl, {
@@ -108,12 +109,14 @@ class EnhancedSocketManager {
     });
 
     // Create socket instance on the /game namespace
+    // Use the full path to ensure proper namespace connection
     this.socket = this.manager.socket('/game', {
       auth: {
         clientId: this.generateClientId(),
         version: '1.0.0',
         features: this.getEnabledFeatures(),
       },
+      path: '/socket.io/'  // Explicitly set the path
     });
 
     this.setupEventHandlers();

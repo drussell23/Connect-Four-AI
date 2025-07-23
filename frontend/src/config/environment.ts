@@ -93,7 +93,7 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
 export const appConfig: AppConfig = {
     api: {
         baseUrl: getEnvVar('REACT_APP_API_URL', 'http://localhost:3001'),
-        wsUrl: getEnvVar('REACT_APP_WS_URL', 'ws://localhost:3001'),
+        wsUrl: getEnvVar('REACT_APP_WS_URL', 'http://localhost:3001'),
         mlServiceUrl: getEnvVar('REACT_APP_ML_SERVICE_URL', 'https://connect-four-ai-roge.onrender.com'),
         orchestrationDashboardUrl: getEnvVar('REACT_APP_ORCHESTRATION_DASHBOARD_URL', 'http://localhost:3011'),
         performanceAnalyticsUrl: getEnvVar('REACT_APP_PERFORMANCE_ANALYTICS_URL', 'http://localhost:3014'),

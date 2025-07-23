@@ -506,3 +506,34 @@
         height: 20px;
     }
 }
+
+/* No move selected state */
+.no-move-selected {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #9ca3af;
+}
+
+.no-move-selected h2 {
+    font-size: 1.5rem;
+    color: #e5e7eb;
+    margin-bottom: 1rem;
+}
+
+.no-move-selected p {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.no-move-selected .instructions {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.no-move-selected .instructions p {
+    margin: 0.5rem 0;
+    color: #93c5fd;
+}
