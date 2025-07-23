@@ -165,9 +165,11 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Initialize Speed Insights
+  // Initialize Speed Insights (only in production)
   useEffect(() => {
-    injectSpeedInsights();
+    if (process.env.NODE_ENV === 'production' && window.location.hostname !== 'localhost') {
+      injectSpeedInsights();
+    }
   }, []);
 
   // App initialization effect

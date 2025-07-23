@@ -21,8 +21,8 @@ class SuperQuickLauncher {
         try {
             // Launch only the essential services
             const services = [
-                { name: 'backend', command: 'npm run start:dev', cwd: './backend', port: 3000 },
-                { name: 'frontend', command: 'npm start', cwd: './frontend', port: 3001 }
+                { name: 'backend', command: 'npm run start:dev', cwd: './backend', port: 3001 },
+                { name: 'frontend', command: 'npm start', cwd: './frontend', port: 3000 }
                 // Skip ML service for now to avoid Python dependency issues
             ];
 

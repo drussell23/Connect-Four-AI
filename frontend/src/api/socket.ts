@@ -92,10 +92,10 @@ class EnhancedSocketManager {
 
     console.log('🔌 Initializing Enhanced WebSocket Manager');
     console.log('🏢 Enterprise Mode:', appConfig.enterprise.mode);
-    console.log('🔗 Connecting to:', `${api.baseUrl}/game`);
+    console.log('🔗 Connecting to:', `${api.baseUrl}`);
 
-    // Create manager for connection pooling
-    this.manager = new Manager(`${api.baseUrl}/game`, {
+    // Create manager for connection pooling - DO NOT include namespace in URL!
+    this.manager = new Manager(api.baseUrl, {
       transports: ['websocket', 'polling'],
       autoConnect: false,
       reconnection: this.config.reconnection,
@@ -107,7 +107,7 @@ class EnhancedSocketManager {
       upgrade: true,
     });
 
-    // Create socket instance
+    // Create socket instance on the /game namespace
     this.socket = this.manager.socket('/game', {
       auth: {
         clientId: this.generateClientId(),

@@ -54,7 +54,13 @@ interface SubmitFeedbackPayload {
   suggestions?: string;
 }
 
-@WebSocketGateway({ namespace: '/game', cors: { origin: '*' } })
+@WebSocketGateway({
+  namespace: '/game',
+  cors: {
+    origin: ['http://localhost:3000', 'http://localhost:3001', '*'],
+    credentials: true
+  }
+})
 export class GameGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() private server!: Server;

@@ -8,13 +8,13 @@ import { HealthController } from './health.controller';
 // Enterprise Environment Configuration
 const envConfiguration = () => ({
   // Service Configuration
-  port: parseInt(process.env.BACKEND_PORT, 10) || 3000,
-  frontendPort: parseInt(process.env.FRONTEND_PORT, 10) || 3001,
+  port: parseInt(process.env.BACKEND_PORT, 10) || 3001,
+  frontendPort: parseInt(process.env.FRONTEND_PORT, 10) || 3000,
   mlServicePort: parseInt(process.env.ML_SERVICE_PORT, 10) || 8000,
 
   // URLs
-  backendUrl: process.env.BACKEND_URL || 'http://localhost:3000',
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3001',
+  backendUrl: process.env.BACKEND_URL || 'http://localhost:3001',
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
   mlServiceUrl: process.env.ML_SERVICE_URL || 'http://localhost:8000',
 
   // Enterprise Services
@@ -30,6 +30,7 @@ const envConfiguration = () => ({
   // CORS Configuration
   corsEnabled: process.env.CORS_ENABLED === 'true',
   corsOrigins: process.env.CORS_ORIGINS?.split(',') || [
+    'http://localhost:3000',
     'http://localhost:3001',
     'https://connect-four-ai-derek.vercel.app',
     'https://connect-four-ai-derek.vercel.app/'

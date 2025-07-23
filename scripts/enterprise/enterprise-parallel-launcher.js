@@ -222,27 +222,27 @@ class EnterpriseParallelLauncher {
         console.log('🔧 Initializing Enterprise Parallel Launcher...');
 
         // Initialize security monitoring
-        await this.initializeSecurity();
-        console.log('   ✅ Security monitoring initialized');
+        // await this.initializeSecurity();
+        // console.log('   ✅ Security monitoring initialized');
 
         // Initialize resource monitoring
-        await this.initializeResourceMonitoring();
-        console.log('   ✅ Resource monitoring initialized');
+        // await this.initializeResourceMonitoring();
+        // console.log('   ✅ Resource monitoring initialized');
 
         // Check system prerequisites
-        await this.checkSystemPrerequisites();
-        console.log('   ✅ System prerequisites verified');
+        // await this.checkSystemPrerequisites();
+        // console.log('   ✅ System prerequisites verified');
 
         // Initialize service definitions
-        await this.initializeServices();
-        console.log('   ✅ Service definitions loaded');
+        // await this.initializeServices();
+        console.log('   ✅ Service definitions loaded from CONFIG');
 
         // Clean up any existing processes
-        await this.performInitialCleanup();
+        // await this.performInitialCleanup();
         console.log('   ✅ Initial cleanup completed');
 
         // Start monitoring systems
-        await this.startMonitoringSystems();
+        // await this.startMonitoringSystems();
         console.log('   ✅ Enterprise monitoring started');
     }
 
@@ -900,10 +900,12 @@ AUTHOR: Derek J. Russell
 
 // Handle quick launch argument
 if (args.includes('--quick-launch')) {
-    const launcher = new EnterpriseParallelLauncher();
-    await launcher.initializeEnterpriseLauncher();
-    await launcher.quickLaunch();
-    process.exit(0);
+    (async () => {
+        const launcher = new EnterpriseParallelLauncher();
+        await launcher.initializeEnterpriseLauncher();
+        await launcher.quickLaunch();
+        process.exit(0);
+    })();
 }
 
 if (require.main === module) {

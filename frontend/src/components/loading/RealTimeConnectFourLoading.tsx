@@ -87,8 +87,8 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
     const [connectionAttempts, setConnectionAttempts] = useState(0);
     const [isInitialized, setIsInitialized] = useState(false);
 
-    const audioContextRef = useRef<AudioContext>();
-    const checkIntervalRef = useRef<NodeJS.Timeout>();
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Real backend startup steps that we actually monitor
     const [steps, setSteps] = useState<RealLoadingStep[]>([
