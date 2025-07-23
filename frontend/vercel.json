@@ -21,9 +21,9 @@
         }
     ],
     "env": {
-        "REACT_APP_API_URL": "https://connect-four-ai-roge.onrender.com",
-        "REACT_APP_WS_URL": "https://connect-four-ai-roge.onrender.com",
-        "REACT_APP_ML_SERVICE_URL": "https://connect-four-ai-roge.onrender.com",
+        "REACT_APP_API_URL": "https://connect-four-backend.onrender.com",
+        "REACT_APP_WS_URL": "https://connect-four-backend.onrender.com",
+        "REACT_APP_ML_SERVICE_URL": "https://connect-four-backend.onrender.com",
         "REACT_APP_ENVIRONMENT": "production"
     }
 }
