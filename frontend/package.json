@@ -1,6 +1,7 @@
 {
   "name": "connect-four-frontend",
   "version": "1.0.0",
+  "_comment": "Force rebuild: updated backend URL",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
