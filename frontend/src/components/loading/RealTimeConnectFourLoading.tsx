@@ -105,7 +105,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
             label: 'Starting NestJS application',
             progress: 0,
             status: 'pending',
-            endpoint: `${appConfig.api.baseUrl}/health`,
+            endpoint: `${appConfig.api.baseUrl}/api/health`,
             color: 'yellow',
             realTimeMessage: 'Initializing server...'
         },
@@ -138,7 +138,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
             label: 'Final system health check',
             progress: 0,
             status: 'pending',
-            endpoint: `${appConfig.api.baseUrl}/health`,
+            endpoint: `${appConfig.api.baseUrl}/api/health`,
             color: 'yellow',
             realTimeMessage: 'Verifying all systems...'
         }
@@ -223,7 +223,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
             startTransition(() => {
                 (async () => {
                     const endpoints = {
-                        health: `${appConfig.api.baseUrl}/health`,
+                        health: `${appConfig.api.baseUrl}/api/health`,
                         // Only check endpoints that actually exist
                     };
 
@@ -367,7 +367,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
                     ));
 
                     try {
-                        backendReady = await checkBackendHealth(`${appConfig.api.baseUrl}/health`);
+                        backendReady = await checkBackendHealth(`${appConfig.api.baseUrl}/api/health`);
                         if (backendReady) {
                             setSteps(prev => prev.map((s, i) =>
                                 i === 1 ? {
@@ -496,7 +496,7 @@ const RealTimeConnectFourLoading: React.FC<RealTimeConnectFourLoadingProps> = ({
 
                 if (soundEnabled) playConnectFourSound(784, 0.2);
 
-                const finalHealth = await checkBackendHealth(`${appConfig.api.baseUrl}/health`);
+                const finalHealth = await checkBackendHealth(`${appConfig.api.baseUrl}/api/health`);
 
                 for (let progress = 0; progress <= 100; progress += 33) {
                     setSteps(prev => prev.map((s, i) =>
