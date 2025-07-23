@@ -10,6 +10,8 @@ services:
         value: production
       - key: PORT
         value: 3000
+      - key: CORS_ENABLED
+        value: "true"
       - key: CORS_ORIGINS
         value: https://connect-four-ai-derek.vercel.app
       - key: FRONTEND_URL
