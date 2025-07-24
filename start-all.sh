@@ -60,6 +60,12 @@ start_service "frontend" "frontend" "PORT=3000 npm start"
 echo -e "${BLUE}🤖 Starting ML Service...${NC}"
 start_service "ml_service" "ml_service" "PORT=8000 python3 ml_service.py"
 
+echo -e "${BLUE}🧠 Starting ML Inference Service...${NC}"
+start_service "ml_inference" "ml_service" "ML_INFERENCE_PORT=8001 python3 enhanced_inference.py"
+
+echo -e "${BLUE}🔗 Starting AI Coordination Hub...${NC}"
+start_service "ai_coordination" "ml_service" "AI_COORDINATION_PORT=8002 python3 ai_coordination_hub.py"
+
 # Wait and check services
 echo -e "${YELLOW}⏳ Waiting for services to start...${NC}"
 sleep 5
@@ -101,20 +107,31 @@ done
 check_service 3000 "Frontend" && FRONTEND_OK=true
 check_service 8000 "ML Service" && ML_OK=true
 
+# Check additional AI services
+ML_INFERENCE_OK=false
+AI_COORD_OK=false
+check_service 8001 "ML Inference" && ML_INFERENCE_OK=true
+check_service 8002 "AI Coordination" && AI_COORD_OK=true
+
 echo ""
-if [ "$BACKEND_OK" = true ] && [ "$FRONTEND_OK" = true ] && [ "$ML_OK" = true ]; then
+if [ "$BACKEND_OK" = true ] && [ "$FRONTEND_OK" = true ] && [ "$ML_OK" = true ] && [ "$ML_INFERENCE_OK" = true ] && [ "$AI_COORD_OK" = true ]; then
     echo -e "${GREEN}✅ All services are running successfully!${NC}"
     echo ""
     echo -e "${BLUE}📋 Service URLs:${NC}"
     echo "   - Frontend: http://localhost:3000"
     echo "   - Backend API: http://localhost:3001/api"
     echo "   - Backend Health: http://localhost:3001/api/health"
+    echo "   - AI Resources: http://localhost:3001/api/games/ai/resources"
     echo "   - ML Service: http://localhost:8000"
+    echo "   - ML Inference: http://localhost:8001"
+    echo "   - AI Coordination: http://localhost:8002"
     echo ""
     echo -e "${YELLOW}📁 Logs available in:${NC}"
     echo "   - Backend: logs/backend.log"
     echo "   - Frontend: logs/frontend.log"
     echo "   - ML Service: logs/ml_service.log"
+    echo "   - ML Inference: logs/ml_inference.log"
+    echo "   - AI Coordination: logs/ai_coordination.log"
     echo ""
     echo -e "${BLUE}🛑 To stop all services, run:${NC} npm run stop:all"
 else

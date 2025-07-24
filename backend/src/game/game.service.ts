@@ -1,9 +1,8 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
-import { Server } from 'socket.io';
-import { getBestAIMove, UltimateConnect4AI, AIDecision, UltimateAIConfig, tryDrop } from '../ai/connect4AI';
+import { Injectable, Logger } from '@nestjs/common';
+import { UltimateConnect4AI, AIDecision, UltimateAIConfig, tryDrop } from '../ai/connect4AI';
 import type { CellValue } from '../ai/connect4AI';
-import { getAIMoveViaAPI } from '../services/ml_inference';
 import { GameHistoryService, GameHistoryEntry } from './game-history.service';
+import { AIGameIntegrationService } from '../ai/ai-game-integration.service';
 
 export interface GameMove {
   playerId: string;
@@ -35,6 +34,7 @@ export interface EnhancedGameState {
   startTime: number;
   gamePhase: 'opening' | 'middlegame' | 'endgame';
   difficulty: number;
+  aiLevel?: number; // Added missing property
   aiPersonality: string;
   playerProfiles: Map<string, PlayerProfile>;
   aiExplanations: string[];
@@ -63,7 +63,6 @@ export class GameService {
   private static readonly COLS = 7;
 
   private readonly logger = new Logger(GameService.name);
-  private server: Server;
   private games = new Map<string, EnhancedGameState>();
   private playerProfiles = new Map<string, PlayerProfile>();
 
@@ -82,11 +81,18 @@ export class GameService {
   private lastHealthCheck = new Date();
   private recoveryInProgress = false;
 
-  constructor(private readonly gameHistoryService: GameHistoryService) {
+  constructor(
+    private readonly gameHistoryService: GameHistoryService,
+    private readonly aiIntegration?: AIGameIntegrationService
+  ) {
     this.logger.log('🚀 GameService initialized - AI will be loaded on demand');
     // Disable self-healing monitor to prevent CPU loops
     // this.startSelfHealingMonitor();
     this.logger.log('🔍 Self-healing monitor disabled for stability');
+    
+    if (this.aiIntegration) {
+      this.logger.log('✅ AIGameIntegrationService injected successfully');
+    }
   }
 
   /**
@@ -279,14 +285,16 @@ export class GameService {
     }
   }
 
-  setServer(server: Server) {
-    this.server = server;
-  }
 
   async createGame(playerId: string, _clientId: string, startingPlayer?: CellValue): Promise<string> {
     const gameId = this.generateGameId();
     const playerProfile = this.getOrCreatePlayerProfile(playerId);
     const aiPersonality = this.selectAIPersonality(playerProfile);
+    
+    this.logger.log(`🎮 [${gameId}] Creating new game`);
+    this.logger.log(`  • Player: ${playerId}`);
+    this.logger.log(`  • Difficulty: ${playerProfile.preferredDifficulty}`);
+    this.logger.log(`  • AI Personality: ${aiPersonality}`);
 
     const game: EnhancedGameState = {
       board: Array(GameService.ROWS).fill(null).map(() => Array(GameService.COLS).fill('Empty')),
@@ -470,6 +478,9 @@ export class GameService {
     adaptationInfo?: any;
     curriculumInfo?: any;
     debateResult?: any;
+    strategy?: string;
+    cached?: boolean;
+    alternatives?: any;
   }> {
     const game = this.games.get(gameId);
     if (!game) {
@@ -478,15 +489,66 @@ export class GameService {
 
     const startTime = Date.now();
 
-    // Use simple GameAIService directly - no complex initialization needed
+    // Use advanced AI integration service if available
+    if (this.aiIntegration) {
+      try {
+        this.logger.log(`[${gameId}] 🧠 Using Advanced AI with all features enabled`);
+        this.logger.log(`[${gameId}] 📊 Difficulty: ${game.difficulty || 10}, Player: ${aiDisc}`);
+        
+        const response = await this.aiIntegration.getBestMove(
+          gameId,
+          game.board,
+          aiDisc,
+          humanPlayerId,
+          game.difficulty || 10
+        );
+        
+        const thinkingTime = Date.now() - startTime;
+        
+        this.logger.log(`[${gameId}] 🎮 AI Move Decision:`);
+        this.logger.log(`[${gameId}]   • Column: ${response.move}`);
+        this.logger.log(`[${gameId}]   • Strategy: ${response.metadata.strategy || 'Unknown'}`);
+        this.logger.log(`[${gameId}]   • Confidence: ${((response.metadata.confidence || 0) * 100).toFixed(1)}%`);
+        this.logger.log(`[${gameId}]   • Thinking Time: ${thinkingTime}ms`);
+        this.logger.log(`[${gameId}]   • Cached: ${response.decision.metadata?.mctsStatistics ? 'No' : 'Yes'}`);
+        if (response.metadata.adaptationApplied) {
+          this.logger.log(`[${gameId}]   • Adaptation: Applied`);
+        }
+        
+        return {
+          column: response.move,
+          explanation: response.metadata.explanation,
+          confidence: response.metadata.confidence,
+          thinkingTime: response.metadata.thinkingTime,
+          safetyScore: response.metadata.safetyValidated ? 1.0 : 0.8,
+          adaptationInfo: { 
+            applied: response.metadata.adaptationApplied,
+            learning: response.metadata.learningApplied 
+          },
+          curriculumInfo: { stage: 'advanced' },
+          debateResult: response.decision.metadata?.debateResult,
+          strategy: response.metadata.strategy,
+          cached: response.decision.metadata?.mctsStatistics ? false : true,
+          alternatives: response.metadata.alternatives
+        };
+      } catch (error) {
+        this.logger.warn(`[${gameId}] Advanced AI failed, falling back: ${error.message}`);
+        // Fall through to simplified AI
+      }
+    }
+
+    // Fallback to simplified AI
     this.logger.log(`[${gameId}] 🎯 Using simplified AI for instant moves`);
+    this.logger.log(`[${gameId}] 📊 Fallback AI: Basic minimax algorithm`);
 
     try {
-      // Direct fallback to GameAIService - fast and reliable
+      // Direct fallback to simplified AI - fast and reliable
       const column = this.getFallbackAIMove(game.board);
       const thinkingTime = Date.now() - startTime;
 
       this.logger.log(`[${gameId}] ✅ Simplified AI chose column ${column} in ${thinkingTime}ms`);
+      this.logger.log(`[${gameId}]   • Algorithm: Basic Minimax (Depth: 3)`);
+      this.logger.log(`[${gameId}]   • Speed: Instant response`);
 
       return {
         column,
@@ -649,6 +711,26 @@ export class GameService {
 
     // Log enhanced game analytics
     this.logGameAnalytics(gameId, game);
+    
+    // Update AI Integration Service with game result for learning
+    if (this.aiIntegration) {
+      try {
+        const humanPlayerId = Array.from(game.playerProfiles.keys()).find(id => id !== 'AI');
+        const aiResult: 'win' | 'loss' | 'draw' = winner === 'Yellow' ? 'win' : 
+                                                   winner === 'Red' ? 'loss' : 'draw';
+        
+        await this.aiIntegration.updateFromGameResult(
+          gameId,
+          aiResult,
+          game.board,
+          humanPlayerId
+        );
+        
+        this.logger.log(`📚 AI learning updated from game ${gameId} result: ${aiResult}`);
+      } catch (error) {
+        this.logger.warn(`Failed to update AI learning: ${error.message}`);
+      }
+    }
 
     // Update Ultimate AI with game experience
     if (this.ultimateAI) {
@@ -848,7 +930,7 @@ export class GameService {
 
   // Utility to generate a random gameId
   private generateGameId(): string {
-    return Math.random().toString(36).substr(2, 9);
+    return Math.random().toString(36).substring(2, 11);
   }
 
   // Check win in 4 directions
@@ -1082,7 +1164,7 @@ export class GameService {
       try {
         // If AI has cleanup methods, call them
         if (typeof this.ultimateAI.dispose === 'function') {
-          await this.ultimateAI.dispose();
+          this.ultimateAI.dispose();
         }
       } catch (error) {
         this.logger.error(`❌ AI cleanup failed: ${error.message}`);

@@ -18,6 +18,8 @@ import { DashboardService } from './dashboard.service';
 import { TrainingService, TrainingConfiguration } from './training.service';
 import { OnEvent } from '@nestjs/event-emitter';
 import type { CellValue } from '../ai/connect4AI';
+import { AsyncAIOrchestrator } from '../ai/async/async-ai-orchestrator';
+import { PerformanceMonitor } from '../ai/async/performance-monitor';
 
 interface CreateGamePayload {
   playerId: string;
@@ -75,11 +77,12 @@ export class GameGateway
     private readonly mlClientService: MlClientService,
     private readonly dashboardService: DashboardService,
     private readonly trainingService: TrainingService,
+    private readonly asyncAIOrchestrator?: AsyncAIOrchestrator,
+    private readonly performanceMonitor?: PerformanceMonitor,
   ) { }
 
   afterInit(server: Server) {
     this.logger.log('WebSocket server initialized');
-    this.gameService.setServer(server);
   }
 
   handleConnection(client: Socket) {
@@ -151,20 +154,11 @@ export class GameGateway
   }
 
   /**
-   * Trigger an enhanced AI move with full capability integration
+   * Trigger an enhanced AI move with full async capability integration
    */
   private async triggerAIMove(gameId: string, playerId: string): Promise<void> {
     try {
-      this.logger.log(`[${gameId}] 🧠 Triggering Enhanced AI move`);
-
-      // Emit AI thinking status with enhanced information
-      this.server.to(gameId).emit('aiThinking', {
-        status: 'thinking',
-        capabilities: ['constitutional_ai', 'safety_monitoring', 'explainable_ai', 'real_time_adaptation']
-      });
-
-      // Moderate delay to show thinking process
-      await new Promise(r => setTimeout(r, this.AI_THINK_DELAY_MS));
+      this.logger.log(`[${gameId}] 🧠 Triggering Enhanced Async AI move`);
 
       // Get the current game state
       const game = this.gameService.getGame(gameId);
@@ -173,7 +167,69 @@ export class GameGateway
         return;
       }
 
-      // Generate Enhanced AI move using the integrated systems
+      // Check if we can use async AI orchestrator
+      const useAsyncAI = this.asyncAIOrchestrator && game.aiLevel && game.aiLevel > 3;
+
+      // Emit AI thinking status with enhanced information
+      this.server.to(gameId).emit('aiThinking', {
+        status: 'thinking',
+        capabilities: useAsyncAI ? 
+          ['async_processing', 'caching', 'circuit_breaker', 'dynamic_strategy', 'precomputation'] :
+          ['constitutional_ai', 'safety_monitoring', 'explainable_ai', 'real_time_adaptation'],
+        usingAsyncAI: useAsyncAI
+      });
+
+      // If using async AI, stream real-time analysis
+      if (useAsyncAI && this.asyncAIOrchestrator) {
+        const analysisStream = this.asyncAIOrchestrator.streamAnalysis(
+          {
+            gameId,
+            board: game.board,
+            player: 'Yellow' as CellValue,
+            difficulty: game.aiLevel || 5,
+            timeLimit: 5000,
+          },
+          {
+            includeVariations: true,
+            maxDepth: 3,
+            updateInterval: 100
+          }
+        );
+
+        // Stream analysis updates to client
+        for await (const update of analysisStream) {
+          switch (update.type) {
+            case 'progress':
+              this.server.to(gameId).emit('aiAnalysisProgress', {
+                strategy: update.data.strategy,
+                confidence: update.data.confidence,
+                timestamp: Date.now()
+              });
+              break;
+            
+            case 'variation':
+              this.server.to(gameId).emit('aiVariation', {
+                moves: update.data.moves,
+                score: update.data.score,
+                description: update.data.description
+              });
+              break;
+            
+            case 'move':
+              // Main move computed - this will be our final move
+              break;
+            
+            case 'complete':
+              this.logger.log(`[${gameId}] Analysis completed in ${update.data.totalTime}ms`);
+              break;
+          }
+        }
+      } else {
+        // Moderate delay to show thinking process for non-async AI
+        await new Promise(r => setTimeout(r, this.AI_THINK_DELAY_MS));
+      }
+
+      // Generate Enhanced AI move
       this.logger.log(`[${gameId}] 🎯 Computing Enhanced AI move`);
       const startTime = Date.now();
 
@@ -181,6 +237,21 @@ export class GameGateway
       const thinkingTime = Date.now() - startTime;
 
       this.logger.log(`[${gameId}] ✅ Enhanced AI computed move ${enhancedAIResult.column} in ${thinkingTime}ms`);
+
+      // Record performance metrics if available
+      if (this.performanceMonitor) {
+        this.performanceMonitor.recordMetric({
+          name: 'websocket.ai.move.latency',
+          value: thinkingTime,
+          unit: 'ms',
+          timestamp: Date.now(),
+          tags: {
+            gameId,
+            difficulty: (game.aiLevel || 5).toString(),
+            cached: enhancedAIResult.cached ? 'true' : 'false'
+          }
+        });
+      }
 
       // Emit enhanced thinking result
       this.server.to(gameId).emit('aiThinkingComplete', {
@@ -190,7 +261,9 @@ export class GameGateway
         explanation: enhancedAIResult.explanation,
         safetyScore: enhancedAIResult.safetyScore,
         adaptationInfo: enhancedAIResult.adaptationInfo,
-        curriculumInfo: enhancedAIResult.curriculumInfo
+        curriculumInfo: enhancedAIResult.curriculumInfo,
+        strategy: enhancedAIResult.strategy,
+        cached: enhancedAIResult.cached
       });
 
       // Execute the AI move
@@ -226,7 +299,10 @@ export class GameGateway
           adaptationInfo: enhancedAIResult.adaptationInfo,
           curriculumInfo: enhancedAIResult.curriculumInfo,
           debateResult: enhancedAIResult.debateResult,
-          thinkingTime: thinkingTime
+          thinkingTime: thinkingTime,
+          strategy: enhancedAIResult.strategy,
+          cached: enhancedAIResult.cached,
+          alternatives: enhancedAIResult.alternatives
         },
 
         // Game Metrics
@@ -238,7 +314,8 @@ export class GameGateway
       this.logger.log(
         `[${gameId}] 🎯 Enhanced AI played column ${enhancedAIResult.column} ` +
         `(confidence: ${(enhancedAIResult.confidence! * 100).toFixed(1)}%, ` +
-        `safety: ${(enhancedAIResult.safetyScore! * 100).toFixed(1)}%)`
+        `safety: ${(enhancedAIResult.safetyScore! * 100).toFixed(1)}%, ` +
+        `cached: ${enhancedAIResult.cached})`
       );
 
       // Log explanation if available
@@ -248,6 +325,12 @@ export class GameGateway
 
     } catch (error: any) {
       this.logger.error(`[${gameId}] Error in Enhanced AI move: ${error.message}`);
+      
+      // Record error if performance monitor available
+      if (this.performanceMonitor) {
+        this.performanceMonitor.recordError(error, { gameId }, 'high');
+      }
+
       this.server.to(gameId).emit('error', {
         event: 'enhancedAiMove',
         message: 'Enhanced AI move failed',
@@ -263,7 +346,7 @@ export class GameGateway
           return;
         }
 
-        const fallbackAI = await this.gameAi.getNextMove(fallbackGame.board, 'Yellow', playerId);
+        const fallbackAI = await this.gameAi.getNextMove(fallbackGame.board, 'Yellow', playerId, gameId);
         const fallbackRes = await this.gameService.dropDisc(gameId, 'AI', fallbackAI);
 
         if (fallbackRes.success) {
@@ -277,7 +360,8 @@ export class GameGateway
               explanation: 'Fallback AI decision - Enhanced systems temporarily unavailable',
               confidence: 0.6,
               safetyScore: 1.0,
-              thinkingTime: 100
+              thinkingTime: 100,
+              cached: false
             }
           });
         }
@@ -345,6 +429,109 @@ export class GameGateway
       client.emit('error', {
         event: 'dropDisc',
         message: error.message,
+      });
+    }
+  }
+
+  /**
+   * Get real-time AI system health
+   */
+  @SubscribeMessage('getAISystemHealth')
+  async handleGetAISystemHealth(
+    @ConnectedSocket() client: Socket
+  ): Promise<void> {
+    try {
+      if (this.asyncAIOrchestrator) {
+        const health = await this.asyncAIOrchestrator.getSystemHealth();
+        
+        client.emit('aiSystemHealth', {
+          health,
+          timestamp: Date.now(),
+          asyncAIAvailable: true
+        });
+        
+        this.logger.debug(`AI system health sent to client ${client.id}`);
+      } else {
+        client.emit('aiSystemHealth', {
+          health: {
+            orchestrator: { activeRequests: 0 },
+            performance: { healthy: true },
+            recommendations: []
+          },
+          timestamp: Date.now(),
+          asyncAIAvailable: false
+        });
+      }
+    } catch (error: any) {
+      this.logger.error(`Failed to get AI system health: ${error.message}`);
+      client.emit('error', {
+        event: 'getAISystemHealth',
+        message: 'Failed to retrieve AI system health',
+        details: error.message
+      });
+    }
+  }
+
+  /**
+   * Subscribe to real-time performance metrics
+   */
+  @SubscribeMessage('subscribeToMetrics')
+  async handleSubscribeToMetrics(
+    @MessageBody() payload: { gameId?: string },
+    @ConnectedSocket() client: Socket
+  ): Promise<void> {
+    try {
+      if (this.performanceMonitor) {
+        // Send metrics every 5 seconds
+        const interval = setInterval(async () => {
+          const report = await this.performanceMonitor.generateReport(60000); // Last minute
+          
+          client.emit('performanceMetrics', {
+            report,
+            gameId: payload.gameId,
+            timestamp: Date.now()
+          });
+        }, 5000);
+
+        // Store interval to clear on disconnect
+        (client as any).metricsInterval = interval;
+        
+        client.emit('metricsSubscribed', { success: true });
+        this.logger.debug(`Client ${client.id} subscribed to performance metrics`);
+      } else {
+        client.emit('metricsSubscribed', { 
+          success: false, 
+          reason: 'Performance monitoring not available' 
+        });
+      }
+    } catch (error: any) {
+      this.logger.error(`Failed to subscribe to metrics: ${error.message}`);
+      client.emit('error', {
+        event: 'subscribeToMetrics',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Unsubscribe from metrics
+   */
+  @SubscribeMessage('unsubscribeFromMetrics')
+  handleUnsubscribeFromMetrics(
+    @ConnectedSocket() client: Socket
+  ): void {
+    try {
+      if ((client as any).metricsInterval) {
+        clearInterval((client as any).metricsInterval);
+        delete (client as any).metricsInterval;
+      }
+      client.emit('metricsUnsubscribed', { success: true });
+      this.logger.debug(`Client ${client.id} unsubscribed from performance metrics`);
+    } catch (error: any) {
+      this.logger.error(`Failed to unsubscribe from metrics: ${error.message}`);
+      client.emit('error', {
+        event: 'unsubscribeFromMetrics',
+        message: error.message
       });
     }
   }
@@ -978,5 +1165,43 @@ export class GameGateway
   @OnEvent('training.resumed')
   handleTrainingResumed(payload: any) {
     this.server.emit('trainingResumed', payload);
+  }
+
+  // Event listeners for async AI events
+  @OnEvent('ai.performance.slow')
+  handleAIPerformanceSlow(payload: any) {
+    this.server.emit('aiPerformanceAlert', {
+      type: 'slow',
+      ...payload
+    });
+  }
+
+  @OnEvent('ai.cache.inefficient')
+  handleAICacheInefficient(payload: any) {
+    this.server.emit('aiPerformanceAlert', {
+      type: 'cache_inefficient',
+      ...payload
+    });
+  }
+
+  @OnEvent('ai.memory.high')
+  handleAIMemoryHigh(payload: any) {
+    this.server.emit('aiPerformanceAlert', {
+      type: 'memory_high',
+      ...payload
+    });
+  }
+
+  @OnEvent('ai.service.degraded')
+  handleAIServiceDegraded(payload: any) {
+    this.server.emit('aiServiceStatus', {
+      status: 'degraded',
+      ...payload
+    });
+  }
+
+  @OnEvent('circuit.stateChange')
+  handleCircuitStateChange(payload: any) {
+    this.server.emit('aiCircuitBreakerStatus', payload);
   }
 }

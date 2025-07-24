@@ -31,7 +31,7 @@ import { AIGameIntegrationService } from '../ai/ai-game-integration.service';
     DashboardService, 
     TrainingService, 
     SettingsService,
-    AIGameIntegrationService
+    AIGameIntegrationService // Add the integration service
   ],
   exports: [GameService, GameGateway],
 })

@@ -216,6 +216,15 @@ export class ResourceManager extends EventEmitter {
         priority: number;
     }>();
 
+    // Performance tracking for TODOs
+    private allocationStartTimes = new Map<string, number>();
+    private totalAllocationTime = 0;
+    private totalDeallocationTime = 0;
+    private allocationCount = 0;
+    private deallocationCount = 0;
+    private allocationFailures = 0;
+    private criticalEvents = 0;
+
     constructor(config: Partial<ResourceManagerConfig> = {}) {
         super();
 
@@ -361,6 +370,10 @@ export class ResourceManager extends EventEmitter {
         const allocations: ResourceAllocation[] = [];
         const timestamp = Date.now();
         const priority = requirements.priority || 1;
+        
+        // Track allocation start time
+        const allocationStartTime = Date.now();
+        this.allocationStartTimes.set(componentName, allocationStartTime);
 
         try {
             // Check availability first
@@ -398,12 +411,19 @@ export class ResourceManager extends EventEmitter {
             // Update active component count
             this.currentUsage.activeComponents++;
 
+            // Update allocation metrics
+            const allocationTime = Date.now() - allocationStartTime;
+            this.totalAllocationTime += allocationTime;
+            this.allocationCount++;
+            
             this.logger.debug(`Allocated resources for ${componentName}:`, requirements);
             this.emit('resources-allocated', componentName, allocations);
 
             return allocations;
 
         } catch (error) {
+            // Track allocation failures
+            this.allocationFailures++;
             this.logger.error(`Failed to allocate resources for ${componentName}:`, error);
 
             // Rollback any successful allocations
@@ -440,6 +460,8 @@ export class ResourceManager extends EventEmitter {
      * Deallocate resources for a component
      */
     async deallocateResources(componentName: string): Promise<void> {
+        const deallocationStartTime = Date.now();
+        
         try {
             const componentResource = this.componentResources.get(componentName);
             if (!componentResource) {
@@ -466,10 +488,18 @@ export class ResourceManager extends EventEmitter {
             // Update active component count
             this.currentUsage.activeComponents = Math.max(0, this.currentUsage.activeComponents - 1);
 
+            // Update deallocation metrics
+            const deallocationTime = Date.now() - deallocationStartTime;
+            this.totalDeallocationTime += deallocationTime;
+            this.deallocationCount++;
+            this.allocationStartTimes.delete(componentName);
+            
             this.logger.debug(`Deallocated resources for ${componentName}`);
             this.emit('resources-deallocated', componentName);
 
         } catch (error) {
+            // Track critical events
+            this.criticalEvents++;
             this.logger.error(`Failed to deallocate resources for ${componentName}:`, error);
             throw error;
         }
@@ -528,16 +558,16 @@ export class ResourceManager extends EventEmitter {
             history: [...this.resourceHistory],
             allocations: Array.from(this.allocations.values()),
             performance: {
-                allocationTime: 0, // TODO: Implement
-                deallocationTime: 0, // TODO: Implement
+                allocationTime: this.allocationCount > 0 ? this.totalAllocationTime / this.allocationCount : 0,
+                deallocationTime: this.deallocationCount > 0 ? this.totalDeallocationTime / this.deallocationCount : 0,
                 fragmentationLevel: this.calculateFragmentation(),
                 efficiency: this.calculateEfficiency()
             },
             health: {
                 memoryLeaks: this.detectMemoryLeaks(),
                 resourceContention: this.detectResourceContention(),
-                allocationFailures: 0, // TODO: Track
-                criticalEvents: 0 // TODO: Track
+                allocationFailures: this.allocationFailures,
+                criticalEvents: this.criticalEvents
             }
         };
     }

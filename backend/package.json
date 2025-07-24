@@ -2,9 +2,9 @@
     "name": "connect-four-backend",
     "version": "1.0.0",
     "scripts": {
-        "start:dev": "nest start --watch",
+        "start:dev": "node --expose-gc --max-old-space-size=512 --optimize-for-size node_modules/.bin/nest start --watch",
         "build": "nest build",
-        "start:prod": "node dist/main.js",
+        "start:prod": "node --expose-gc --max-old-space-size=512 --optimize-for-size dist/main.js",
         "start": "npm run start:prod",
         "test": "jest",
         "test:watch": "jest --watch",

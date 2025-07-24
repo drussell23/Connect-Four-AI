@@ -93,6 +93,16 @@ The system uses a 5-tier stability architecture at `/backend/src/ai/stability/`:
 - EXPERIMENTAL: <5s complex systems
 - RESEARCH: <30s experimental algorithms
 
+### Async AI Architecture
+New async components at `/backend/src/ai/async/`:
+- **AsyncCacheManager**: Memoization and caching for AI computations
+- **CircuitBreaker**: Fault tolerance with exponential backoff retry
+- **RequestBatcher**: Batching and priority queuing for performance
+- **DynamicStrategySelector**: Runtime AI model selection (AlphaZero, DQN, MCTS, etc.)
+- **PerformanceMonitor**: Real-time metrics and error tracking
+- **PrecomputationEngine**: Background move precomputation
+- **AsyncAIOrchestrator**: Main orchestrator bringing all components together
+
 ### Key Service Ports
 - Frontend: 3001
 - Backend: 3000

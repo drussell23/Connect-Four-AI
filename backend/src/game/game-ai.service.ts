@@ -4,6 +4,8 @@ import { CellValue, legalMoves } from '../ai/connect4AI';
 import { minimax, mcts } from '../ai/connect4AI';
 import { AiProfileService } from './ai-profile.service';
 import { MlClientService } from '../ml/ml-client.service';
+import { AsyncAIOrchestrator, AIRequest } from '../ai/async/async-ai-orchestrator';
+import { AIStrategy } from '../ai/async/strategy-selector';
 
 @Injectable()
 export class GameAIService {
@@ -13,6 +15,7 @@ export class GameAIService {
   constructor(
     private readonly aiProfileService: AiProfileService,
     private readonly mlClientService: MlClientService,
+    private readonly asyncAIOrchestrator?: AsyncAIOrchestrator,
   ) { }
 
   /**
@@ -27,9 +30,39 @@ export class GameAIService {
     board: CellValue[][],
     aiDisc: CellValue = 'Yellow',
     playerId: string = 'default_player',
+    gameId?: string,
   ): Promise<number> {
     const profile = await this.aiProfileService.getOrCreateProfile(playerId);
     const aiLevel = profile.level;
+    
+    // Use async orchestrator if available and level > 3
+    if (this.asyncAIOrchestrator && aiLevel > 3 && gameId) {
+      try {
+        const request: AIRequest = {
+          gameId,
+          board,
+          player: aiDisc,
+          difficulty: aiLevel,
+          timeLimit: this.getTimeLimitForLevel(aiLevel),
+          strategy: this.getStrategyForLevel(aiLevel),
+          priority: aiLevel >= 7 ? 10 : 5,
+        };
+
+        const response = await this.asyncAIOrchestrator.getAIMove(request);
+        
+        this.logger.log(
+          `Async AI chose column ${response.move} with ${response.confidence.toFixed(2)} confidence ` +
+          `using ${response.strategy} strategy (cached: ${response.cached})`
+        );
+        
+        return response.move;
+      } catch (error) {
+        this.logger.warn(`Async AI failed, falling back to standard implementation: ${error.message}`);
+        // Fall through to standard implementation
+      }
+    }
+    
+    // Standard implementation (levels 1-3 or fallback)
     const key = JSON.stringify(board) + aiDisc + aiLevel;
 
     if (this.cache.has(key)) {
@@ -112,6 +145,28 @@ export class GameAIService {
   }
 
   /**
+   * Gets the appropriate time limit for the given AI level
+   */
+  private getTimeLimitForLevel(level: number): number {
+    if (level <= 3) return 500;
+    if (level <= 6) return 1000 + (level - 4) * 500;
+    if (level <= 8) return 3000;
+    return 5000; // Level 9+
+  }
+
+  /**
+   * Gets the appropriate AI strategy for the given level
+   */
+  private getStrategyForLevel(level: number): AIStrategy {
+    if (level <= 3) return AIStrategy.MINIMAX;
+    if (level <= 6) return AIStrategy.MCTS;
+    if (level === 7) return AIStrategy.DQN;
+    if (level === 8) return AIStrategy.PPO;
+    if (level === 9) return AIStrategy.ALPHAZERO;
+    return AIStrategy.MUZERO; // Level 10+
+  }
+
+  /**
    * Gets a random legal move from the board.
    */
   private getRandomMove(board: CellValue[][]): number {
@@ -162,4 +217,3 @@ export class GameAIService {
     }
   }
 }
-
