@@ -830,10 +830,79 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!socket) return;
 
-    // Enhanced AI thinking with capabilities
-    socket.on('aiThinking', (data?: { status: string; capabilities: string[] }) => {
+    // Enhanced AI thinking with detailed logging
+    socket.on('aiThinking', (data?: any) => {
+      // Log detailed AI thinking process to console
+      if (data?.type) {
+        const timestamp = new Date(data.timestamp).toLocaleTimeString();
+        
+        switch (data.type) {
+          case 'systemActivation':
+            console.log(`%c[${timestamp}] 🚀 ${data.message}`, 'color: #4CAF50; font-weight: bold');
+            console.log('%c   Details:', 'color: #666');
+            console.log(`   • System: ${data.details.system}`);
+            console.log(`   • Description: ${data.details.description}`);
+            if (data.details.capabilities) {
+              console.log(`   • Capabilities: ${data.details.capabilities.join(', ')}`);
+            }
+            if (data.details.difficulty !== undefined) {
+              console.log(`   • Difficulty: ${data.details.difficulty}`);
+            }
+            if (data.details.moveNumber) {
+              console.log(`   • Move Number: ${data.details.moveNumber}`);
+            }
+            break;
+            
+          case 'criticality':
+            console.log(`%c[${timestamp}] 📊 ${data.message}`, 'color: #FF9800; font-weight: bold');
+            console.log('%c   Analysis:', 'color: #666');
+            console.log(`   • Winning Threat: ${(data.details.factors.winningThreat * 100).toFixed(0)}%`);
+            console.log(`   • Losing Threat: ${(data.details.factors.losingThreat * 100).toFixed(0)}%`);
+            console.log(`   • Strategic Importance: ${(data.details.factors.strategicImportance * 100).toFixed(0)}%`);
+            console.log(`   • Game Phase: ${(data.details.factors.gamePhase * 100).toFixed(0)}%`);
+            console.log(`   • Recommended Depth: ${data.details.recommendedDepth}`);
+            console.log(`   • Time Allocation: ${data.details.timeAllocation}ms`);
+            break;
+            
+          case 'progress':
+            console.log(`%c[${timestamp}] 🔄 ${data.message}`, 'color: #2196F3');
+            if (data.details.servicesUsed) {
+              console.log(`   • Services: ${data.details.servicesUsed.join(', ')}`);
+            }
+            break;
+            
+          case 'variation':
+            console.log(`%c[${timestamp}] 🎯 ${data.message}`, 'color: #9C27B0');
+            break;
+            
+          case 'moveDecision':
+            console.log(`%c[${timestamp}] ✅ ${data.message}`, 'color: #4CAF50; font-weight: bold; font-size: 14px');
+            console.log('%c   Decision Details:', 'color: #666; font-weight: bold');
+            console.log(`   • Column: ${data.details.column}`);
+            console.log(`   • Confidence: ${(data.details.confidence * 100).toFixed(1)}%`);
+            console.log(`   • Computation Time: ${data.details.computationTime}ms`);
+            console.log(`   • Services Used: ${data.details.servicesUsed.join(', ')}`);
+            console.log(`   • Explanation: ${data.details.explanation}`);
+            if (data.details.alternativeMoves?.length > 0) {
+              console.log('%c   Alternative Moves:', 'color: #666');
+              data.details.alternativeMoves.forEach((alt: any) => {
+                console.log(`     - Column ${alt.column}: ${(alt.score * 100).toFixed(0)}% (${alt.reason})`);
+              });
+            }
+            break;
+            
+          case 'difficultyMapping':
+            console.log(`%c[${timestamp}] 🎮 ${data.message}`, 'color: #9C27B0; font-weight: bold');
+            console.log(`   • Frontend Level: ${data.details.frontendLevel}/25`);
+            console.log(`   • Backend Difficulty: ${data.details.backendDifficulty.toFixed(1)}/10`);
+            console.log(`   • Category: ${data.details.difficultyName}`);
+            break;
+        }
+      }
+      
+      // Update UI status
       const currentAI = getAIPersonality(aiLevel);
-      if (data?.capabilities) {
+      if (data?.capabilities || data?.details?.capabilities) {
         // More creative and simple AI thinking messages
         const thinkingMessages = [
           "AI is thinking...",

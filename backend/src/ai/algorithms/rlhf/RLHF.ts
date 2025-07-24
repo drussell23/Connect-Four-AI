@@ -600,8 +600,11 @@ export class RLHF {
                     filteredMoves.sort((a, b) => this.calculatePositionComplexity(board, b) - this.calculatePositionComplexity(board, a));
                     break;
                 case 'avoid_trivial_wins':
-                    // Avoid immediately winning moves if the game would be too short
-                    if (this.countMoves(board) < 8) {
+                    // Only avoid wins in very early game and at lower difficulties
+                    const moveCount = this.countMoves(board);
+                    const shouldAvoidWin = moveCount < 6 && Math.random() < 0.3; // 30% chance in first 6 moves
+                    
+                    if (shouldAvoidWin) {
                         const nonWinningMoves = filteredMoves.filter(move => !this.isImmediateWin(board, move));
                         if (nonWinningMoves.length > 0) {
                             return nonWinningMoves;
@@ -767,13 +770,77 @@ export class RLHF {
     }
 
     private isImmediateWin(board: CellValue[][], move: number): boolean {
-        // Check if the move results in immediate win (simplified)
-        return false; // Placeholder
+        // Check if the move results in immediate win
+        const player = 'Yellow'; // AI is always Yellow
+        
+        // Find the row where the piece would land
+        let row = -1;
+        for (let r = 5; r >= 0; r--) {
+            if (board[r][move] === 'Empty' || board[r][move] === null) {
+                row = r;
+                break;
+            }
+        }
+        
+        if (row === -1) return false; // Column is full
+        
+        // Temporarily place the piece
+        const testBoard = board.map(r => [...r]);
+        testBoard[row][move] = player;
+        
+        // Check if this creates a win
+        return this.checkForWin(testBoard, player, row, move);
     }
 
     private findCreativeMoves(board: CellValue[][], moves: number[]): number[] {
         // Find less obvious but potentially interesting moves
-        return moves.slice(1); // Simplified - return non-first moves
+        if (moves.length <= 1) return moves;
+        
+        // Filter out the most obvious move (usually center or immediate threats)
+        const centerCol = 3;
+        const nonCenterMoves = moves.filter(m => m !== centerCol);
+        
+        // If we have non-center moves, prefer those for creativity
+        if (nonCenterMoves.length > 0) {
+            return nonCenterMoves;
+        }
+        
+        // Otherwise return all but the first move
+        return moves.slice(1);
+    }
+    
+    private checkForWin(board: CellValue[][], player: CellValue, lastRow: number, lastCol: number): boolean {
+        // Check horizontal
+        let count = 1;
+        // Check left
+        for (let col = lastCol - 1; col >= 0 && board[lastRow][col] === player; col--) count++;
+        // Check right
+        for (let col = lastCol + 1; col < 7 && board[lastRow][col] === player; col++) count++;
+        if (count >= 4) return true;
+        
+        // Check vertical
+        count = 1;
+        // Check down
+        for (let row = lastRow + 1; row < 6 && board[row][lastCol] === player; row++) count++;
+        if (count >= 4) return true;
+        
+        // Check diagonal (top-left to bottom-right)
+        count = 1;
+        // Check up-left
+        for (let i = 1; lastRow - i >= 0 && lastCol - i >= 0 && board[lastRow - i][lastCol - i] === player; i++) count++;
+        // Check down-right
+        for (let i = 1; lastRow + i < 6 && lastCol + i < 7 && board[lastRow + i][lastCol + i] === player; i++) count++;
+        if (count >= 4) return true;
+        
+        // Check diagonal (bottom-left to top-right)
+        count = 1;
+        // Check down-left
+        for (let i = 1; lastRow + i < 6 && lastCol - i >= 0 && board[lastRow + i][lastCol - i] === player; i++) count++;
+        // Check up-right
+        for (let i = 1; lastRow - i >= 0 && lastCol + i < 7 && board[lastRow - i][lastCol + i] === player; i++) count++;
+        if (count >= 4) return true;
+        
+        return false;
     }
 
     /**

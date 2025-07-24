@@ -19,6 +19,10 @@ import { AIPerformanceCollector } from './ai-performance-collector';
 import { SelfTuningOptimizer } from './self-tuning-optimizer';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AdaptiveAIOrchestrator } from './adaptive/adaptive-ai-orchestrator';
+import { LearningIntegrationModule } from './learning/learning-integration.module';
+import { ReinforcementLearningService } from './learning/reinforcement-learning.service';
+import { ResourceManagementModule } from './resource-management/resource-management.module';
+import { AIPerformanceAnalyzer } from './diagnostics/ai-performance-analyzer';
 
 /**
  * Integration module that wires the async AI architecture with the existing AI services
@@ -27,7 +31,9 @@ import { AdaptiveAIOrchestrator } from './adaptive/adaptive-ai-orchestrator';
 @Module({
   imports: [
     AsyncAIModule,
-    ScheduleModule.forRoot()
+    ScheduleModule.forRoot(),
+    LearningIntegrationModule,
+    ResourceManagementModule
   ],
   providers: [
     ResourceMonitorService,
@@ -36,6 +42,7 @@ import { AdaptiveAIOrchestrator } from './adaptive/adaptive-ai-orchestrator';
     AIPerformanceCollector,
     SelfTuningOptimizer,
     AdaptiveAIOrchestrator,
+    AIPerformanceAnalyzer,
     {
       provide: AdaptiveAIService,
       useFactory: (
@@ -112,7 +119,9 @@ import { AdaptiveAIOrchestrator } from './adaptive/adaptive-ai-orchestrator';
     AsyncDecisionEngine,
     AIPerformanceCollector,
     SelfTuningOptimizer,
-    AdaptiveAIOrchestrator
+    AdaptiveAIOrchestrator,
+    LearningIntegrationModule,  // Export the module to provide EnhancedRLService and ReinforcementLearningService
+    ResourceManagementModule  // Export resource management services
   ]
 })
 export class AIIntegrationModule implements OnModuleInit {

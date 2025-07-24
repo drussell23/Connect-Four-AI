@@ -1,8 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AsyncAIOrchestrator } from '../async/async-ai-orchestrator';
 import { PerformanceMonitor } from '../async/performance-monitor';
 import { CellValue } from '../connect4AI';
+import { ReinforcementLearningService } from '../learning/reinforcement-learning.service';
+import { EnhancedRLService } from '../learning/enhanced-rl.service';
+import { AdaptiveThrottleService } from '../resource-management/adaptive-throttle.service';
+import { IntelligentResourceManager } from '../resource-management/intelligent-resource-manager';
 
 export interface GameCriticality {
   score: number; // 0-1, where 1 is most critical
@@ -43,6 +47,10 @@ export class AdaptiveAIOrchestrator {
     private readonly asyncOrchestrator: AsyncAIOrchestrator,
     private readonly performanceMonitor: PerformanceMonitor,
     private readonly eventEmitter: EventEmitter2,
+    @Optional() private readonly learningService?: ReinforcementLearningService,
+    @Optional() private readonly enhancedRLService?: EnhancedRLService,
+    @Optional() private readonly throttleService?: AdaptiveThrottleService,
+    @Optional() private readonly resourceManager?: IntelligentResourceManager,
   ) {}
 
   /**
@@ -56,8 +64,34 @@ export class AdaptiveAIOrchestrator {
   ): Promise<MoveAnalysis> {
     const startTime = Date.now();
     
+    // Map frontend difficulty (1-25) to backend scale (1-10)
+    const backendDifficulty = this.mapFrontendToBackendDifficulty(difficulty);
+    const difficultyName = this.getDifficultyName(difficulty);
+    this.logger.log(`[${gameId}] AI Level ${difficulty} (${difficultyName}) → Backend difficulty: ${backendDifficulty.toFixed(1)}/10`);
+    
+    // Emit difficulty mapping for frontend logging
+    this.eventEmitter.emit('ai.difficulty.mapped', {
+      gameId,
+      frontendLevel: difficulty,
+      backendDifficulty,
+      difficultyName,
+      timestamp: Date.now(),
+    });
+    
     // Analyze game criticality to determine computational resources
-    const criticality = this.analyzeGameCriticality(board, player);
+    const criticality = this.analyzeGameCriticality(board, player, backendDifficulty);
+    
+    // Check resource availability before computing
+    if (this.resourceManager) {
+      const resourceStatus = this.resourceManager.getResourceStatus();
+      if (resourceStatus.current.memory > 95 || resourceStatus.current.cpu > 95) {
+        this.logger.warn(`High resource usage detected: CPU ${resourceStatus.current.cpu.toFixed(1)}%, Memory ${resourceStatus.current.memory.toFixed(1)}%`);
+        // Reduce criticality to use less resources
+        criticality.score = Math.min(criticality.score * 0.7, 0.5);
+        criticality.recommendedDepth = Math.min(criticality.recommendedDepth, 4);
+        criticality.timeAllocation = Math.min(criticality.timeAllocation, 1000);
+      }
+    }
     
     this.logger.log(`[${gameId}] Game criticality: ${criticality.score.toFixed(2)}`);
     this.logger.debug(`[${gameId}] Criticality factors:`, criticality.factors);
@@ -71,27 +105,86 @@ export class AdaptiveAIOrchestrator {
 
     let moveAnalysis: MoveAnalysis;
 
-    if (criticality.score < 0.3) {
-      // Low criticality: Use fast, simple evaluation
-      moveAnalysis = await this.computeFastMove(gameId, board, player, criticality);
-    } else if (criticality.score < 0.7) {
-      // Medium criticality: Use balanced approach
-      moveAnalysis = await this.computeBalancedMove(gameId, board, player, criticality, difficulty);
+    // Adjust thresholds based on difficulty - higher difficulty should use more computation
+    const lowThreshold = Math.max(0.1, 0.3 - backendDifficulty * 0.03);
+    const highThreshold = Math.max(0.3, 0.6 - backendDifficulty * 0.05);
+    
+    // Submit move computation through throttle service if available
+    if (this.throttleService) {
+      const priority = Math.ceil(criticality.score * 10);
+      const estimatedResources = this.estimateResourceRequirements(criticality, backendDifficulty);
+      
+      try {
+        moveAnalysis = await this.throttleService.submitRequest({
+          id: `ai-move-${gameId}-${Date.now()}`,
+          type: 'ai-move-computation',
+          priority,
+          estimatedDuration: criticality.timeAllocation,
+          resourceRequirements: estimatedResources,
+          callback: async () => {
+            // Compute move based on criticality
+            if (backendDifficulty >= 8) {
+              return await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty);
+            } else if (criticality.score < lowThreshold && backendDifficulty < 5) {
+              return await this.computeFastMove(gameId, board, player, criticality);
+            } else if (criticality.score < highThreshold) {
+              return await this.computeBalancedMove(gameId, board, player, criticality, backendDifficulty);
+            } else {
+              return await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty);
+            }
+          }
+        });
+      } catch (error) {
+        this.logger.warn(`Throttle service error, falling back to direct computation: ${error.message}`);
+        // Fallback to direct computation
+        if (backendDifficulty >= 8) {
+          moveAnalysis = await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty);
+        } else if (criticality.score < lowThreshold && backendDifficulty < 5) {
+          moveAnalysis = await this.computeFastMove(gameId, board, player, criticality);
+        } else if (criticality.score < highThreshold) {
+          moveAnalysis = await this.computeBalancedMove(gameId, board, player, criticality, backendDifficulty);
+        } else {
+          moveAnalysis = await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty);
+        }
+      }
     } else {
-      // High criticality: Use full computational power
-      moveAnalysis = await this.computeDeepMove(gameId, board, player, criticality, difficulty);
+      // Direct computation without throttling
+      if (backendDifficulty >= 8) {
+        moveAnalysis = await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty);
+      } else if (criticality.score < lowThreshold && backendDifficulty < 5) {
+        moveAnalysis = await this.computeFastMove(gameId, board, player, criticality);
+      } else if (criticality.score < highThreshold) {
+        moveAnalysis = await this.computeBalancedMove(gameId, board, player, criticality, backendDifficulty);
+      } else {
+        moveAnalysis = await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty);
+      }
     }
 
-    // Ensure natural human-like response time
+    // Ensure appropriate response time based on difficulty
     const elapsed = Date.now() - startTime;
-    // Add slight randomness for more natural feel (±200ms)
-    const targetTime = this.MIN_RESPONSE_TIME + (Math.random() * 400 - 200);
-    if (elapsed < targetTime) {
+    // Scale minimum time with difficulty (0.8s to 1.8s base)
+    const minTimeByDifficulty = this.MIN_RESPONSE_TIME + (backendDifficulty * 100);
+    // Add randomness for natural feel
+    const targetTime = minTimeByDifficulty + (Math.random() * 400 - 200);
+    
+    // Ensure we used at least the allocated computation time for higher difficulties
+    if (backendDifficulty >= 7 && elapsed < criticality.timeAllocation * 0.6) {
+      await this.delay(criticality.timeAllocation * 0.6 - elapsed);
+    } else if (elapsed < targetTime) {
       await this.delay(targetTime - elapsed);
     }
 
     // Store move in history for learning
     this.updateGameHistory(gameId, moveAnalysis);
+    
+    // Emit move evaluation for learning
+    this.eventEmitter.emit('ai.move.evaluated', {
+      gameId,
+      board,
+      column: moveAnalysis.column,
+      evaluation: moveAnalysis.confidence,
+      difficulty,
+    });
 
     // Emit move completion
     this.eventEmitter.emit('ai.move.computed', {
@@ -106,8 +199,11 @@ export class AdaptiveAIOrchestrator {
   /**
    * Analyze game criticality to determine resource allocation
    */
-  private analyzeGameCriticality(board: CellValue[][], player: CellValue): GameCriticality {
+  private analyzeGameCriticality(board: CellValue[][], player: CellValue, difficulty: number = 5): GameCriticality {
     const opponent = player === 'Red' ? 'Yellow' : 'Red';
+    
+    // Difficulty scaling factor (0.5 to 2.0)
+    const difficultyFactor = 0.5 + (difficulty / 10) * 1.5;
     
     // Count total moves
     const totalMoves = board.flat().filter(cell => cell !== null).length;
@@ -126,19 +222,22 @@ export class AdaptiveAIOrchestrator {
     // Calculate move complexity
     const moveComplexity = this.calculateMoveComplexity(board);
     
-    // Calculate overall criticality score
-    const criticalityScore = Math.min(1, 
+    // Calculate base criticality score
+    const baseCriticality = 
       winningThreat * 0.35 +
       losingThreat * 0.35 +
       strategicImportance * 0.15 +
       gamePhase * 0.10 +
-      moveComplexity * 0.05
-    );
+      moveComplexity * 0.05;
     
-    // Determine computational parameters
-    const recommendedDepth = this.getRecommendedDepth(criticalityScore, totalMoves);
-    const useAdvancedAI = criticalityScore > 0.5 || winningThreat > 0.8 || losingThreat > 0.8;
-    const timeAllocation = this.calculateTimeAllocation(criticalityScore);
+    // Apply difficulty scaling - higher difficulty = higher criticality
+    const criticalityScore = Math.min(1, baseCriticality * difficultyFactor + (difficulty / 20));
+    
+    // Determine computational parameters with difficulty scaling
+    const recommendedDepth = this.getRecommendedDepth(criticalityScore, totalMoves, difficulty);
+    // Use advanced AI more aggressively at higher difficulties
+    const useAdvancedAI = difficulty >= 7 || criticalityScore > 0.4 || winningThreat > 0.6 || losingThreat > 0.6;
+    const timeAllocation = this.calculateTimeAllocation(criticalityScore, difficulty);
     
     return {
       score: criticalityScore,
@@ -160,6 +259,8 @@ export class AdaptiveAIOrchestrator {
    */
   private detectWinningThreat(board: CellValue[][], player: CellValue): number {
     let maxThreat = 0;
+    let winSetups = 0;
+    const threats: Array<{col: number, threat: number}> = [];
     
     for (let col = 0; col < 7; col++) {
       if (board[0][col] !== null) continue;
@@ -176,7 +277,17 @@ export class AdaptiveAIOrchestrator {
       
       // Check for multiple win setups
       const threat = this.evaluatePositionThreat(board, row, col, player);
+      if (threat > 0.5) {
+        winSetups++;
+        threats.push({col, threat});
+      }
       maxThreat = Math.max(maxThreat, threat);
+    }
+    
+    // Bonus for multiple threats (fork opportunities)
+    if (winSetups > 1) {
+      // Multiple winning paths = very dangerous
+      maxThreat = Math.min(1.0, maxThreat + 0.2 * winSetups);
     }
     
     return maxThreat;
@@ -225,7 +336,17 @@ export class AdaptiveAIOrchestrator {
     const validMoves = this.getValidMoves(board);
     
     for (const col of validMoves) {
-      const score = this.quickEvaluate(board, col, player);
+      let score = this.quickEvaluate(board, col, player);
+      
+      // Apply learned adjustments if available
+      if (this.learningService) {
+        const learnedValue = this.learningService.getPositionEvaluation(board, criticality.score * 10);
+        if (learnedValue !== null) {
+          score += learnedValue * 100; // Scale learned value
+          this.logger.debug(`Applied learned adjustment: ${learnedValue.toFixed(3)}`);
+        }
+      }
+      
       if (score > bestScore) {
         bestScore = score;
         bestColumn = col;
@@ -254,12 +375,13 @@ export class AdaptiveAIOrchestrator {
   ): Promise<MoveAnalysis> {
     const startTime = Date.now();
     
-    // Use async orchestrator with limited depth
+    // Use async orchestrator with appropriate depth
+    // Note: Pass difficulty which the orchestrator will use to determine depth and strategies
     const result = await this.asyncOrchestrator.getAIMove({
       gameId,
       board,
       player,
-      difficulty,
+      difficulty: Math.max(difficulty, Math.floor(criticality.score * 10)), // Boost difficulty based on criticality
       timeLimit: criticality.timeAllocation,
     });
     
@@ -289,13 +411,20 @@ export class AdaptiveAIOrchestrator {
   ): Promise<MoveAnalysis> {
     const startTime = Date.now();
     
+    // Configure advanced analysis based on difficulty
+    const strategies = difficulty >= 8 ? 
+      ['alpha_beta', 'mcts', 'neural_network', 'minimax'] :
+      difficulty >= 6 ?
+      ['alpha_beta', 'mcts', 'minimax'] :
+      ['minimax', 'alpha_beta'];
+    
     // Stream real-time analysis
     const analysisStream = this.asyncOrchestrator.streamAnalysis(
       {
         gameId,
         board,
         player,
-        difficulty,
+        difficulty: Math.max(difficulty, Math.floor(criticality.score * 10)), // Boost difficulty for critical positions
         timeLimit: criticality.timeAllocation,
       },
       {
@@ -339,10 +468,44 @@ export class AdaptiveAIOrchestrator {
     
     // Final deep analysis if time permits
     if (Date.now() - startTime < criticality.timeAllocation * 0.8) {
-      const deepResult = await this.performDeepAnalysis(board, player, criticality);
+      const deepResult = await this.performDeepAnalysis(board, player, criticality, difficulty);
       if (deepResult.confidence > bestMove.confidence) {
         bestMove = deepResult;
         servicesUsed.add('deep_analysis');
+      }
+    }
+    
+    // Apply enhanced RL if available and difficulty is high
+    if (this.enhancedRLService && difficulty >= 7) {
+      try {
+        const enhancedMove = await this.enhancedRLService.getEnhancedMove(
+          board,
+          player,
+          gameId,
+          bestMove.column
+        );
+        
+        // Use enhanced move if it's safety approved and has reasonable confidence
+        // Don't require it to be better than base move, as RLHF may intentionally reduce confidence
+        if (enhancedMove.safetyApproved && enhancedMove.confidence > 0.5) {
+          bestMove = {
+            column: enhancedMove.column,
+            confidence: enhancedMove.confidence
+          };
+          servicesUsed.add('enhanced_rl');
+          servicesUsed.add('rlhf');
+          
+          // Emit enhanced RL analysis
+          this.eventEmitter.emit('ai.enhanced_rl.applied', {
+            gameId,
+            column: enhancedMove.column,
+            explanation: enhancedMove.explanation,
+            adaptationApplied: enhancedMove.adaptationApplied,
+            timestamp: Date.now(),
+          });
+        }
+      } catch (error) {
+        this.logger.warn(`Enhanced RL failed, using base move: ${error.message}`);
       }
     }
     
@@ -398,35 +561,65 @@ export class AdaptiveAIOrchestrator {
   private evaluatePositionThreat(board: CellValue[][], row: number, col: number, player: CellValue): number {
     // Evaluate how threatening a position is (0-1)
     let threatScore = 0;
+    let threatsFound = 0;
     const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
     
+    board[row][col] = player; // Temporarily place piece
+    
     for (const [dr, dc] of directions) {
-      let count = 0;
+      let consecutive = 1;
       let openEnds = 0;
+      let potentialLength = 1;
       
-      // Count in both directions
+      // Check in both directions
       for (const mult of [-1, 1]) {
-        let r = row + dr * mult;
-        let c = col + dc * mult;
+        let pieces = 0;
+        let spaces = 0;
+        let blocked = false;
         
-        while (r >= 0 && r < 6 && c >= 0 && c < 7) {
-          if (board[r][c] === player) {
-            count++;
-          } else if (board[r][c] === null) {
-            openEnds++;
-            break;
-          } else {
+        for (let i = 1; i <= 3; i++) {
+          const r = row + dr * mult * i;
+          const c = col + dc * mult * i;
+          
+          if (r < 0 || r >= 6 || c < 0 || c >= 7) {
+            blocked = true;
             break;
           }
-          r += dr * mult;
-          c += dc * mult;
+          
+          if (board[r][c] === player) {
+            pieces++;
+            consecutive++;
+            potentialLength++;
+          } else if (board[r][c] === null) {
+            spaces++;
+            potentialLength++;
+            if (spaces === 1 && !blocked) openEnds++;
+          } else {
+            blocked = true;
+            break;
+          }
         }
       }
       
-      // Higher threat for more pieces with open ends
-      if (count >= 2 && openEnds > 0) {
-        threatScore = Math.max(threatScore, (count + openEnds) / 6);
+      // Evaluate threat level based on pattern
+      if (consecutive >= 3 && openEnds >= 1) {
+        // Three in a row with space to win
+        threatsFound++;
+        threatScore = Math.max(threatScore, 0.9);
+      } else if (consecutive >= 2 && potentialLength >= 4) {
+        // Two in a row with potential to become four
+        threatScore = Math.max(threatScore, 0.6 + openEnds * 0.15);
+      } else if (potentialLength >= 4) {
+        // Space for future development
+        threatScore = Math.max(threatScore, 0.3 + consecutive * 0.1);
       }
+    }
+    
+    board[row][col] = null; // Remove temporary piece
+    
+    // Significant bonus for multiple threats (creating forks)
+    if (threatsFound > 1) {
+      return 0.95; // Multiple threats = almost certain win
     }
     
     return Math.min(threatScore, 0.9);
@@ -488,20 +681,30 @@ export class AdaptiveAIOrchestrator {
     return count;
   }
 
-  private getRecommendedDepth(criticalityScore: number, totalMoves: number): number {
-    const baseDepth = 4;
+  private getRecommendedDepth(criticalityScore: number, totalMoves: number, difficulty: number = 5): number {
+    // Base depth scales with difficulty (4-8)
+    const baseDepth = Math.floor(4 + (difficulty / 10) * 4);
     const criticalityBonus = Math.floor(criticalityScore * 4);
     const moveBonus = totalMoves > 20 ? 2 : 0;
+    const difficultyBonus = Math.floor(difficulty / 2);
     
-    return Math.min(baseDepth + criticalityBonus + moveBonus, 10);
+    // Higher difficulties should look much deeper (up to 15 for difficulty 10)
+    return Math.min(baseDepth + criticalityBonus + moveBonus + difficultyBonus, 15);
   }
 
-  private calculateTimeAllocation(criticalityScore: number): number {
-    // Scale from natural human speed to slightly longer for critical moves
-    const minTime = 1000; // 1 second for low criticality
-    const maxTime = this.MAX_RESPONSE_TIME;
+  private calculateTimeAllocation(criticalityScore: number, difficulty: number = 5): number {
+    // Scale time allocation with difficulty
+    const minTime = 1000 + (difficulty * 100); // 1-2 seconds minimum
+    const maxTime = this.MAX_RESPONSE_TIME + (difficulty * 200); // Up to 4.5s for difficulty 10
     
-    return Math.floor(minTime + (maxTime - minTime) * criticalityScore);
+    const timeAllocation = Math.floor(minTime + (maxTime - minTime) * criticalityScore);
+    
+    // Ensure high difficulty gets adequate thinking time
+    if (difficulty >= 8) {
+      return Math.max(timeAllocation, 2000);
+    }
+    
+    return timeAllocation;
   }
 
   private getValidMoves(board: CellValue[][]): number[] {
@@ -593,23 +796,79 @@ export class AdaptiveAIOrchestrator {
     board: CellValue[][],
     player: CellValue,
     criticality: GameCriticality,
+    difficulty: number,
   ): Promise<{ column: number; confidence: number }> {
-    // Placeholder for deep neural network or ML-based analysis
-    // In production, this would call your ML service
     const validMoves = this.getValidMoves(board);
     const scores = new Map<number, number>();
+    const opponent = player === 'Red' ? 'Yellow' : 'Red';
     
+    // Deep analysis with multiple factors
     for (const col of validMoves) {
-      const score = this.quickEvaluate(board, col, player) + Math.random() * 50;
+      let score = 0;
+      const row = this.getNextRow(board, col);
+      if (row === -1) continue;
+      
+      // Simulate move
+      board[row][col] = player;
+      
+      // Check immediate win
+      if (this.checkWin(board, row, col, player)) {
+        board[row][col] = null;
+        return { column: col, confidence: 1.0 };
+      }
+      
+      // Evaluate position strength
+      const positionStrength = this.evaluatePositionThreat(board, row, col, player);
+      score += positionStrength * 1000;
+      
+      // Check opponent's counter-moves
+      let opponentThreats = 0;
+      for (const oppCol of validMoves) {
+        if (oppCol === col) continue;
+        const oppRow = this.getNextRow(board, oppCol);
+        if (oppRow === -1) continue;
+        
+        board[oppRow][oppCol] = opponent;
+        if (this.checkWin(board, oppRow, oppCol, opponent)) {
+          opponentThreats += 2; // Opponent can win
+        } else {
+          const threat = this.evaluatePositionThreat(board, oppRow, oppCol, opponent);
+          if (threat > 0.7) opponentThreats++;
+        }
+        board[oppRow][oppCol] = null;
+      }
+      
+      score -= opponentThreats * 200;
+      
+      // Center preference for higher difficulties
+      if (difficulty >= 7) {
+        score += (3 - Math.abs(col - 3)) * 50;
+      }
+      
+      board[row][col] = null;
+      
+      // Apply reinforcement learning adjustments
+      if (this.learningService) {
+        const boardCopy = board.map(row => [...row]);
+        boardCopy[row][col] = player;
+        const learnedValue = this.learningService.getPositionEvaluation(boardCopy, difficulty);
+        if (learnedValue !== null) {
+          score += learnedValue * 500; // Significant weight to learned patterns
+          this.logger.debug(`[RL] Position adjustment for col ${col}: ${learnedValue.toFixed(3)}`);
+        }
+      }
+      
       scores.set(col, score);
     }
     
-    const bestCol = Array.from(scores.entries())
-      .sort((a, b) => b[1] - a[1])[0][0];
+    // Select best move with some randomness at lower difficulties
+    const entries = Array.from(scores.entries()).sort((a, b) => b[1] - a[1]);
+    const topMoves = entries.slice(0, difficulty >= 8 ? 1 : 2);
+    const bestMove = topMoves[Math.floor(Math.random() * topMoves.length)];
     
     return {
-      column: bestCol,
-      confidence: 0.9 + (criticality.score * 0.1),
+      column: bestMove[0],
+      confidence: Math.min(0.95, 0.8 + (difficulty * 0.02) + (criticality.score * 0.1)),
     };
   }
 
@@ -629,6 +888,49 @@ export class AdaptiveAIOrchestrator {
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Map frontend difficulty (1-25) to backend scale (1-10)
+   * Level 1-5: Backend 1-3 (Easy)
+   * Level 6-10: Backend 3-5 (Medium)
+   * Level 11-15: Backend 5-7 (Hard)
+   * Level 16-20: Backend 7-9 (Very Hard)
+   * Level 21-25: Backend 9-10 (Ultimate)
+   */
+  private mapFrontendToBackendDifficulty(frontendDifficulty: number): number {
+    // Ensure input is within valid range
+    const clampedDifficulty = Math.max(1, Math.min(25, frontendDifficulty));
+    
+    // Non-linear mapping for smoother progression
+    if (clampedDifficulty <= 5) {
+      // Levels 1-5: Map to 1-3 (Easy start)
+      return 1 + (clampedDifficulty - 1) * 0.5;
+    } else if (clampedDifficulty <= 10) {
+      // Levels 6-10: Map to 3-5 (Getting challenging)
+      return 3 + (clampedDifficulty - 6) * 0.4;
+    } else if (clampedDifficulty <= 15) {
+      // Levels 11-15: Map to 5-7 (Hard)
+      return 5 + (clampedDifficulty - 11) * 0.4;
+    } else if (clampedDifficulty <= 20) {
+      // Levels 16-20: Map to 7-9 (Very hard)
+      return 7 + (clampedDifficulty - 16) * 0.4;
+    } else {
+      // Levels 21-25: Map to 9-10 (Ultimate challenge)
+      return 9 + (clampedDifficulty - 21) * 0.25;
+    }
+  }
+
+  /**
+   * Get human-readable difficulty name based on frontend level
+   */
+  private getDifficultyName(level: number): string {
+    if (level <= 5) return 'Beginner';
+    if (level <= 10) return 'Intermediate';
+    if (level <= 15) return 'Advanced';
+    if (level <= 20) return 'Expert';
+    if (level <= 24) return 'Master';
+    return 'Ultimate';
   }
 
   /**
@@ -653,6 +955,47 @@ export class AdaptiveAIOrchestrator {
       averageComputationTime: Math.round(avgComputationTime),
       uniqueServicesUsed: Array.from(servicesUsed),
       criticalMoves: history.filter(m => m.criticalityScore > 0.7).length,
+    };
+  }
+  
+  /**
+   * Estimate resource requirements based on criticality and difficulty
+   */
+  private estimateResourceRequirements(
+    criticality: GameCriticality,
+    difficulty: number
+  ): { cpu: number; memory: number } {
+    // Base requirements
+    let cpuRequired = 10; // Base 10%
+    let memoryRequired = 50 * 1024 * 1024; // Base 50MB
+    
+    // Scale by criticality
+    cpuRequired *= (1 + criticality.score);
+    memoryRequired *= (1 + criticality.score * 0.5);
+    
+    // Scale by difficulty
+    cpuRequired *= (1 + difficulty / 10);
+    memoryRequired *= (1 + difficulty / 20);
+    
+    // Factor in recommended depth
+    if (criticality.recommendedDepth > 6) {
+      cpuRequired *= 1.5;
+      memoryRequired *= 2;
+    }
+    
+    // Factor in advanced AI usage
+    if (criticality.useAdvancedAI) {
+      cpuRequired *= 2;
+      memoryRequired *= 2.5;
+    }
+    
+    // Cap at reasonable limits
+    cpuRequired = Math.min(cpuRequired, 80); // Max 80% CPU
+    memoryRequired = Math.min(memoryRequired, 500 * 1024 * 1024); // Max 500MB
+    
+    return {
+      cpu: Math.ceil(cpuRequired),
+      memory: Math.ceil(memoryRequired)
     };
   }
 }

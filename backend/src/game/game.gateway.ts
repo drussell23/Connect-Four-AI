@@ -16,7 +16,7 @@ import { AiProfileService } from './ai-profile.service';
 import { MlClientService } from '../ml/ml-client.service';
 import { DashboardService } from './dashboard.service';
 import { TrainingService, TrainingConfiguration } from './training.service';
-import { OnEvent } from '@nestjs/event-emitter';
+import { OnEvent, EventEmitter2 } from '@nestjs/event-emitter';
 import type { CellValue } from '../ai/connect4AI';
 import { AsyncAIOrchestrator } from '../ai/async/async-ai-orchestrator';
 import { PerformanceMonitor } from '../ai/async/performance-monitor';
@@ -78,10 +78,14 @@ export class GameGateway
     private readonly mlClientService: MlClientService,
     private readonly dashboardService: DashboardService,
     private readonly trainingService: TrainingService,
+    private readonly eventEmitter: EventEmitter2,
     private readonly asyncAIOrchestrator?: AsyncAIOrchestrator,
     private readonly performanceMonitor?: PerformanceMonitor,
     private readonly adaptiveAIOrchestrator?: AdaptiveAIOrchestrator,
-  ) { }
+  ) {
+    // Subscribe to AI thinking events and forward to frontend
+    this.setupAIEventListeners();
+  }
 
   afterInit(server: Server) {
     this.logger.log('WebSocket server initialized');
@@ -171,10 +175,11 @@ export class GameGateway
 
       const startTime = Date.now();
       const difficulty = game.aiLevel || 5;
+      this.logger.log(`[${gameId}] AI Level: ${difficulty} (Frontend 1-25 scale)`);
 
       // Use adaptive AI orchestrator if available
       if (this.adaptiveAIOrchestrator) {
-        this.logger.log(`[${gameId}] 🎯 Using Adaptive AI Orchestrator`);
+        this.logger.log(`[${gameId}] 🎯 Using Adaptive AI Orchestrator for level ${difficulty}`);
         
         // Emit AI thinking with adaptive status
         this.server.to(gameId).emit('aiThinking', {
@@ -245,16 +250,33 @@ export class GameGateway
 
       // Fallback to previous logic if adaptive AI not available
       const totalMoves = game.board.flat().filter(cell => cell !== null).length;
-      const isEarlyGame = totalMoves < 6;
+      // Only use fast early game for low difficulties
+      const isEarlyGame = totalMoves < 6 && difficulty < 6;
 
       if (isEarlyGame) {
         this.logger.log(`[${gameId}] ⚡ Early game move ${totalMoves + 1} - using fast AI`);
         
+        this.server.to(gameId).emit('aiThinking', {
+          type: 'systemActivation',
+          message: '⚡ Early Game AI activated',
+          details: {
+            system: 'EarlyGameAI',
+            moveNumber: totalMoves + 1,
+            strategy: 'fast_strategic',
+            description: 'Quick strategic moves for early game positions',
+            difficulty
+          },
+          timestamp: Date.now()
+        });
+        
         let fastColumn: number;
         if (totalMoves === 0) {
-          fastColumn = 3;
+          // For higher difficulties, randomize opening slightly
+          fastColumn = difficulty >= 4 ? [3, 4, 2][Math.floor(Math.random() * 3)] : 3;
         } else if (totalMoves <= 3) {
-          const centerColumns = [3, 4, 2, 5];
+          const centerColumns = difficulty >= 4 ? 
+            [3, 4, 2, 5, 1, 6, 0] : // More varied for higher difficulty
+            [3, 4, 2, 5];
           fastColumn = centerColumns.find(col => 
             game.board[0][col] === null
           ) || 3;
@@ -284,9 +306,15 @@ export class GameGateway
 
       // Mid/late game fallback
       this.server.to(gameId).emit('aiThinking', {
-        status: 'thinking',
-        capabilities: ['strategic_analysis', 'threat_detection'],
-        mode: 'standard'
+        type: 'systemActivation',
+        message: '🎲 Streamlined Strategic AI activated',
+        details: {
+          system: 'StreamlinedAI',
+          moveNumber: totalMoves + 1,
+          capabilities: ['strategic_analysis', 'threat_detection'],
+          description: 'Efficient mid/late game analysis'
+        },
+        timestamp: Date.now()
       });
 
       const aiResult = await this.getStreamlinedAIMove(gameId, game.board, playerId);
@@ -415,15 +443,42 @@ export class GameGateway
    */
   private async getStreamlinedAIMove(gameId: string, board: any[][], playerId: string): Promise<any> {
     try {
+      // Emit progress update
+      this.server.to(gameId).emit('aiThinking', {
+        type: 'progress',
+        message: 'Analyzing with tactical AI strategy (depth: 6, confidence: building...)',
+        details: {
+          strategy: 'tactical',
+          depth: 6,
+          phase: 'threat_detection'
+        },
+        timestamp: Date.now()
+      });
+
       // Use the basic AI service for faster response
       const column = await this.gameAi.getNextMove(board, 'Yellow', playerId, gameId);
+      
+      // Analyze the move
+      const moveAnalysis = this.analyzeMove(board, column);
+      
       return {
         column,
         confidence: 0.85,
-        explanation: 'Strategic analysis',
+        explanation: moveAnalysis,
         strategy: 'tactical'
       };
     } catch (error) {
+      // Emit fallback notice
+      this.server.to(gameId).emit('aiThinking', {
+        type: 'progress',
+        message: 'Switching to basic heuristic analysis',
+        details: {
+          strategy: 'basic',
+          reason: 'Primary analysis failed'
+        },
+        timestamp: Date.now()
+      });
+
       // Fallback to quick strategic move
       const column = await this.getQuickStrategicMove(board);
       return {
@@ -436,9 +491,79 @@ export class GameGateway
   }
 
   /**
-   * Simple win check for quick evaluation
+   * Analyze a move to provide explanation
+   */
+  private analyzeMove(board: any[][], column: number): string {
+    const row = this.getNextRow(board, column);
+    if (row === -1) return 'Invalid move';
+
+    // Check for winning move
+    board[row][column] = 'Yellow';
+    const isWin = this.checkWin(board, row, column, 'Yellow');
+    board[row][column] = null;
+    if (isWin) return 'Winning move!';
+
+    // Check for blocking
+    board[row][column] = 'Red';
+    const isBlock = this.checkWin(board, row, column, 'Red');
+    board[row][column] = null;
+    if (isBlock) return 'Blocking opponent win';
+
+    // Center control
+    if (column >= 2 && column <= 4) {
+      return 'Controlling center position';
+    }
+
+    // Default
+    return 'Strategic positioning';
+  }
+
+  /**
+   * Get the next available row for a column
+   */
+  private getNextRow(board: any[][], col: number): number {
+    for (let row = 5; row >= 0; row--) {
+      if (board[row][col] === null) return row;
+    }
+    return -1;
+  }
+
+  /**
+   * Check if a move results in a win
    */
   private checkWin(board: any[][], row: number, col: number, player: string): boolean {
+    const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+    
+    for (const [dr, dc] of directions) {
+      let count = 1;
+      
+      // Check positive direction
+      let r = row + dr, c = col + dc;
+      while (r >= 0 && r < 6 && c >= 0 && c < 7 && board[r][c] === player) {
+        count++;
+        r += dr;
+        c += dc;
+      }
+      
+      // Check negative direction
+      r = row - dr;
+      c = col - dc;
+      while (r >= 0 && r < 6 && c >= 0 && c < 7 && board[r][c] === player) {
+        count++;
+        r -= dr;
+        c -= dc;
+      }
+      
+      if (count >= 4) return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Simple win check for quick evaluation
+   */
+  private checkWinOld(board: any[][], row: number, col: number, player: string): boolean {
     const directions = [
       [0, 1], [1, 0], [1, 1], [1, -1] // horizontal, vertical, diagonal
     ];
@@ -509,6 +634,26 @@ export class GameGateway
 
       this.logger.log(`[${gameId}] ✅ Player ${playerId} played column ${column}`);
 
+      // Check for game end
+      if (result.winner || result.draw) {
+        const game = this.gameService.getGame(gameId);
+        if (game) {
+          // Emit game ended event for learning
+          this.eventEmitter.emit('game.ended', {
+            gameId,
+            winner: result.winner,
+            draw: result.draw,
+            aiPlayer: 'Yellow',
+            difficulty: game.aiLevel || 5,
+            moves: game.moves || [],
+            boardStates: [], // Will be tracked in future updates
+            timestamp: Date.now(),
+          });
+          
+          this.logger.log(`[${gameId}] Game ended: ${result.winner ? `${result.winner} wins` : 'Draw'}`);
+        }
+      }
+      
       // If game continues and it's AI's turn, trigger enhanced AI move
       if (!result.winner && !result.draw && result.nextPlayer === 'Yellow') {
         this.logger.log(`[${gameId}] 🤖 Triggering Enhanced AI response`);
@@ -1334,5 +1479,141 @@ export class GameGateway
   @OnEvent('circuit.stateChange')
   handleCircuitStateChange(payload: any) {
     this.server.emit('aiCircuitBreakerStatus', payload);
+  }
+
+  /**
+   * Set up listeners for AI thinking events to forward to frontend
+   */
+  private setupAIEventListeners(): void {
+    // Forward criticality analysis
+    this.eventEmitter.on('ai.criticality.analyzed', (data: any) => {
+      if (data.gameId) {
+        this.server.to(data.gameId).emit('aiThinking', {
+          type: 'criticality',
+          message: `Game criticality: ${data.criticality.score.toFixed(2)} - ${this.getCriticalityLevel(data.criticality.score)}`,
+          details: {
+            score: data.criticality.score,
+            factors: data.criticality.factors,
+            recommendedDepth: data.criticality.recommendedDepth,
+            timeAllocation: data.criticality.timeAllocation,
+            useAdvancedAI: data.criticality.useAdvancedAI
+          },
+          timestamp: Date.now()
+        });
+      }
+    });
+
+    // Forward AI analysis progress
+    this.eventEmitter.on('ai.analysis.progress', (data: any) => {
+      if (data.gameId) {
+        this.server.to(data.gameId).emit('aiThinking', {
+          type: 'progress',
+          message: `Analyzing with ${data.strategy} strategy (depth: ${data.depth}, confidence: ${data.confidence?.toFixed(2) || 'N/A'})`,
+          details: data,
+          timestamp: Date.now()
+        });
+      }
+    });
+
+    // Forward variation found
+    this.eventEmitter.on('ai.variation.found', (data: any) => {
+      if (data.gameId) {
+        this.server.to(data.gameId).emit('aiThinking', {
+          type: 'variation',
+          message: `Found variation: ${data.variation} with score ${data.score}`,
+          details: data,
+          timestamp: Date.now()
+        });
+      }
+    });
+
+    // Forward move computation complete
+    this.eventEmitter.on('ai.move.computed', (data: any) => {
+      if (data.gameId) {
+        const { moveAnalysis, actualTime } = data;
+        this.server.to(data.gameId).emit('aiThinking', {
+          type: 'moveDecision',
+          message: `AI decided on column ${moveAnalysis.column} with ${(moveAnalysis.confidence * 100).toFixed(1)}% confidence`,
+          details: {
+            column: moveAnalysis.column,
+            confidence: moveAnalysis.confidence,
+            criticalityScore: moveAnalysis.criticalityScore,
+            computationTime: moveAnalysis.computationTime,
+            servicesUsed: moveAnalysis.servicesUsed,
+            explanation: moveAnalysis.explanation,
+            alternativeMoves: moveAnalysis.alternativeMoves,
+            actualTime
+          },
+          timestamp: Date.now()
+        });
+      }
+    });
+
+    // Forward difficulty mapping
+    this.eventEmitter.on('ai.difficulty.mapped', (data: any) => {
+      if (data.gameId) {
+        this.server.to(data.gameId).emit('aiThinking', {
+          type: 'difficultyMapping',
+          message: `Difficulty: Level ${data.frontendLevel} (${data.difficultyName}) → ${data.backendDifficulty.toFixed(1)}/10 backend scale`,
+          details: {
+            frontendLevel: data.frontendLevel,
+            backendDifficulty: data.backendDifficulty,
+            difficultyName: data.difficultyName
+          },
+          timestamp: data.timestamp
+        });
+      }
+    });
+
+    // Forward enhanced RL events
+    this.eventEmitter.on('ai.enhanced_rl.applied', (data: any) => {
+      if (data.gameId) {
+        this.server.to(data.gameId).emit('aiThinking', {
+          type: 'enhancedRL',
+          message: `🧠 Enhanced RLHF system applied constitutional AI principles`,
+          details: {
+            column: data.column,
+            explanation: data.explanation,
+            adaptationApplied: data.adaptationApplied,
+            systems: ['RLHF', 'Constitutional AI', 'Adaptation System', 'Safety Monitor'],
+            capabilities: [
+              'Human feedback learning',
+              'Ethical decision making',
+              'Player profiling',
+              'Multi-agent consensus'
+            ]
+          },
+          timestamp: data.timestamp
+        });
+      }
+    });
+
+    // Forward enhanced AI move analysis
+    this.eventEmitter.on('ai.move.enhanced', (data: any) => {
+      if (data.gameId) {
+        this.server.to(data.gameId).emit('aiThinking', {
+          type: 'enhancedAnalysis',
+          message: `🎯 Enhanced analysis: ${data.explanation?.naturalLanguageExplanation || 'Advanced strategic evaluation'}`,
+          details: {
+            column: data.column,
+            safetyStatus: data.safetyStatus,
+            safetyViolations: data.safetyViolations,
+            debateConsensus: data.debateConsensus,
+            adaptationActive: data.adaptationActive,
+            explanation: data.explanation
+          },
+          timestamp: Date.now()
+        });
+      }
+    });
+  }
+
+  /**
+   * Get human-readable criticality level
+   */
+  private getCriticalityLevel(score: number): string {
+    if (score < 0.3) return 'Low (quick strategic move)';
+    if (score < 0.7) return 'Medium (balanced analysis)';
+    return 'High (deep critical analysis)';
   }
 }
