@@ -68,8 +68,8 @@ export class GameGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() private server!: Server;
   private readonly logger = new Logger(GameGateway.name);
-  private readonly AI_THINK_DELAY_MS = 0; // No artificial delays - AI should respond instantly
-  private readonly AI_FIRST_MOVE_DELAY_MS = process.env.AI_FIRST_MOVE_DELAY_MS ? parseInt(process.env.AI_FIRST_MOVE_DELAY_MS) : 50;
+  private readonly AI_THINK_DELAY_MS = 600; // Natural thinking time (0.6s base)
+  private readonly AI_FIRST_MOVE_DELAY_MS = process.env.AI_FIRST_MOVE_DELAY_MS ? parseInt(process.env.AI_FIRST_MOVE_DELAY_MS) : 1200; // Slightly longer for first move
 
   constructor(
     private readonly gameService: GameService,
@@ -112,13 +112,13 @@ export class GameGateway
       client.join(gameId);
       this.logger.log(`Game ${gameId} created by ${playerId}, starting player: ${firstPlayer}, difficulty: ${difficulty}`);
 
-      // If AI is starting, trigger the first AI move immediately
+      // If AI is starting, trigger the first AI move with natural delay
       if (firstPlayer === 'Yellow') {
         this.logger.log(`[${gameId}] AI is starting - triggering first move`);
-        // Immediate execution for first move (no delay needed)
-        setImmediate(async () => {
+        // Natural delay for first move
+        setTimeout(async () => {
           await this.triggerAIMove(gameId, playerId);
-        });
+        }, this.AI_FIRST_MOVE_DELAY_MS);
       }
 
       // Return the callback response that the frontend expects
@@ -512,10 +512,10 @@ export class GameGateway
       // If game continues and it's AI's turn, trigger enhanced AI move
       if (!result.winner && !result.draw && result.nextPlayer === 'Yellow') {
         this.logger.log(`[${gameId}] 🤖 Triggering Enhanced AI response`);
-        // Trigger AI move immediately without any delay
-        setImmediate(async () => {
+        // Trigger AI move with natural human-like delay
+        setTimeout(async () => {
           await this.triggerAIMove(gameId, playerId);
-        });
+        }, this.AI_THINK_DELAY_MS + Math.random() * 400); // 0.6-1.0s delay
       }
 
     } catch (error: any) {

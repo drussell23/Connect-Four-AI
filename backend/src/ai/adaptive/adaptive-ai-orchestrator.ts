@@ -35,8 +35,8 @@ export interface MoveAnalysis {
 @Injectable()
 export class AdaptiveAIOrchestrator {
   private readonly logger = new Logger(AdaptiveAIOrchestrator.name);
-  private readonly MIN_RESPONSE_TIME = 50; // Minimum time to ensure smooth UX
-  private readonly MAX_RESPONSE_TIME = 3000; // Maximum time for critical moves
+  private readonly MIN_RESPONSE_TIME = 800; // Natural human-like minimum (0.8s)
+  private readonly MAX_RESPONSE_TIME = 2500; // Maximum time for critical moves (2.5s)
   private gameHistory: Map<string, MoveAnalysis[]> = new Map();
 
   constructor(
@@ -82,10 +82,12 @@ export class AdaptiveAIOrchestrator {
       moveAnalysis = await this.computeDeepMove(gameId, board, player, criticality, difficulty);
     }
 
-    // Ensure minimum response time for smooth UX
+    // Ensure natural human-like response time
     const elapsed = Date.now() - startTime;
-    if (elapsed < this.MIN_RESPONSE_TIME) {
-      await this.delay(this.MIN_RESPONSE_TIME - elapsed);
+    // Add slight randomness for more natural feel (±200ms)
+    const targetTime = this.MIN_RESPONSE_TIME + (Math.random() * 400 - 200);
+    if (elapsed < targetTime) {
+      await this.delay(targetTime - elapsed);
     }
 
     // Store move in history for learning
@@ -495,7 +497,8 @@ export class AdaptiveAIOrchestrator {
   }
 
   private calculateTimeAllocation(criticalityScore: number): number {
-    const minTime = 100;
+    // Scale from natural human speed to slightly longer for critical moves
+    const minTime = 1000; // 1 second for low criticality
     const maxTime = this.MAX_RESPONSE_TIME;
     
     return Math.floor(minTime + (maxTime - minTime) * criticalityScore);
