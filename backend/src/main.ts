@@ -5,7 +5,7 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import * as express from 'express';
-import { IoAdapter } from '@nestjs/platform-socket.io';
+import { CustomIoAdapter } from './websocket/custom-io.adapter';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -17,8 +17,8 @@ async function bootstrap() {
       logger: ['error', 'warn', 'log'],
     });
 
-    // Configure WebSocket adapter for socket.io
-    app.useWebSocketAdapter(new IoAdapter(app));
+    // Configure WebSocket adapter with custom settings
+    app.useWebSocketAdapter(new CustomIoAdapter(app));
 
     const configService = app.get(ConfigService);
 

@@ -93,7 +93,7 @@ export class GameAIService {
     } else if (aiLevel <= 6) {
       // Levels 4-6: Enhanced MCTS
       // Iterations increase with level.
-      const timeMs = 500 + (aiLevel - 4) * 500; // 500ms, 1000ms, 1500ms
+      const timeMs = 50 + (aiLevel - 4) * 50; // 50ms, 100ms, 150ms - 10x faster
       this.logger.log(`Using MCTS with time ${timeMs}ms, enhanced by ML.`);
       try {
         const { probs } = await this.mlClientService.getPrediction(board);
@@ -110,16 +110,16 @@ export class GameAIService {
       try {
         const moveProbs = await this.getMoveProbabilities(board);
         if (moveProbs) {
-          const iterations = 1000 * (aiLevel - 6); // Level 7 -> 1000, Level 8 -> 2000
+          const iterations = 200 * (aiLevel - 6); // Level 7 -> 200, Level 8 -> 400 - 5x faster
           // Pass probabilities to MCTS
           move = mcts(board, aiDisc, iterations, moveProbs);
         } else {
           this.logger.warn('ML-guided MCTS failed to get probs, falling back to standard MCTS');
-          move = mcts(board, aiDisc, 2000); // Fallback iterations
+          move = mcts(board, aiDisc, 400); // Fallback iterations - 5x faster
         }
       } catch (error) {
         this.logger.error('Error in ML-Guided MCTS, falling back to standard MCTS', error);
-        move = mcts(board, aiDisc, 2000);
+        move = mcts(board, aiDisc, 400); // 5x faster
       }
     } else {
       // Level 9+ (Nightmare Mode): Full ML Model
@@ -131,7 +131,7 @@ export class GameAIService {
         } else {
           this.logger.warn('ML Model is disabled. Falling back to advanced MCTS.');
           // Fallback to a very high iteration MCTS if ML is off
-          move = mcts(board, aiDisc, 10000);
+          move = mcts(board, aiDisc, 1000); // 10x faster
         }
       } catch (error) {
         this.logger.error('Failed to get move from ML service, falling back to advanced MCTS.', error);
@@ -148,10 +148,11 @@ export class GameAIService {
    * Gets the appropriate time limit for the given AI level
    */
   private getTimeLimitForLevel(level: number): number {
-    if (level <= 3) return 500;
-    if (level <= 6) return 1000 + (level - 4) * 500;
-    if (level <= 8) return 3000;
-    return 5000; // Level 9+
+    // Much faster time limits for responsive gameplay
+    if (level <= 3) return 50;  // 10x faster
+    if (level <= 6) return 100 + (level - 4) * 50; // 100ms, 150ms, 200ms
+    if (level <= 8) return 300; // 10x faster
+    return 500; // Level 9+ - still fast but accurate
   }
 
   /**

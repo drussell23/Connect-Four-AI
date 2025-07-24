@@ -18,6 +18,7 @@ import { AsyncDecisionEngine } from './async-decision-engine';
 import { AIPerformanceCollector } from './ai-performance-collector';
 import { SelfTuningOptimizer } from './self-tuning-optimizer';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AdaptiveAIOrchestrator } from './adaptive/adaptive-ai-orchestrator';
 
 /**
  * Integration module that wires the async AI architecture with the existing AI services
@@ -34,6 +35,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     AsyncDecisionEngine,
     AIPerformanceCollector,
     SelfTuningOptimizer,
+    AdaptiveAIOrchestrator,
     {
       provide: AdaptiveAIService,
       useFactory: (
@@ -109,7 +111,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     AdaptiveResourceManager,
     AsyncDecisionEngine,
     AIPerformanceCollector,
-    SelfTuningOptimizer
+    SelfTuningOptimizer,
+    AdaptiveAIOrchestrator
   ]
 })
 export class AIIntegrationModule implements OnModuleInit {
