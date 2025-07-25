@@ -21,6 +21,13 @@ import type { CellValue } from '../ai/connect4AI';
 import { AsyncAIOrchestrator } from '../ai/async/async-ai-orchestrator';
 import { PerformanceMonitor } from '../ai/async/performance-monitor';
 import { AdaptiveAIOrchestrator } from '../ai/adaptive/adaptive-ai-orchestrator';
+import { UnifiedAICoordinatorService } from '../ai/unified/unified-ai-coordinator.service';
+import { Board, CellValue as UnifiedCellValue } from '../ai/unified/unified-threat-detector.service';
+import { UnifiedAISystem, UnifiedAIConfig } from '../ai/unified/unified-ai-system-simple';
+import { UltimateConnect4AI } from '../ai/connect4AI';
+import { SimpleAIService } from '../ai/simple-ai.service';
+import { CoordinationGameIntegrationService } from '../ai/coordination/coordination-game-integration.service';
+import { AICoordinationClient } from '../ai/coordination/ai-coordination-client.service';
 
 interface CreateGamePayload {
   playerId: string;
@@ -82,6 +89,11 @@ export class GameGateway
     private readonly asyncAIOrchestrator?: AsyncAIOrchestrator,
     private readonly performanceMonitor?: PerformanceMonitor,
     private readonly adaptiveAIOrchestrator?: AdaptiveAIOrchestrator,
+    private readonly unifiedAICoordinator?: UnifiedAICoordinatorService,
+    private readonly unifiedAISystem?: UnifiedAISystem,
+    private readonly simpleAI?: SimpleAIService,
+    private readonly coordinationIntegration?: CoordinationGameIntegrationService,
+    private readonly aiCoordinationClient?: AICoordinationClient,
   ) {
     // Subscribe to AI thinking events and forward to frontend
     this.setupAIEventListeners();
@@ -174,13 +186,183 @@ export class GameGateway
       }
 
       const startTime = Date.now();
-      const difficulty = game.aiLevel || 5;
-      this.logger.log(`[${gameId}] AI Level: ${difficulty} (Frontend 1-25 scale)`);
+      // Enforce minimum difficulty of 20
+      const requestedDifficulty = game.aiLevel || 5;
+      const difficulty = Math.max(20, requestedDifficulty);
+      this.logger.log(`[${gameId}] AI Level: ${difficulty} (enforced min 20, requested: ${requestedDifficulty})`);
+
+      // PRIORITY 1: Use AI Coordination Hub for ensemble decision making
+      if (this.coordinationIntegration) {
+        this.logger.log(`[${gameId}] 🌐 Using AI Coordination Hub for ensemble decision`);
+        this.logger.log(`[${gameId}] 📊 Game State Analysis:`);
+        this.logger.log(`  • Current Player: ${game.currentPlayer}`);
+        this.logger.log(`  • Move Count: ${game.board.flat().filter(cell => cell !== 'Empty').length}`);
+        this.logger.log(`  • AI Difficulty: ${difficulty} (min enforced: 20)`);
+
+        // Log board state
+        this.logger.log(`[${gameId}] 📋 Board State:`);
+        game.board.forEach((row, idx) => {
+          this.logger.log(`  Row ${idx}: [${row.map(cell =>
+            cell === 'Empty' ? '.' : cell === 'Red' ? 'R' : 'Y'
+          ).join(' ')}]`);
+        });
+
+        // Emit AI thinking with coordination hub status
+        this.server.to(gameId).emit('aiThinking', {
+          status: 'coordinating',
+          capabilities: [
+            'ensemble_decision',
+            'multi_agent_coordination',
+            'pattern_recognition',
+            'threat_detection',
+            'adaptive_learning',
+            'strategic_planning'
+          ],
+          mode: 'coordination_hub'
+        });
+
+        try {
+          // Get coordinated AI decision
+          const coordResult = await this.coordinationIntegration.requestCoordinatedMove(
+            game.board,
+            'Yellow' as CellValue,
+            difficulty,
+            5000, // 5 second timeout
+            {
+              moveHistory: [], // TODO: Add move history tracking
+              gamePhase: this.determineGamePhase(game.board)
+            }
+          );
+
+          // Execute the coordinated move
+          const aiRes = await this.gameService.dropDisc(gameId, 'AI', coordResult.move);
+
+          if (!aiRes.success) {
+            throw new Error(aiRes.error || 'Coordinated AI move execution failed');
+          }
+
+          // Emit the coordinated AI move result
+          this.server.to(gameId).emit('aiMove', {
+            column: coordResult.move,
+            board: aiRes.board,
+            lastMove: {
+              column: coordResult.move,
+              playerId: 'Yellow',
+              confidence: coordResult.confidence,
+              strategy: 'ensemble',
+              explanation: coordResult.reasoning
+            },
+            winner: aiRes.winner,
+            draw: aiRes.draw,
+            nextPlayer: aiRes.nextPlayer,
+            gameMetrics: aiRes.gameMetrics,
+            aiExplanation: coordResult.reasoning,
+            aiMetadata: {
+              algorithm: 'AI Coordination Hub',
+              processingTime: Date.now() - startTime,
+              source: coordResult.source,
+              thinkingTime: Date.now() - startTime,
+              strategy: 'ensemble',
+              coordinationMode: true
+            },
+            confidence: coordResult.confidence,
+            thinkingTime: Date.now() - startTime,
+            safetyScore: 1.0,
+            strategy: 'coordinated'
+          });
+
+          this.logger.log(
+            `[${gameId}] 🌐 Coordination Hub played column ${coordResult.move} ` +
+            `(confidence: ${(coordResult.confidence * 100).toFixed(1)}%, ` +
+            `source: ${coordResult.source}, time: ${Date.now() - startTime}ms)`
+          );
+
+          return;
+        } catch (coordError: any) {
+          this.logger.error(`[${gameId}] ❌ Coordination Hub error: ${coordError.message}`);
+          this.logger.warn(`[${gameId}] ⚠️ Falling back to SimpleAI...`);
+          // Fall through to SimpleAI
+        }
+      }
+
+      // PRIORITY 2: Use SimpleAI for basic gameplay (fallback)
+      if (this.simpleAI) {
+        this.logger.log(`[${gameId}] 🚀 Using SimpleAI for gameplay`);
+
+        // Emit AI thinking with simple status
+        this.server.to(gameId).emit('aiThinking', {
+          status: 'analyzing',
+          capabilities: [
+            'basic_minimax',
+            'immediate_threats',
+            'quick_wins'
+          ],
+          mode: 'simple_ai'
+        });
+
+        try {
+          // Get the best move from UltimateConnect4AI
+          const aiMove = await this.simpleAI.getBestMove(
+            game.board,
+            'Yellow' as CellValue,
+            'hard' // difficulty
+          );
+
+          // Execute the move
+          const aiRes = await this.gameService.dropDisc(gameId, 'AI', aiMove);
+
+          if (!aiRes.success) {
+            throw new Error(aiRes.error || 'Ultimate AI move execution failed');
+          }
+
+          // Emit the ultimate AI move result
+          this.server.to(gameId).emit('aiMove', {
+            column: aiMove,
+            board: aiRes.board,
+            lastMove: {
+              column: aiMove,
+              playerId: 'Yellow',
+              confidence: 0.8,
+              strategy: 'simplified',
+              explanation: 'AI made a strategic move'
+            },
+            winner: aiRes.winner,
+            draw: aiRes.draw,
+            nextPlayer: aiRes.nextPlayer,
+            gameMetrics: aiRes.gameMetrics,
+            aiExplanation: 'AI made a strategic move',
+            aiMetadata: {
+              algorithm: 'SimpleAI',
+              processingTime: Date.now() - startTime,
+              nodesExplored: 0,
+              thinkingTime: Date.now() - startTime,
+              strategy: 'simplified',
+              alternatives: []
+            },
+            confidence: 0.8,
+            thinkingTime: Date.now() - startTime,
+            safetyScore: 1.0,
+            strategy: 'simplified'
+          });
+
+          this.logger.log(
+            `[${gameId}] 🚀 SimpleAI played column ${aiMove} ` +
+            `(time: ${Date.now() - startTime}ms)`
+          );
+
+          return;
+        } catch (ultimateAIError: any) {
+          this.logger.error(`[${gameId}] ❌ UltimateConnect4AI error: ${ultimateAIError.message}`);
+          this.logger.error(`[${gameId}] Stack trace: ${ultimateAIError.stack}`);
+          this.logger.warn(`[${gameId}] ⚠️ Falling back to alternative AI system...`);
+          // Fall through to next AI system
+        }
+      }
 
       // Use adaptive AI orchestrator if available
       if (this.adaptiveAIOrchestrator) {
         this.logger.log(`[${gameId}] 🎯 Using Adaptive AI Orchestrator for level ${difficulty}`);
-        
+
         // Emit AI thinking with adaptive status
         this.server.to(gameId).emit('aiThinking', {
           status: 'analyzing',
@@ -248,6 +430,187 @@ export class GameGateway
         return;
       }
 
+      // Try Unified AI Coordinator before other fallbacks
+      if (this.unifiedAICoordinator) {
+        this.logger.log(`[${gameId}] 🎯 Using Unified AI Coordinator for level ${difficulty}`);
+
+        // Convert board to unified format
+        const unifiedBoard: Board = game.board.map((row: any[]) =>
+          row.map((cell: any) => {
+            if (cell === 'Red') return 'Red' as UnifiedCellValue;
+            if (cell === 'Yellow') return 'Yellow' as UnifiedCellValue;
+            return 'Empty' as UnifiedCellValue;
+          })
+        );
+
+        // Emit AI thinking status
+        this.server.to(gameId).emit('aiThinking', {
+          status: 'analyzing',
+          capabilities: ['unified_threat_detection', 'adaptive_strategy', 'pattern_recognition'],
+          mode: 'unified'
+        });
+
+        try {
+          // Get AI decision from unified system
+          const response = await this.unifiedAICoordinator.getAIMove(
+            gameId,
+            unifiedBoard,
+            'Yellow' as UnifiedCellValue,
+            difficulty,
+            {
+              timeLimit: 5000,
+              useCache: true
+            }
+          );
+
+          // Log decision details
+          this.logger.log(`[${gameId}] 🤖 Unified AI Decision:`);
+          this.logger.log(`  • Column: ${response.move}`);
+          this.logger.log(`  • Confidence: ${(response.decision.confidence * 100).toFixed(1)}%`);
+          this.logger.log(`  • Strategy: ${response.decision.strategy}`);
+          this.logger.log(`  • Source: ${response.source}`);
+          this.logger.log(`  • Time: ${response.metadata.processingTime}ms`);
+
+          // Execute the move
+          const aiRes = await this.gameService.dropDisc(gameId, 'AI', response.move);
+
+          if (!aiRes.success) {
+            throw new Error(aiRes.error || 'Move execution failed');
+          }
+
+          // Emit the unified AI move result
+          this.server.to(gameId).emit('aiMove', {
+            column: response.move,
+            board: aiRes.board,
+            lastMove: { column: response.move, playerId: 'Yellow' },
+            winner: aiRes.winner,
+            draw: aiRes.draw,
+            nextPlayer: aiRes.nextPlayer,
+            confidence: response.decision.confidence,
+            thinkingTime: response.metadata.processingTime,
+            explanation: response.decision.explanation,
+            safetyScore: 1.0,
+            strategy: response.decision.strategy,
+            gameMetrics: aiRes.gameMetrics,
+            // Additional unified AI data
+            unifiedData: {
+              source: response.source,
+              threatDetectionUsed: response.metadata.threatDetectionUsed,
+              cacheHit: response.metadata.cacheUtilized,
+              alternatives: response.decision.alternativeMoves
+            }
+          });
+
+          this.logger.log(
+            `[${gameId}] ✅ Unified AI played column ${response.move} ` +
+            `(confidence: ${(response.decision.confidence * 100).toFixed(1)}%, ` +
+            `time: ${response.metadata.processingTime}ms)`
+          );
+
+          return;
+        } catch (unifiedError: any) {
+          this.logger.error(`[${gameId}] Unified AI error, falling back: ${unifiedError.message}`);
+          // Continue to other fallbacks
+        }
+      }
+
+      // Try Unified AI System (most comprehensive solution)
+      if (this.unifiedAISystem) {
+        this.logger.log(`[${gameId}] 🚀 Using Unified AI System for level ${difficulty}`);
+
+        try {
+          // Convert board to unified format
+          const unifiedBoard: Board = game.board.map((row: any[]) =>
+            row.map((cell: any) => {
+              if (cell === 'Red') return 'Red' as UnifiedCellValue;
+              if (cell === 'Yellow') return 'Yellow' as UnifiedCellValue;
+              return 'Empty' as UnifiedCellValue;
+            })
+          );
+
+          // Emit AI thinking status
+          this.server.to(gameId).emit('aiThinking', {
+            status: 'analyzing',
+            capabilities: [
+              'unified_threat_detection',
+              'multi_algorithm_support',
+              'pattern_recognition',
+              'opening_book',
+              'endgame_tablebase'
+            ],
+            mode: 'unified_ai_system'
+          });
+
+          // Configure AI based on difficulty
+          const config: UnifiedAIConfig = {
+            difficulty,
+            personality: game.aiPersonality || 'balanced',
+            timeLimit: 5000,
+            useCache: true,
+            learningEnabled: true,
+            explanationLevel: 'detailed'
+          };
+
+          // Get AI decision
+          const decision = await this.unifiedAISystem.makeMove(
+            unifiedBoard,
+            'Yellow' as UnifiedCellValue,
+            config
+          );
+
+          // Log decision details
+          this.logger.log(`[${gameId}] 🤖 Unified AI System Decision:`);
+          this.logger.log(`  • Column: ${decision.move}`);
+          this.logger.log(`  • Confidence: ${(decision.confidence * 100).toFixed(1)}%`);
+          this.logger.log(`  • Strategy: ${decision.strategy}`);
+          this.logger.log(`  • Algorithm: ${decision.metadata.algorithm}`);
+          this.logger.log(`  • Time: ${decision.metadata.computationTime}ms`);
+
+          // Execute the move
+          const aiRes = await this.gameService.dropDisc(gameId, 'AI', decision.move);
+
+          if (!aiRes.success) {
+            throw new Error(aiRes.error || 'Move execution failed');
+          }
+
+          // Emit the AI move result
+          this.server.to(gameId).emit('aiMove', {
+            column: decision.move,
+            board: aiRes.board,
+            lastMove: {
+              column: decision.move,
+              playerId: 'Yellow',
+              confidence: decision.confidence,
+              strategy: decision.strategy,
+              explanation: decision.explanation
+            },
+            winner: aiRes.winner,
+            draw: aiRes.draw,
+            nextPlayer: aiRes.nextPlayer,
+            gameMetrics: aiRes.gameMetrics,
+            aiExplanation: decision.explanation,
+            aiMetadata: {
+              algorithm: decision.metadata.algorithm,
+              processingTime: decision.metadata.computationTime,
+              nodesEvaluated: decision.metadata.nodesEvaluated,
+              cacheHit: decision.metadata.cacheHit,
+              threatAnalysis: decision.metadata.threatAnalysis,
+              alternatives: decision.alternatives
+            }
+          });
+
+          this.logger.log(
+            `[${gameId}] ✅ Unified AI System played column ${decision.move} ` +
+            `(${decision.metadata.algorithm}, ${(decision.confidence * 100).toFixed(1)}% confidence)`
+          );
+
+          return;
+        } catch (unifiedSystemError: any) {
+          this.logger.error(`[${gameId}] Unified AI System error: ${unifiedSystemError.message}`);
+          // Continue to other fallbacks
+        }
+      }
+
       // Fallback to previous logic if adaptive AI not available
       const totalMoves = game.board.flat().filter(cell => cell !== null).length;
       // Only use fast early game for low difficulties
@@ -255,7 +618,7 @@ export class GameGateway
 
       if (isEarlyGame) {
         this.logger.log(`[${gameId}] ⚡ Early game move ${totalMoves + 1} - using fast AI`);
-        
+
         this.server.to(gameId).emit('aiThinking', {
           type: 'systemActivation',
           message: '⚡ Early Game AI activated',
@@ -268,24 +631,28 @@ export class GameGateway
           },
           timestamp: Date.now()
         });
-        
+
         let fastColumn: number;
         if (totalMoves === 0) {
           // For higher difficulties, randomize opening slightly
           fastColumn = difficulty >= 4 ? [3, 4, 2][Math.floor(Math.random() * 3)] : 3;
-        } else if (totalMoves <= 3) {
-          const centerColumns = difficulty >= 4 ? 
-            [3, 4, 2, 5, 1, 6, 0] : // More varied for higher difficulty
-            [3, 4, 2, 5];
-          fastColumn = centerColumns.find(col => 
-            game.board[0][col] === null
-          ) || 3;
         } else {
+          // ALWAYS check for threats after the first move, regardless of move count
           fastColumn = await this.getQuickStrategicMove(game.board);
+
+          // If no immediate threats/opportunities found, use center-focused strategy
+          if (fastColumn === -1 && totalMoves <= 3) {
+            const centerColumns = difficulty >= 4 ?
+              [3, 4, 2, 5, 1, 6, 0] : // More varied for higher difficulty
+              [3, 4, 2, 5];
+            fastColumn = centerColumns.find(col =>
+              game.board[0][col] === 'Empty'
+            ) || 3;
+          }
         }
 
         const result = await this.gameService.dropDisc(gameId, 'AI', fastColumn);
-        
+
         this.server.to(gameId).emit('aiMove', {
           column: fastColumn,
           board: result.board,
@@ -300,7 +667,7 @@ export class GameGateway
           strategy: 'early_game',
           gameMetrics: result.gameMetrics
         });
-        
+
         return;
       }
 
@@ -350,7 +717,7 @@ export class GameGateway
 
     } catch (error: any) {
       this.logger.error(`[${gameId}] Error in AI move: ${error.message}`);
-      
+
       // Record error if performance monitor available
       if (this.performanceMonitor) {
         this.performanceMonitor.recordError(error, { gameId }, 'high');
@@ -405,37 +772,85 @@ export class GameGateway
    * Quick strategic move for early game (fast evaluation)
    */
   private async getQuickStrategicMove(board: any[][]): Promise<number> {
+    // Use Unified AI System if available
+    if (this.unifiedAISystem) {
+      try {
+        const unifiedBoard: Board = board.map(row =>
+          row.map(cell => {
+            if (cell === 'Red') return 'Red' as UnifiedCellValue;
+            if (cell === 'Yellow') return 'Yellow' as UnifiedCellValue;
+            return 'Empty' as UnifiedCellValue;
+          })
+        );
+
+        const move = await this.unifiedAISystem.quickMove(unifiedBoard, 'Yellow' as UnifiedCellValue);
+        this.logger.log(`🎯 [Unified AI] Quick move selected: column ${move}`);
+
+        // Log threat detection reasoning
+        const opponentColor = 'Red' as UnifiedCellValue;
+        const threats = this.unifiedAISystem['unifiedThreatDetector'].analyzeBoardThreats(
+          unifiedBoard,
+          'Yellow' as UnifiedCellValue,
+          opponentColor
+        );
+
+        if (threats.immediateWins.length > 0) {
+          this.logger.log(`⚡ [Unified AI] WINNING MOVE detected at column ${move}!`);
+        } else if (threats.immediateBlocks.length > 0) {
+          this.logger.log(`🛡️ [Unified AI] BLOCKING opponent threat at column ${move}!`);
+        } else {
+          this.logger.log(`📍 [Unified AI] Strategic positioning at column ${move}`);
+        }
+
+        return move;
+      } catch (error) {
+        this.logger.error(`Unified AI quick move error: ${error.message}`);
+        // Fall through to legacy implementation
+      }
+    }
+
+    // Legacy implementation as fallback
+    this.logger.log(`🤔 [Quick AI] Evaluating board for threats and opportunities`);
+
+    // Log board state for debugging
+    const occupiedCells = board.flat().filter(cell => cell !== null).length;
+    const cellTypes = board.flat().filter(cell => cell !== null);
+    const uniqueValues = [...new Set(cellTypes)];
+    this.logger.log(`📊 [Quick AI] Board has ${occupiedCells} pieces. Cell values: ${uniqueValues.join(', ')}`);
+
     // Simple strategic evaluation - check for immediate threats and opportunities
     for (let col = 0; col < 7; col++) {
-      if (board[0][col] !== null) continue; // Column full
-      
+      if (board[0][col] !== 'Empty') continue; // Column full
+
       // Find the row where the piece would land
       let row = 5;
-      while (row >= 0 && board[row][col] !== null) {
+      while (row >= 0 && board[row][col] !== 'Empty') {
         row--;
       }
       if (row < 0) continue; // Column full
-      
+
       // Check for immediate win
       board[row][col] = 'Yellow';
       if (this.checkWin(board, row, col, 'Yellow')) {
-        board[row][col] = null; // Reset
+        board[row][col] = 'Empty'; // Reset
+        this.logger.log(`🎯 [Quick AI] Taking winning move at column ${col}`);
         return col;
       }
-      
+      board[row][col] = 'Empty'; // Reset
+
       // Check for blocking opponent win
       board[row][col] = 'Red';
-      if (this.checkWin(board, row, col, 'Red')) {
-        board[row][col] = null; // Reset
+      const wouldWin = this.checkWin(board, row, col, 'Red');
+      board[row][col] = 'Empty'; // Reset
+
+      if (wouldWin) {
+        this.logger.log(`🚨 [Quick AI] Blocking opponent win at column ${col}, row ${row}`);
         return col;
       }
-      
-      board[row][col] = null; // Reset
     }
-    
-    // Default to center columns if no immediate tactics
-    const centerColumns = [3, 4, 2, 5, 1, 6, 0];
-    return centerColumns.find(col => board[0][col] === null) || 3;
+
+    // Return -1 to indicate no immediate threats/opportunities found
+    return -1;
   }
 
   /**
@@ -443,6 +858,18 @@ export class GameGateway
    */
   private async getStreamlinedAIMove(gameId: string, board: any[][], playerId: string): Promise<any> {
     try {
+      // First, ALWAYS check for immediate threats/opportunities
+      const quickCheck = await this.getQuickStrategicMove(board);
+      if (quickCheck !== -1) {
+        this.logger.log(`🚀 [Streamlined AI] Quick threat detection found critical move at column ${quickCheck}`);
+        return {
+          column: quickCheck,
+          confidence: 0.95,
+          explanation: 'Critical threat/opportunity detected',
+          strategy: 'threat_response'
+        };
+      }
+
       // Emit progress update
       this.server.to(gameId).emit('aiThinking', {
         type: 'progress',
@@ -455,12 +882,12 @@ export class GameGateway
         timestamp: Date.now()
       });
 
-      // Use the basic AI service for faster response
+      // Use the basic AI service for strategic moves
       const column = await this.gameAi.getNextMove(board, 'Yellow', playerId, gameId);
-      
+
       // Analyze the move
       const moveAnalysis = this.analyzeMove(board, column);
-      
+
       return {
         column,
         confidence: 0.85,
@@ -523,7 +950,7 @@ export class GameGateway
    */
   private getNextRow(board: any[][], col: number): number {
     for (let row = 5; row >= 0; row--) {
-      if (board[row][col] === null) return row;
+      if (board[row][col] === 'Empty') return row;
     }
     return -1;
   }
@@ -533,10 +960,10 @@ export class GameGateway
    */
   private checkWin(board: any[][], row: number, col: number, player: string): boolean {
     const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
-    
+
     for (const [dr, dc] of directions) {
       let count = 1;
-      
+
       // Check positive direction
       let r = row + dr, c = col + dc;
       while (r >= 0 && r < 6 && c >= 0 && c < 7 && board[r][c] === player) {
@@ -544,7 +971,7 @@ export class GameGateway
         r += dr;
         c += dc;
       }
-      
+
       // Check negative direction
       r = row - dr;
       c = col - dc;
@@ -553,10 +980,10 @@ export class GameGateway
         r -= dr;
         c -= dc;
       }
-      
+
       if (count >= 4) return true;
     }
-    
+
     return false;
   }
 
@@ -567,10 +994,10 @@ export class GameGateway
     const directions = [
       [0, 1], [1, 0], [1, 1], [1, -1] // horizontal, vertical, diagonal
     ];
-    
+
     for (const [dr, dc] of directions) {
       let count = 1;
-      
+
       // Check in positive direction
       let r = row + dr, c = col + dc;
       while (r >= 0 && r < 6 && c >= 0 && c < 7 && board[r][c] === player) {
@@ -578,7 +1005,7 @@ export class GameGateway
         r += dr;
         c += dc;
       }
-      
+
       // Check in negative direction
       r = row - dr;
       c = col - dc;
@@ -587,10 +1014,10 @@ export class GameGateway
         r -= dr;
         c -= dc;
       }
-      
+
       if (count >= 4) return true;
     }
-    
+
     return false;
   }
 
@@ -649,11 +1076,11 @@ export class GameGateway
             boardStates: [], // Will be tracked in future updates
             timestamp: Date.now(),
           });
-          
+
           this.logger.log(`[${gameId}] Game ended: ${result.winner ? `${result.winner} wins` : 'Draw'}`);
         }
       }
-      
+
       // If game continues and it's AI's turn, trigger enhanced AI move
       if (!result.winner && !result.draw && result.nextPlayer === 'Yellow') {
         this.logger.log(`[${gameId}] 🤖 Triggering Enhanced AI response`);
@@ -682,13 +1109,13 @@ export class GameGateway
     try {
       if (this.asyncAIOrchestrator) {
         const health = await this.asyncAIOrchestrator.getSystemHealth();
-        
+
         client.emit('aiSystemHealth', {
           health,
           timestamp: Date.now(),
           asyncAIAvailable: true
         });
-        
+
         this.logger.debug(`AI system health sent to client ${client.id}`);
       } else {
         client.emit('aiSystemHealth', {
@@ -724,7 +1151,7 @@ export class GameGateway
         // Send metrics every 5 seconds
         const interval = setInterval(async () => {
           const report = await this.performanceMonitor.generateReport(60000); // Last minute
-          
+
           client.emit('performanceMetrics', {
             report,
             gameId: payload.gameId,
@@ -734,13 +1161,13 @@ export class GameGateway
 
         // Store interval to clear on disconnect
         (client as any).metricsInterval = interval;
-        
+
         client.emit('metricsSubscribed', { success: true });
         this.logger.debug(`Client ${client.id} subscribed to performance metrics`);
       } else {
-        client.emit('metricsSubscribed', { 
-          success: false, 
-          reason: 'Performance monitoring not available' 
+        client.emit('metricsSubscribed', {
+          success: false,
+          reason: 'Performance monitoring not available'
         });
       }
     } catch (error: any) {
@@ -822,14 +1249,14 @@ export class GameGateway
       }
 
       const insights = this.adaptiveAIOrchestrator.getGameInsights(payload.gameId);
-      
+
       client.emit('aiGameInsights', {
         available: true,
         gameId: payload.gameId,
         insights,
         timestamp: Date.now()
       });
-      
+
       this.logger.debug(`AI game insights sent for game ${payload.gameId}`);
     } catch (error: any) {
       this.logger.error(`Failed to get AI game insights: ${error.message}`);
@@ -1479,6 +1906,77 @@ export class GameGateway
   @OnEvent('circuit.stateChange')
   handleCircuitStateChange(payload: any) {
     this.server.emit('aiCircuitBreakerStatus', payload);
+  }
+
+  /**
+   * Determine the current game phase based on board state
+   */
+  private determineGamePhase(board: any[][]): string {
+    const totalMoves = board.flat().filter(cell => cell !== 'Empty' && cell !== null).length;
+
+    if (totalMoves < 8) return 'opening';
+    if (totalMoves < 24) return 'midgame';
+    return 'endgame';
+  }
+
+  /**
+   * Handle AI move through AI Coordination Hub (if connected)
+   */
+  private async handleCoordinatedAIMove(gameId: string, game: any, difficulty: number): Promise<boolean> {
+    if (!this.aiCoordinationClient || !this.aiCoordinationClient.isConnected()) {
+      return false;
+    }
+
+    const startTime = Date.now();
+    this.logger.log(`[${gameId}] 🔗 Using AI Coordination Hub for ensemble decision`);
+
+    try {
+      // Emit coordination status
+      this.server.to(gameId).emit('aiThinking', {
+        status: 'coordinating',
+        capabilities: [
+          'multi_agent_ensemble',
+          'collective_intelligence',
+          'emergency_coordination',
+          'cross_model_learning'
+        ],
+        mode: 'coordination_hub'
+      });
+
+      // Convert board for coordination hub
+      const boardState = game.board.map((row: any[]) =>
+        row.map((cell: any) => {
+          if (cell === 'Red') return 'Red';
+          if (cell === 'Yellow') return 'Yellow';
+          return 'Empty';
+        })
+      );
+
+      // Request coordinated decision
+      const coordinationRequest = {
+        game_id: gameId,
+        board_state: boardState,
+        context: {
+          difficulty,
+          game_phase: this.determineGamePhase(game.board),
+          move_count: boardState.flat().filter((c: string) => c !== 'Empty').length,
+          ai_color: 'Yellow',
+          opponent_color: 'Red'
+        },
+        collaboration_mode: 'ensemble',
+        urgency: 5,
+        deadline_ms: 3000
+      };
+
+      // Send request and wait for coordinated response
+      // This would be handled by the AICoordinationClient's WebSocket connection
+      // For now, return false to use fallback
+      return false;
+
+    } catch (error: any) {
+      this.logger.error(`[${gameId}] Coordination Hub error: ${error.message}`);
+      return false;
+    }
   }
 
   /**

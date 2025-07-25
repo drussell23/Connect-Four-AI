@@ -23,6 +23,12 @@ import { LearningIntegrationModule } from './learning/learning-integration.modul
 import { ReinforcementLearningService } from './learning/reinforcement-learning.service';
 import { ResourceManagementModule } from './resource-management/resource-management.module';
 import { AIPerformanceAnalyzer } from './diagnostics/ai-performance-analyzer';
+import { UltimateConnect4AI } from './connect4AI';
+import { SuperAIService } from './super-ai.service';
+import { SimpleAIService } from './simple-ai.service';
+import { AICoordinationModule } from './coordination/ai-coordination.module';
+import { AICoordinationClient } from './coordination/ai-coordination-client.service';
+import { CoordinationGameIntegrationService } from './coordination/coordination-game-integration.service';
 
 /**
  * Integration module that wires the async AI architecture with the existing AI services
@@ -33,7 +39,8 @@ import { AIPerformanceAnalyzer } from './diagnostics/ai-performance-analyzer';
     AsyncAIModule,
     ScheduleModule.forRoot(),
     LearningIntegrationModule,
-    ResourceManagementModule
+    ResourceManagementModule,
+    AICoordinationModule
   ],
   providers: [
     ResourceMonitorService,
@@ -43,6 +50,56 @@ import { AIPerformanceAnalyzer } from './diagnostics/ai-performance-analyzer';
     SelfTuningOptimizer,
     AdaptiveAIOrchestrator,
     AIPerformanceAnalyzer,
+    SuperAIService,
+    SimpleAIService,
+    // Temporarily disabled to fix circular dependency
+    /*{
+      provide: UltimateConnect4AI,
+      useFactory: () => {
+        // Create with maximum difficulty settings
+        const ultimateConfig = {
+          maxDepth: 20,
+          timeLimit: 10000,
+          useOpeningBook: true,
+          useEndgameTablebase: true,
+          useMCTS: true,
+          useNeuralNetworks: true,
+          neuralNetworkModels: {
+            policy: 'alphazero',
+            value: 'muzero'
+          },
+          agentConfigs: {
+            dqn: { enabled: true, epsilon: 0.01 },
+            doubleDqn: { enabled: true },
+            duelingDqn: { enabled: true },
+            rainbowDqn: { enabled: true },
+            alphaZero: { enabled: true, simulations: 1600 }
+          },
+          multiAgentDebate: {
+            enabled: true,
+            agentCount: 5,
+            consensusThreshold: 0.6,
+            maxRounds: 3
+          },
+          safetyMonitoring: {
+            enabled: true,
+            maxComputeTime: 10000,
+            maxMemoryUsage: 512 * 1024 * 1024
+          },
+          explainability: {
+            enabled: true,
+            detailLevel: 'comprehensive'
+          },
+          opponentModeling: {
+            enabled: true,
+            deepProfiling: true,
+            behavioralPrediction: true,
+            adaptiveStrategies: true
+          }
+        };
+        return new UltimateConnect4AI(ultimateConfig);
+      }
+    },*/
     {
       provide: AdaptiveAIService,
       useFactory: (
@@ -111,17 +168,21 @@ import { AIPerformanceAnalyzer } from './diagnostics/ai-performance-analyzer';
     }
   ],
   exports: [
-    AdaptiveAIService, 
+    AdaptiveAIService,
     AsyncAIModule,  // Export the module instead of individual providers
-    AsyncAIStabilityIntegration, 
+    AsyncAIStabilityIntegration,
     ResourceMonitorService,
     AdaptiveResourceManager,
     AsyncDecisionEngine,
     AIPerformanceCollector,
     SelfTuningOptimizer,
     AdaptiveAIOrchestrator,
+    // UltimateConnect4AI,  // Temporarily disabled while fixing circular dependency
+    SimpleAIService,  // Export the simplified AI service
+    SuperAIService,  // Export the super AI service for testing
     LearningIntegrationModule,  // Export the module to provide EnhancedRLService and ReinforcementLearningService
-    ResourceManagementModule  // Export resource management services
+    ResourceManagementModule,  // Export resource management services
+    AICoordinationModule  // Export coordination module (includes CoordinationGameIntegrationService)
   ]
 })
 export class AIIntegrationModule implements OnModuleInit {
@@ -134,29 +195,29 @@ export class AIIntegrationModule implements OnModuleInit {
     private readonly precomputationEngine: PrecomputationEngine,
     private readonly eventEmitter: EventEmitter2,
     private readonly stabilityIntegration: AsyncAIStabilityIntegration
-  ) {}
+  ) { }
 
   async onModuleInit() {
     console.log('🚀 Initializing AI Integration Module...');
-    
+
     // Initialize adaptive AI with async components
     await this.adaptiveAI.initialize();
-    
+
     // Initialize stability integration
     await this.stabilityIntegration.initialize();
-    
+
     // Set up global error handling
     this.setupErrorHandling();
-    
+
     // Configure performance monitoring
     this.configurePerformanceMonitoring();
-    
+
     // Initialize precomputation engine
     await this.initializePrecomputation();
-    
+
     // Set up event listeners
     this.setupEventListeners();
-    
+
     console.log('✅ AI Integration Module initialized successfully');
   }
 
@@ -238,16 +299,16 @@ export class AIIntegrationModule implements OnModuleInit {
   private async initializePrecomputation() {
     // Warm up cache with common opening positions
     await this.precomputationEngine.warmupCache();
-    
+
     // Schedule periodic cache optimization
     setInterval(async () => {
       const stats = await this.cacheManager.getStats();
-      
+
       // Handle if stats is a Map
       if (stats instanceof Map) {
         const totalHitRate = Array.from(stats.values())
           .reduce((sum, stat) => sum + stat.hitRate, 0) / stats.size;
-        
+
         if (totalHitRate < 0.3) {
           // Clear least used entries if hit rate is too low
           await this.cacheManager.invalidate('precomputed');
@@ -287,7 +348,7 @@ export class AIIntegrationModule implements OnModuleInit {
     // Listen for circuit breaker events
     this.eventEmitter.on('circuit.stateChange', (event) => {
       console.log(`🔌 Circuit breaker ${event.name} changed to ${event.newState}`);
-      
+
       if (event.newState === 'OPEN') {
         // Notify about degraded service
         this.eventEmitter.emit('ai.service.degraded', {
@@ -309,7 +370,7 @@ export class AIIntegrationModule implements OnModuleInit {
 
     this.eventEmitter.on('stability.health.degraded', async (event) => {
       console.error(`🚨 System health degraded: ${event.score}`);
-      
+
       // Get combined health status
       const health = await this.stabilityIntegration.getCombinedHealth();
       console.log('Combined health status:', health);

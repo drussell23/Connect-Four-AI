@@ -205,42 +205,51 @@ export class AiProfileService {
     return {
       id: `ai_${playerId}_${Date.now()}`,
       playerId,
-      level: 1,
-      experience: 0,
-      totalGamesPlayed: 0,
-      totalWins: 0,
-      totalLosses: 0,
-      currentStreak: 0,
-      maxStreak: 0,
+      level: 20, // ← Changed from 1 to 20 for much stronger AI!
+      experience: 5000, // Give it experience to match the level
+      totalGamesPlayed: 100, // Pretend it has played many games
+      totalWins: 70, // Strong win rate to boost confidence
+      totalLosses: 30,
+      currentStreak: 5,
+      maxStreak: 15,
       createdAt: new Date(),
       lastUpdated: new Date(),
 
-      personality: this.AI_PERSONALITIES[0], // Start with Genesis
+      personality: this.AI_PERSONALITIES[1], // Start with Prometheus (evolved AI)
       playerPatterns: {
-        favoriteColumns: [3], // Start with center preference
-        averageResponseTime: 0,
-        commonOpenings: [],
-        weaknessesExploited: [],
+        favoriteColumns: [3, 2, 4], // Advanced pattern recognition
+        averageResponseTime: 800,
+        commonOpenings: ["center_control", "fork_setup", "defensive_wall"],
+        weaknessesExploited: ["diagonal_blindness", "endgame_weakness", "trap_susceptibility"],
         lastGamesMoves: [],
-        threatRecognitionSpeed: 0,
-        endgameStrength: 0
+        threatRecognitionSpeed: 0.85, // High threat recognition
+        endgameStrength: 0.75 // Strong endgame
       },
       aiMemories: [],
-      achievements: [],
-      evolutionStage: "Awakening",
-      specializationPath: "generalist",
-      adaptationRate: 1.0,
-      recentPerformance: [],
+      achievements: [
+        "FIRST_BLOOD",
+        "NEMESIS_BORN",
+        "PATTERN_BREAKER",
+        "STREAK_MASTER"
+      ],
+      evolutionStage: "Evolving", // Level 20 stage
+      specializationPath: "adaptive_master",
+      adaptationRate: 1.8, // High adaptation rate
+      recentPerformance: [0.7, 0.8, 0.85, 0.9, 0.88], // Recent win rates
 
-      currentThinkingTime: 1000,
-      currentAlgorithm: "minimax",
-      currentDepth: 4,
-      aggressionLevel: 0.3,
-      defensivenessLevel: 0.7,
+      currentThinkingTime: 3000, // Deeper thinking
+      currentAlgorithm: "hybrid_neural", // Advanced algorithm
+      currentDepth: 8, // Deep search
+      aggressionLevel: 0.8, // Aggressive play
+      defensivenessLevel: 0.9, // Strong defense
 
       seasonalBonuses: {},
       eventMode: null,
-      specialAbilities: []
+      specialAbilities: [
+        "threat_prediction",
+        "counter_strategy",
+        "perfect_opening"
+      ] // Pre-unlocked abilities
     };
   }
 

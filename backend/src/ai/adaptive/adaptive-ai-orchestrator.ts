@@ -7,6 +7,8 @@ import { ReinforcementLearningService } from '../learning/reinforcement-learning
 import { EnhancedRLService } from '../learning/enhanced-rl.service';
 import { AdaptiveThrottleService } from '../resource-management/adaptive-throttle.service';
 import { IntelligentResourceManager } from '../resource-management/intelligent-resource-manager';
+import { StrategicAIEngine } from '../strategy/strategic-ai-engine';
+import { getDifficultyConfig } from '../config/difficulty-config';
 
 export interface GameCriticality {
   score: number; // 0-1, where 1 is most critical
@@ -51,6 +53,7 @@ export class AdaptiveAIOrchestrator {
     @Optional() private readonly enhancedRLService?: EnhancedRLService,
     @Optional() private readonly throttleService?: AdaptiveThrottleService,
     @Optional() private readonly resourceManager?: IntelligentResourceManager,
+    @Optional() private readonly strategicEngine?: StrategicAIEngine,
   ) {}
 
   /**
@@ -124,13 +127,13 @@ export class AdaptiveAIOrchestrator {
           callback: async () => {
             // Compute move based on criticality
             if (backendDifficulty >= 8) {
-              return await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty);
+              return await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty, difficulty);
             } else if (criticality.score < lowThreshold && backendDifficulty < 5) {
-              return await this.computeFastMove(gameId, board, player, criticality);
+              return await this.computeFastMove(gameId, board, player, criticality, backendDifficulty, difficulty);
             } else if (criticality.score < highThreshold) {
-              return await this.computeBalancedMove(gameId, board, player, criticality, backendDifficulty);
+              return await this.computeBalancedMove(gameId, board, player, criticality, backendDifficulty, difficulty);
             } else {
-              return await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty);
+              return await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty, difficulty);
             }
           }
         });
@@ -138,13 +141,13 @@ export class AdaptiveAIOrchestrator {
         this.logger.warn(`Throttle service error, falling back to direct computation: ${error.message}`);
         // Fallback to direct computation
         if (backendDifficulty >= 8) {
-          moveAnalysis = await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty);
+          moveAnalysis = await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty, difficulty);
         } else if (criticality.score < lowThreshold && backendDifficulty < 5) {
-          moveAnalysis = await this.computeFastMove(gameId, board, player, criticality);
+          moveAnalysis = await this.computeFastMove(gameId, board, player, criticality, backendDifficulty, difficulty);
         } else if (criticality.score < highThreshold) {
-          moveAnalysis = await this.computeBalancedMove(gameId, board, player, criticality, backendDifficulty);
+          moveAnalysis = await this.computeBalancedMove(gameId, board, player, criticality, backendDifficulty, difficulty);
         } else {
-          moveAnalysis = await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty);
+          moveAnalysis = await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty, difficulty);
         }
       }
     } else {
@@ -152,7 +155,7 @@ export class AdaptiveAIOrchestrator {
       if (backendDifficulty >= 8) {
         moveAnalysis = await this.computeDeepMove(gameId, board, player, criticality, backendDifficulty);
       } else if (criticality.score < lowThreshold && backendDifficulty < 5) {
-        moveAnalysis = await this.computeFastMove(gameId, board, player, criticality);
+        moveAnalysis = await this.computeFastMove(gameId, board, player, criticality, backendDifficulty, difficulty);
       } else if (criticality.score < highThreshold) {
         moveAnalysis = await this.computeBalancedMove(gameId, board, player, criticality, backendDifficulty);
       } else {
@@ -326,10 +329,31 @@ export class AdaptiveAIOrchestrator {
     board: CellValue[][],
     player: CellValue,
     criticality: GameCriticality,
+    backendDifficulty?: number,
+    frontendDifficulty?: number,
   ): Promise<MoveAnalysis> {
     const startTime = Date.now();
     
-    // Simple heuristic evaluation
+    // Use the frontend difficulty for strategic engine (1-25 scale)
+    const strategicDifficulty = frontendDifficulty || Math.round((backendDifficulty || 5) * 2.5);
+    const config = getDifficultyConfig(strategicDifficulty);
+    
+    // Use strategic engine for all difficulty levels (even level 1 has basic awareness)
+    if (this.strategicEngine) {
+      const strategicMove = await this.strategicEngine.getStrategicMove(board, player, strategicDifficulty);
+      
+      return {
+        column: strategicMove.column,
+        confidence: 0.7 + (strategicMove.priority / 10) * 0.2,
+        criticalityScore: criticality.score,
+        computationTime: Date.now() - startTime,
+        servicesUsed: ['strategic_engine', 'threat_detection'],
+        explanation: strategicMove.reasoning,
+        alternativeMoves: this.convertThreatsToAlternatives(strategicMove.threatAnalysis),
+      };
+    }
+    
+    // Fallback to simple heuristic evaluation
     let bestColumn = 3; // Default center
     let bestScore = -Infinity;
     
@@ -371,9 +395,20 @@ export class AdaptiveAIOrchestrator {
     board: CellValue[][],
     player: CellValue,
     criticality: GameCriticality,
-    difficulty: number,
+    backendDifficulty: number,
+    frontendDifficulty?: number,
   ): Promise<MoveAnalysis> {
     const startTime = Date.now();
+    
+    // Use frontend difficulty for strategic engine
+    const strategicDifficulty = frontendDifficulty || Math.round(backendDifficulty * 2.5);
+    
+    // First get strategic move if available
+    let strategicMove = null;
+    // Use strategic engine for all difficulty levels
+    if (this.strategicEngine) {
+      strategicMove = await this.strategicEngine.getStrategicMove(board, player, strategicDifficulty);
+    }
     
     // Use async orchestrator with appropriate depth
     // Note: Pass difficulty which the orchestrator will use to determine depth and strategies
@@ -381,7 +416,7 @@ export class AdaptiveAIOrchestrator {
       gameId,
       board,
       player,
-      difficulty: Math.max(difficulty, Math.floor(criticality.score * 10)), // Boost difficulty based on criticality
+      difficulty: Math.max(backendDifficulty, Math.floor(criticality.score * 10)), // Boost difficulty based on criticality
       timeLimit: criticality.timeAllocation,
     });
     
@@ -407,14 +442,27 @@ export class AdaptiveAIOrchestrator {
     board: CellValue[][],
     player: CellValue,
     criticality: GameCriticality,
-    difficulty: number,
+    backendDifficulty: number,
+    frontendDifficulty?: number,
   ): Promise<MoveAnalysis> {
     const startTime = Date.now();
     
+    // Use frontend difficulty for strategic engine
+    const strategicDifficulty = frontendDifficulty || Math.round(backendDifficulty * 2.5);
+    
+    // Get strategic analysis first
+    let strategicMove = null;
+    // Use strategic engine for all difficulty levels
+    if (this.strategicEngine) {
+      strategicMove = await this.strategicEngine.getStrategicMove(board, player, strategicDifficulty);
+    }
+    
     // Configure advanced analysis based on difficulty
-    const strategies = difficulty >= 8 ? 
+    const strategies = strategicDifficulty >= 16 ? 
+      ['alpha_beta', 'mcts', 'neural_network', 'minimax', 'dqn', 'alphazero'] :
+      strategicDifficulty >= 11 ?
       ['alpha_beta', 'mcts', 'neural_network', 'minimax'] :
-      difficulty >= 6 ?
+      strategicDifficulty >= 8 ?
       ['alpha_beta', 'mcts', 'minimax'] :
       ['minimax', 'alpha_beta'];
     
@@ -424,7 +472,7 @@ export class AdaptiveAIOrchestrator {
         gameId,
         board,
         player,
-        difficulty: Math.max(difficulty, Math.floor(criticality.score * 10)), // Boost difficulty for critical positions
+        difficulty: Math.max(backendDifficulty, Math.floor(criticality.score * 10)), // Boost difficulty for critical positions
         timeLimit: criticality.timeAllocation,
       },
       {
@@ -468,7 +516,7 @@ export class AdaptiveAIOrchestrator {
     
     // Final deep analysis if time permits
     if (Date.now() - startTime < criticality.timeAllocation * 0.8) {
-      const deepResult = await this.performDeepAnalysis(board, player, criticality, difficulty);
+      const deepResult = await this.performDeepAnalysis(board, player, criticality, backendDifficulty);
       if (deepResult.confidence > bestMove.confidence) {
         bestMove = deepResult;
         servicesUsed.add('deep_analysis');
@@ -476,7 +524,7 @@ export class AdaptiveAIOrchestrator {
     }
     
     // Apply enhanced RL if available and difficulty is high
-    if (this.enhancedRLService && difficulty >= 7) {
+    if (this.enhancedRLService && strategicDifficulty >= 7) {
       try {
         const enhancedMove = await this.enhancedRLService.getEnhancedMove(
           board,
@@ -509,13 +557,38 @@ export class AdaptiveAIOrchestrator {
       }
     }
     
+    // Check if strategic move overrides deep analysis
+    let finalColumn = bestMove.column;
+    let finalConfidence = bestMove.confidence;
+    let explanation = `Critical move computed with ${servicesUsed.size} AI services`;
+    
+    if (strategicMove && strategicMove.priority >= 9) {
+      // Very high priority move (win or critical block)
+      finalColumn = strategicMove.column;
+      finalConfidence = Math.max(finalConfidence, 0.95);
+      explanation = `Critical: ${strategicMove.reasoning}`;
+      servicesUsed.add('strategic_engine');
+    } else if (strategicMove && strategicMove.priority >= 7 && strategicDifficulty >= 11) {
+      // High priority move at competitive levels
+      if (strategicMove.column !== bestMove.column) {
+        // Strategic engine found a different threat
+        const strategicScore = strategicMove.priority / 10;
+        if (strategicScore > bestMove.confidence) {
+          finalColumn = strategicMove.column;
+          finalConfidence = Math.max(finalConfidence, strategicScore);
+          explanation = `Strategic: ${strategicMove.reasoning}`;
+          servicesUsed.add('strategic_engine');
+        }
+      }
+    }
+    
     return {
-      column: bestMove.column,
-      confidence: bestMove.confidence,
+      column: finalColumn,
+      confidence: finalConfidence,
       criticalityScore: criticality.score,
       computationTime: Date.now() - startTime,
       servicesUsed: Array.from(servicesUsed),
-      explanation: `Critical move computed with ${servicesUsed.size} AI services`,
+      explanation: explanation,
     };
   }
 
@@ -997,5 +1070,73 @@ export class AdaptiveAIOrchestrator {
       cpu: Math.ceil(cpuRequired),
       memory: Math.ceil(memoryRequired)
     };
+  }
+  
+  /**
+   * Get difficulty level from criticality
+   */
+  private getDifficultyFromCriticality(criticality: GameCriticality): number {
+    // Map criticality score (0-1) to difficulty level (1-25)
+    return Math.max(1, Math.min(25, Math.round(criticality.score * 25)));
+  }
+  
+  /**
+   * Convert threat analysis to alternative moves
+   */
+  private convertThreatsToAlternatives(threatAnalysis: any): Array<{
+    column: number;
+    score: number;
+    reason: string;
+  }> {
+    const alternatives: Array<{ column: number; score: number; reason: string }> = [];
+    
+    // Add immediate wins
+    threatAnalysis.immediateWins?.forEach((threat: any) => {
+      alternatives.push({
+        column: threat.column,
+        score: 1.0,
+        reason: 'Winning move'
+      });
+    });
+    
+    // Add immediate blocks
+    threatAnalysis.immediateBlocks?.forEach((threat: any) => {
+      alternatives.push({
+        column: threat.column,
+        score: 0.9,
+        reason: 'Block opponent win'
+      });
+    });
+    
+    // Add open-three threats
+    threatAnalysis.openThrees?.forEach((threat: any) => {
+      alternatives.push({
+        column: threat.column,
+        score: 0.7,
+        reason: threat.player === 'Yellow' ? 'Create open-three' : 'Block open-three'
+      });
+    });
+    
+    // Add fork opportunities
+    threatAnalysis.forks?.forEach((threat: any) => {
+      alternatives.push({
+        column: threat.column,
+        score: 0.8,
+        reason: threat.player === 'Yellow' ? 'Create fork' : 'Block fork'
+      });
+    });
+    
+    // Remove duplicates and sort by score
+    const uniqueAlternatives = new Map<number, { column: number; score: number; reason: string }>();
+    alternatives.forEach(alt => {
+      const existing = uniqueAlternatives.get(alt.column);
+      if (!existing || existing.score < alt.score) {
+        uniqueAlternatives.set(alt.column, alt);
+      }
+    });
+    
+    return Array.from(uniqueAlternatives.values())
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3); // Return top 3 alternatives
   }
 }

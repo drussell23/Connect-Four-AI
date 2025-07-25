@@ -14,24 +14,30 @@ import { SettingsService } from './settings.service';
 import { MlModule } from '../ml/ml.module';
 import { AIIntegrationModule } from '../ai/ai-integration.module';
 import { AIGameIntegrationService } from '../ai/ai-game-integration.service';
+import { UnifiedAIIntegrationModule } from '../ai/unified/unified-ai-integration.module';
+import { AdaptiveAIOrchestrator } from '../ai/adaptive/adaptive-ai-orchestrator';
+import { AICoordinationModule } from '../ai/coordination/ai-coordination.module';
 
 @Module({
   imports: [
-    MlModule, 
+    MlModule,
     AIIntegrationModule,
+    UnifiedAIIntegrationModule,
+    AICoordinationModule, // ← Added AI Coordination Hub integration!
     EventEmitterModule.forRoot()
   ],
   controllers: [GameController, AIProfileController],
   providers: [
-    GameService, 
-    GameHistoryService, 
-    GameGateway, 
-    AiProfileService, 
-    GameAIService, 
-    DashboardService, 
-    TrainingService, 
+    GameService,
+    GameHistoryService,
+    GameGateway,
+    AiProfileService,
+    GameAIService,
+    DashboardService,
+    TrainingService,
     SettingsService,
-    AIGameIntegrationService
+    AIGameIntegrationService,
+    AdaptiveAIOrchestrator, // ← Added this to enable advanced AI!
   ],
   exports: [GameService, GameGateway],
 })

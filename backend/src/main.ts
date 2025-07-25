@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import './tensorflow-init'; // Initialize TensorFlow.js with Node.js backend
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
@@ -79,7 +80,7 @@ async function bootstrap() {
     logger.log('✅ Frontend static files served from: ' + frontendPath);
 
     // Enterprise Server Startup
-    const port = process.env.PORT || configService.get('port') || 3000;
+    const port = process.env.BACKEND_PORT || process.env.PORT || configService.get('port') || 3001;
     const frontendUrl = configService.get('frontendUrl');
 
     await app.listen(port);

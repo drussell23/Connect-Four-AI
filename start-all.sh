@@ -52,10 +52,10 @@ rm -f logs/*.pid
 
 # Start all services with proper environment variables
 echo -e "${BLUE}📦 Starting Backend Service...${NC}"
-start_service "backend" "backend" "PORT=3001 BACKEND_PORT=3001 npm run start:dev"
+start_service "backend" "backend" "PORT=3000 BACKEND_PORT=3000 npm run start:dev"
 
 echo -e "${BLUE}⚛️  Starting Frontend Service...${NC}"
-start_service "frontend" "frontend" "PORT=3000 npm start"
+start_service "frontend" "frontend" "PORT=3001 npm start"
 
 echo -e "${BLUE}🤖 Starting ML Service...${NC}"
 start_service "ml_service" "ml_service" "PORT=8000 python3 ml_service.py"
@@ -95,7 +95,7 @@ ML_OK=false
 
 # Backend needs more time, so we'll retry it
 for i in {1..3}; do
-    if check_service 3001 "Backend"; then
+    if check_service 3000 "Backend"; then
         BACKEND_OK=true
         break
     elif [ $i -lt 3 ]; then
@@ -104,7 +104,7 @@ for i in {1..3}; do
     fi
 done
 
-check_service 3000 "Frontend" && FRONTEND_OK=true
+check_service 3001 "Frontend" && FRONTEND_OK=true
 check_service 8000 "ML Service" && ML_OK=true
 
 # Check additional AI services
@@ -118,10 +118,10 @@ if [ "$BACKEND_OK" = true ] && [ "$FRONTEND_OK" = true ] && [ "$ML_OK" = true ] 
     echo -e "${GREEN}✅ All services are running successfully!${NC}"
     echo ""
     echo -e "${BLUE}📋 Service URLs:${NC}"
-    echo "   - Frontend: http://localhost:3000"
-    echo "   - Backend API: http://localhost:3001/api"
-    echo "   - Backend Health: http://localhost:3001/api/health"
-    echo "   - AI Resources: http://localhost:3001/api/games/ai/resources"
+    echo "   - Frontend: http://localhost:3001"
+    echo "   - Backend API: http://localhost:3000/api"
+    echo "   - Backend Health: http://localhost:3000/api/health"
+    echo "   - AI Resources: http://localhost:3000/api/games/ai/resources"
     echo "   - ML Service: http://localhost:8000"
     echo "   - ML Inference: http://localhost:8001"
     echo "   - AI Coordination: http://localhost:8002"

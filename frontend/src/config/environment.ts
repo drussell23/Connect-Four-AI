@@ -92,7 +92,7 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
 
 // Helper to determine if we need the /api prefix
 const needsApiPrefix = (): boolean => {
-    const apiUrl = getEnvVar('REACT_APP_API_URL', 'http://localhost:3001');
+    const apiUrl = getEnvVar('REACT_APP_API_URL', 'http://localhost:3000');
     // In production (Render), we need the /api prefix
     // Locally, we typically don't need it (but this can be configured)
     return apiUrl.includes('onrender.com') || getEnvVar('REACT_APP_USE_API_PREFIX', 'false') === 'true';
@@ -101,8 +101,8 @@ const needsApiPrefix = (): boolean => {
 // Load and export enterprise configuration
 export const appConfig: AppConfig = {
     api: {
-        baseUrl: getEnvVar('REACT_APP_API_URL', 'http://localhost:3001'),
-        wsUrl: getEnvVar('REACT_APP_WS_URL', 'http://localhost:3001'),
+        baseUrl: getEnvVar('REACT_APP_API_URL', 'http://localhost:3000'),
+        wsUrl: getEnvVar('REACT_APP_WS_URL', 'http://localhost:3000'),
         mlServiceUrl: getEnvVar('REACT_APP_ML_SERVICE_URL', 'https://connect-four-ai-roge.onrender.com'),
         orchestrationDashboardUrl: getEnvVar('REACT_APP_ORCHESTRATION_DASHBOARD_URL', 'http://localhost:3011'),
         performanceAnalyticsUrl: getEnvVar('REACT_APP_PERFORMANCE_ANALYTICS_URL', 'http://localhost:3014'),
