@@ -93,14 +93,9 @@ async function bootstrap() {
 
     logger.log(`✅ CORS enabled for origins: ${corsOrigins.join(', ')}`);
 
-    // Set API prefix (only in production)
-    const isProduction = process.env.NODE_ENV === 'production';
-    if (isProduction) {
-      app.setGlobalPrefix('api');
-      logger.log('✅ API prefix set to /api (production mode)');
-    } else {
-      logger.log('ℹ️ No API prefix in development mode');
-    }
+    // Set API prefix
+    app.setGlobalPrefix('api');
+    logger.log('✅ API prefix set to /api');
 
     // Serve frontend static files
     const frontendPath = join(__dirname, '..', '..', 'frontend', 'build');
