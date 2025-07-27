@@ -1,5 +1,5 @@
 // backend/src/ai/ai-integration.module.ts
-import { Module, Global, OnModuleInit } from '@nestjs/common';
+import { Module, Global, OnModuleInit, Inject } from '@nestjs/common';
 import { AsyncAIModule } from './async/async-ai.module';
 import { AdaptiveAIService } from './adaptive-ai.service';
 import { AsyncAIOrchestrator } from './async/async-ai-orchestrator';
@@ -29,6 +29,17 @@ import { SimpleAIService } from './simple-ai.service';
 import { AICoordinationModule } from './coordination/ai-coordination.module';
 import { AICoordinationClient } from './coordination/ai-coordination-client.service';
 import { CoordinationGameIntegrationService } from './coordination/coordination-game-integration.service';
+import { OpeningBook } from './opening-book/opening-book';
+import { UltimateAIFactory } from './ultimate-ai.factory';
+import { EnhancedAsyncOrchestrator } from './m1-optimized/enhanced-async-orchestrator';
+import { ParallelAIOrchestrator } from './m1-optimized/parallel-ai-orchestrator';
+import { TensorFlowM1Initializer } from './m1-optimized/tensorflow-webgpu-init';
+import { TypeScriptMLModule } from './typescript-ml/typescript-ml.module';
+import { TypeScriptMLService } from './typescript-ml/typescript-ml.service';
+import { HybridArchitectureModule } from './hybrid-architecture/hybrid-architecture.module';
+import { HybridAIService } from './hybrid-architecture/hybrid-ai.service';
+import { LocalFirstModule } from './local-first/local-first.module';
+import { LocalFirstAIService } from './local-first/local-first-ai.service';
 
 /**
  * Integration module that wires the async AI architecture with the existing AI services
@@ -40,7 +51,10 @@ import { CoordinationGameIntegrationService } from './coordination/coordination-
     ScheduleModule.forRoot(),
     LearningIntegrationModule,
     ResourceManagementModule,
-    AICoordinationModule
+    AICoordinationModule,
+    TypeScriptMLModule,
+    HybridArchitectureModule,
+    LocalFirstModule
   ],
   providers: [
     ResourceMonitorService,
@@ -52,54 +66,87 @@ import { CoordinationGameIntegrationService } from './coordination/coordination-
     AIPerformanceAnalyzer,
     SuperAIService,
     SimpleAIService,
-    // Temporarily disabled to fix circular dependency
-    /*{
+    OpeningBook,
+    UltimateAIFactory,
+    ParallelAIOrchestrator,
+    // Provide EnhancedAsyncOrchestrator as AsyncAIOrchestrator for M1 optimization
+    {
+      provide: AsyncAIOrchestrator,
+      useClass: EnhancedAsyncOrchestrator
+    },
+    {
       provide: UltimateConnect4AI,
-      useFactory: () => {
-        // Create with maximum difficulty settings
-        const ultimateConfig = {
-          maxDepth: 20,
-          timeLimit: 10000,
+      useFactory: (factory: UltimateAIFactory) => {
+        // Create with maximum difficulty settings and full integration
+        return factory.create({
+          // Core AI Configuration
+          primaryStrategy: 'constitutional_ai',
+          neuralNetwork: {
+            type: 'ensemble',
+            enableTraining: true,
+            trainingFrequency: 10,
+            batchSize: 64,
+            learningRate: 0.001,
+            architectureSearch: true
+          },
+          reinforcementLearning: {
+            algorithm: 'rainbow_dqn',
+            experienceReplay: true,
+            targetUpdateFreq: 100,
+            exploration: {
+              strategy: 'noisy_networks',
+              initialValue: 1.0,
+              decayRate: 0.995,
+              finalValue: 0.01
+            }
+          },
+          mcts: {
+            simulations: 2000,
+            timeLimit: 10000,
+            explorationConstant: 1.414,
+            progressiveWidening: true,
+            parallelization: true
+          },
+          advanced: {
+            multiAgent: true,
+            metaLearning: true,
+            curriculumLearning: true,
+            populationTraining: true,
+            explainableAI: true,
+            realTimeAdaptation: true,
+            constitutionalAI: true,
+            safetyMonitoring: true,
+            opponentModeling: true,
+            multiAgentDebate: true
+          },
+          safety: {
+            robustnessChecks: true,
+            adversarialTesting: true,
+            interpretabilityRequirements: true,
+            humanOversight: true,
+            failsafeActivation: true,
+            redTeaming: true,
+            safetyVerification: true,
+            ethicalConstraints: true,
+            harmPrevention: true,
+            transparencyLevel: 'expert' as const
+          },
+          performance: {
+            maxThinkingTime: 10000,
+            multiThreading: true,
+            memoryLimit: 512 * 1024 * 1024,
+            gpuAcceleration: true
+          },
+          // Enhanced features
           useOpeningBook: true,
-          useEndgameTablebase: true,
-          useMCTS: true,
-          useNeuralNetworks: true,
-          neuralNetworkModels: {
-            policy: 'alphazero',
-            value: 'muzero'
-          },
-          agentConfigs: {
-            dqn: { enabled: true, epsilon: 0.01 },
-            doubleDqn: { enabled: true },
-            duelingDqn: { enabled: true },
-            rainbowDqn: { enabled: true },
-            alphaZero: { enabled: true, simulations: 1600 }
-          },
-          multiAgentDebate: {
-            enabled: true,
-            agentCount: 5,
-            consensusThreshold: 0.6,
-            maxRounds: 3
-          },
-          safetyMonitoring: {
-            enabled: true,
-            maxComputeTime: 10000,
-            maxMemoryUsage: 512 * 1024 * 1024
-          },
-          explainability: {
-            enabled: true,
-            detailLevel: 'comprehensive'
-          },
-          opponentModeling: {
-            enabled: true,
-            deepProfiling: true,
-            behavioralPrediction: true,
-            adaptiveStrategies: true
-          }
-        };
-        return new UltimateConnect4AI(ultimateConfig);
-      }
-    },*/
+          openingBookDepth: 20,
+          performanceTracking: true,
+          eventDriven: true,
+          cacheResults: true
+        });
+      },
+      inject: [UltimateAIFactory]
+    },
     {
       provide: AdaptiveAIService,
       useFactory: (
@@ -163,6 +210,37 @@ import { CoordinationGameIntegrationService } from './coordination/coordination-
           metricsRetention: 1800000, // 30 minutes, reduced from 1 hour
           alertingEnabled: true,
           exportInterval: 60000 // 1 minute
+        },
+        m1Optimization: {
+          enabled: true,
+          preferWebGPU: true,
+          parallelWorkers: 8,
+          sharedMemory: true,
+          neuralAcceleration: true
+        },
+        typescriptML: {
+          enabled: true,
+          useONNX: true,
+          useBrainJS: true,
+          useML5: true,
+          ensembleStrategy: 'dynamic',
+          modelCaching: true
+        },
+        hybridArchitecture: {
+          enabled: true,
+          pythonTrainerUrl: process.env.PYTHON_TRAINER_URL || 'http://localhost:8002',
+          autoRetraining: true,
+          deploymentStrategy: 'canary',
+          modelVersioning: true
+        },
+        localFirst: {
+          enabled: true,
+          enableOffline: true,
+          enableServiceWorker: true,
+          enableWebAssembly: true,
+          cacheSize: 10000,
+          syncInterval: 300000,
+          modelStorageQuota: 100 * 1024 * 1024
         }
       }
     }
@@ -177,12 +255,17 @@ import { CoordinationGameIntegrationService } from './coordination/coordination-
     AIPerformanceCollector,
     SelfTuningOptimizer,
     AdaptiveAIOrchestrator,
-    // UltimateConnect4AI,  // Temporarily disabled while fixing circular dependency
+    UltimateConnect4AI,  // Re-enabled with factory pattern to avoid circular dependency
     SimpleAIService,  // Export the simplified AI service
     SuperAIService,  // Export the super AI service for testing
+    OpeningBook,  // Export the opening book for AI services
+    UltimateAIFactory,  // Export the factory for creating enhanced AI instances
     LearningIntegrationModule,  // Export the module to provide EnhancedRLService and ReinforcementLearningService
     ResourceManagementModule,  // Export resource management services
-    AICoordinationModule  // Export coordination module (includes CoordinationGameIntegrationService)
+    AICoordinationModule,  // Export coordination module (includes CoordinationGameIntegrationService)
+    TypeScriptMLModule,  // Export TypeScript ML module (includes TypeScriptMLService)
+    HybridArchitectureModule,  // Export Hybrid Architecture module (includes HybridAIService)
+    LocalFirstModule  // Export Local-First module (includes LocalFirstAIService)
   ]
 })
 export class AIIntegrationModule implements OnModuleInit {
@@ -194,11 +277,40 @@ export class AIIntegrationModule implements OnModuleInit {
     private readonly circuitBreaker: CircuitBreaker,
     private readonly precomputationEngine: PrecomputationEngine,
     private readonly eventEmitter: EventEmitter2,
-    private readonly stabilityIntegration: AsyncAIStabilityIntegration
+    private readonly stabilityIntegration: AsyncAIStabilityIntegration,
+    private readonly openingBook: OpeningBook,
+    private readonly typescriptML: TypeScriptMLService,
+    private readonly hybridAI: HybridAIService,
+    private readonly localFirstAI: LocalFirstAIService,
+    @Inject(UltimateConnect4AI) private readonly ultimateAI: UltimateConnect4AI
   ) { }
 
   async onModuleInit() {
     console.log('🚀 Initializing AI Integration Module...');
+
+    // Check for fast mode
+    const isFastMode = process.env.FAST_MODE === 'true' || process.env.SKIP_ML_INIT === 'true';
+    
+    if (isFastMode) {
+      console.log('⚡ Fast mode enabled - skipping heavy AI initialization');
+      return;
+    }
+
+    // Initialize UltimateConnect4AI first to avoid circular dependencies
+    await this.ultimateAI.initialize();
+    console.log('✅ UltimateConnect4AI initialized');
+
+    // Initialize opening book
+    await this.openingBook.load();
+    console.log('📚 Opening book loaded');
+
+    // Initialize TypeScript ML
+    await this.typescriptML.initialize();
+    console.log('🧠 TypeScript ML initialized');
+
+    // Initialize Local-First AI
+    console.log('🌐 Initializing Local-First AI...');
+    // Local-First AI initializes in its own onModuleInit
 
     // Initialize adaptive AI with async components
     await this.adaptiveAI.initialize();
@@ -338,6 +450,25 @@ export class AIIntegrationModule implements OnModuleInit {
         event.player === 'Red' ? 'Yellow' : 'Red',
         2
       );
+    });
+
+    // Listen for game results to update opening book
+    this.eventEmitter.on('game.ended', async (event: {
+      gameId: string;
+      winner: string;
+      moves: Array<{ board: any[][]; column: number; player: string }>;
+    }) => {
+      // Update opening book with game results
+      for (const move of event.moves) {
+        const result = move.player === event.winner ? 'win' : 
+                       event.winner === 'draw' ? 'draw' : 'loss';
+        await this.openingBook.updateEntry(move.board, move.column, result);
+      }
+      
+      // Periodically save the opening book
+      if (Math.random() < 0.1) { // 10% chance to save after each game
+        await this.openingBook.save();
+      }
     });
 
     // Listen for performance alerts

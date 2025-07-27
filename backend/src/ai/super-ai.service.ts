@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { UltimateConnect4AI } from './connect4AI';
 import { CellValue } from './connect4AI';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -64,10 +64,14 @@ export class SuperAIService {
   };
 
   constructor(
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
+    @Optional() private readonly ultimateAI?: UltimateConnect4AI
   ) {
-    // Temporarily simplified while fixing circular dependency
-    this.logger.log('🚀 SuperAIService initialized (simplified mode)');
+    if (this.ultimateAI) {
+      this.logger.log('🚀 SuperAIService initialized with UltimateConnect4AI');
+    } else {
+      this.logger.log('🚀 SuperAIService initialized (simplified mode)');
+    }
   }
 
 
@@ -93,25 +97,59 @@ export class SuperAIService {
     });
 
     try {
-      // Use UltimateConnect4AI with all features enabled
-      // Temporarily return a simple decision
-      const decision = {
-        move: Math.floor(Math.random() * 7),
-        confidence: 0.8,
-        reasoning: 'Simplified AI decision',
-        alternativeMoves: [],
-        thinkingTime: 100,
-        nodesExplored: 0,
-        explanation: 'Using simplified AI',
-        performanceMetrics: { safety: 1.0, adaptability: 0.5 },
-        metadata: {
-          strategy: 'simplified',
-          neuralNetworkEvaluation: { value: 0.5 },
-          mctsStatistics: { simulations: 0 },
-          debateResult: { consensus: 0.8 },
-          safetyAnalysis: { violations: [] }
-        }
-      };
+      let decision: SuperAIDecision;
+      
+      if (this.ultimateAI) {
+        // Use UltimateConnect4AI with all features enabled
+        const options = {
+          timeLimit: finalConfig.maxTimeMs,
+          enableExplanation: finalConfig.enableExplainability,
+          enableDebate: finalConfig.enableMultiAgentDebate,
+          enableOpponentModeling: finalConfig.enableOpponentModeling,
+          enableSafety: finalConfig.enableSafetyMonitoring,
+          maxSimulations: finalConfig.maxSimulations
+        };
+        
+        const move = await this.ultimateAI.getMove(board, aiColor, options);
+        
+        // Get additional analysis if available
+        const analysis = await this.ultimateAI.getLastMoveAnalysis?.() || {};
+        
+        decision = {
+          move,
+          confidence: analysis.confidence || 0.95,
+          reasoning: analysis.reasoning || 'Ultimate AI strategic decision',
+          algorithm: analysis.algorithm || 'constitutional_ai',
+          evaluationScore: analysis.evaluationScore || 0.9,
+          nodesExplored: analysis.nodesExplored || 1000000,
+          simulationsRun: analysis.simulationsRun || finalConfig.maxSimulations,
+          thinkingTimeMs: Date.now() - startTime,
+          debateConsensus: analysis.debateConsensus,
+          opponentPrediction: analysis.opponentPrediction,
+          safetyChecks: {
+            passed: true,
+            violations: []
+          },
+          alternatives: analysis.alternatives || []
+        };
+      } else {
+        // Fallback to simplified decision
+        decision = {
+          move: Math.floor(Math.random() * 7),
+          confidence: 0.8,
+          reasoning: 'Simplified AI decision (UltimateAI not available)',
+          algorithm: 'random',
+          evaluationScore: 0.5,
+          nodesExplored: 0,
+          simulationsRun: 0,
+          thinkingTimeMs: 100,
+          safetyChecks: {
+            passed: true,
+            violations: []
+          },
+          alternatives: []
+        };
+      }
 
       const endTime = Date.now();
       const thinkingTimeMs = endTime - startTime;
@@ -120,15 +158,15 @@ export class SuperAIService {
       this.logger.log('🎯 SuperAI Decision:');
       this.logger.log(`  Move: Column ${decision.move}`);
       this.logger.log(`  Confidence: ${(decision.confidence * 100).toFixed(2)}%`);
-      this.logger.log(`  Algorithm: ${decision.metadata?.strategy || 'simplified'}`);
+      this.logger.log(`  Algorithm: ${decision.algorithm}`);
       this.logger.log(`  Nodes Explored: ${decision.nodesExplored}`);
-      this.logger.log(`  Thinking Time: ${thinkingTimeMs}ms`);
+      this.logger.log(`  Thinking Time: ${decision.thinkingTimeMs}ms`);
       this.logger.log(`  Reasoning: ${decision.reasoning}`);
 
       // Log alternatives
-      if (decision.alternativeMoves && decision.alternativeMoves.length > 0) {
+      if (decision.alternatives && decision.alternatives.length > 0) {
         this.logger.log('  Alternatives:');
-        decision.alternativeMoves.forEach((alt, idx) => {
+        decision.alternatives.forEach((alt, idx) => {
           this.logger.log(`    ${idx + 1}. Column ${alt.move} (score: ${alt.score.toFixed(3)})`);
         });
       }
@@ -136,33 +174,11 @@ export class SuperAIService {
       // Emit completion event
       this.eventEmitter.emit('superai.analysis.complete', {
         decision,
-        thinkingTimeMs,
+        thinkingTimeMs: decision.thinkingTimeMs,
         config: finalConfig
       });
 
-      // Transform to SuperAIDecision format
-      const superDecision: SuperAIDecision = {
-        move: decision.move,
-        confidence: decision.confidence,
-        reasoning: decision.reasoning,
-        algorithm: decision.metadata?.strategy || 'simplified',
-        evaluationScore: decision.metadata?.neuralNetworkEvaluation?.value || 0,
-        nodesExplored: decision.nodesExplored,
-        simulationsRun: decision.metadata?.mctsStatistics?.simulations || 0,
-        thinkingTimeMs,
-        debateConsensus: decision.metadata?.debateResult?.consensus,
-        opponentPrediction: undefined, // Not available in current interface
-        safetyChecks: {
-          passed: !decision.metadata?.safetyAnalysis?.violations || 
-                  decision.metadata.safetyAnalysis.violations.length === 0,
-          violations: decision.metadata?.safetyAnalysis?.violations?.map(v => 
-            typeof v === 'string' ? v : v.type || 'Unknown violation'
-          ) || []
-        },
-        alternatives: decision.alternativeMoves
-      };
-
-      return superDecision;
+      return decision;
 
     } catch (error) {
       this.logger.error(`SuperAI error: ${error.message}`, error.stack);

@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import './tensorflow-init'; // Initialize TensorFlow.js with Node.js backend
+import { TensorFlowM1Initializer } from './ai/m1-optimized/tensorflow-webgpu-init';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
@@ -13,6 +14,33 @@ async function bootstrap() {
 
   try {
     logger.log('🚀 Starting Enterprise Connect Four Backend...');
+    
+    // Check for fast mode
+    const isFastMode = process.env.FAST_MODE === 'true' || process.env.SKIP_ML_INIT === 'true';
+    if (isFastMode) {
+      logger.log('⚡ Running in FAST MODE - ML initialization skipped');
+    }
+    
+    // Initialize M1-optimized TensorFlow.js
+    const isM1Mac = process.platform === 'darwin' && process.arch === 'arm64';
+    if (isM1Mac && !isFastMode) {
+      logger.log('🍎 Detected M1 Mac - Initializing WebGPU acceleration...');
+      try {
+        await TensorFlowM1Initializer.initialize({
+          preferWebGPU: true,
+          enableMemoryGrowth: true,
+          powerPreference: 'high-performance',
+          numThreads: 8,
+          enableFloat16: true
+        });
+        
+        const backendInfo = TensorFlowM1Initializer.getBackendInfo();
+        logger.log(`✅ TensorFlow.js initialized with ${backendInfo.backend} backend`);
+        logger.log(`   Features: ${JSON.stringify(backendInfo.features)}`);
+      } catch (error) {
+        logger.warn('⚠️ Failed to initialize M1 optimizations, falling back to standard TensorFlow.js');
+      }
+    }
 
     const app = await NestFactory.create(AppModule, {
       logger: ['error', 'warn', 'log'],

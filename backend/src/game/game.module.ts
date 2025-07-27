@@ -15,7 +15,6 @@ import { MlModule } from '../ml/ml.module';
 import { AIIntegrationModule } from '../ai/ai-integration.module';
 import { AIGameIntegrationService } from '../ai/ai-game-integration.service';
 import { UnifiedAIIntegrationModule } from '../ai/unified/unified-ai-integration.module';
-import { AdaptiveAIOrchestrator } from '../ai/adaptive/adaptive-ai-orchestrator';
 import { AICoordinationModule } from '../ai/coordination/ai-coordination.module';
 
 @Module({
@@ -37,7 +36,7 @@ import { AICoordinationModule } from '../ai/coordination/ai-coordination.module'
     TrainingService,
     SettingsService,
     AIGameIntegrationService,
-    AdaptiveAIOrchestrator, // ← Added this to enable advanced AI!
+    // AdaptiveAIOrchestrator is already provided by AIIntegrationModule - removed to avoid duplicate instantiation
   ],
   exports: [GameService, GameGateway],
 })

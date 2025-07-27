@@ -1,11 +1,12 @@
 // src/game/game-ai.service.ts
-import { Injectable, Logger } from '@nestjs/common';
-import { CellValue, legalMoves } from '../ai/connect4AI';
+import { Injectable, Logger, Optional } from '@nestjs/common';
+import { CellValue, legalMoves, UltimateConnect4AI } from '../ai/connect4AI';
 import { minimax, mcts } from '../ai/connect4AI';
 import { AiProfileService } from './ai-profile.service';
 import { MlClientService } from '../ml/ml-client.service';
 import { AsyncAIOrchestrator, AIRequest } from '../ai/async/async-ai-orchestrator';
 import { AIStrategy } from '../ai/async/strategy-selector';
+import { OpeningBook } from '../ai/opening-book/opening-book';
 
 @Injectable()
 export class GameAIService {
@@ -15,7 +16,9 @@ export class GameAIService {
   constructor(
     private readonly aiProfileService: AiProfileService,
     private readonly mlClientService: MlClientService,
-    private readonly asyncAIOrchestrator?: AsyncAIOrchestrator,
+    @Optional() private readonly asyncAIOrchestrator?: AsyncAIOrchestrator,
+    @Optional() private readonly openingBook?: OpeningBook,
+    @Optional() private readonly ultimateAI?: UltimateConnect4AI,
   ) { }
 
   /**
@@ -34,6 +37,19 @@ export class GameAIService {
   ): Promise<number> {
     const profile = await this.aiProfileService.getOrCreateProfile(playerId);
     const aiLevel = profile.level;
+    
+    // Check opening book first (for all AI levels)
+    if (this.openingBook) {
+      try {
+        const openingMove = await this.openingBook.lookup(board);
+        if (openingMove !== null) {
+          this.logger.log(`Opening book suggests column ${openingMove} for AI level ${aiLevel}`);
+          return openingMove;
+        }
+      } catch (error) {
+        this.logger.warn(`Opening book lookup failed: ${error.message}`);
+      }
+    }
     
     // Use async orchestrator if available and level > 3
     if (this.asyncAIOrchestrator && aiLevel > 3 && gameId) {
@@ -121,21 +137,50 @@ export class GameAIService {
         this.logger.error('Error in ML-Guided MCTS, falling back to standard MCTS', error);
         move = mcts(board, aiDisc, 400); // 5x faster
       }
-    } else {
-      // Level 9+ (Nightmare Mode): Full ML Model
-      this.logger.log('Engaging Nightmare Mode: Fetching move from ML model...');
+    } else if (aiLevel <= 19) {
+      // Levels 9-19: ML Model with varying confidence
+      this.logger.log('Engaging Advanced AI Mode: Level ' + aiLevel);
       try {
         if (process.env.USE_ML_MODEL === 'true') {
           move = await this.mlClientService.getBestMove(board, aiDisc);
           this.logger.log(`ML Model chose column: ${move}`);
         } else {
           this.logger.warn('ML Model is disabled. Falling back to advanced MCTS.');
-          // Fallback to a very high iteration MCTS if ML is off
-          move = mcts(board, aiDisc, 1000); // 10x faster
+          const iterations = 1000 + (aiLevel - 9) * 100;
+          move = mcts(board, aiDisc, iterations);
         }
       } catch (error) {
         this.logger.error('Failed to get move from ML service, falling back to advanced MCTS.', error);
-        move = mcts(board, aiDisc, 10000);
+        move = mcts(board, aiDisc, 1000);
+      }
+    } else {
+      // Level 20+ (Ultimate AI Mode): Use UltimateConnect4AI
+      this.logger.log('🔥 Engaging ULTIMATE AI Mode: Level ' + aiLevel);
+      if (this.ultimateAI) {
+        try {
+          const options = {
+            timeLimit: 5000 + (aiLevel - 20) * 1000, // More time for higher levels
+            enableExplanation: true,
+            enableDebate: aiLevel >= 25,
+            enableOpponentModeling: aiLevel >= 22,
+            enableSafety: true
+          };
+          
+          move = await this.ultimateAI.getMove(board, aiDisc, options);
+          this.logger.log(`🧠 Ultimate AI chose column: ${move} with supreme confidence`);
+        } catch (error) {
+          this.logger.error('Ultimate AI failed, falling back to ML model', error);
+          // Fallback to ML model
+          try {
+            move = await this.mlClientService.getBestMove(board, aiDisc);
+          } catch (mlError) {
+            this.logger.error('ML fallback also failed, using MCTS', mlError);
+            move = mcts(board, aiDisc, 2000);
+          }
+        }
+      } else {
+        this.logger.warn('Ultimate AI not available, using enhanced MCTS');
+        move = mcts(board, aiDisc, 2000);
       }
     }
 

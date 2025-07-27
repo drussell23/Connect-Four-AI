@@ -38,6 +38,7 @@ stop_service() {
 
 # Stop services using PID files
 echo -e "${BLUE}📋 Stopping services gracefully...${NC}"
+stop_service "python_trainer"
 stop_service "ai_coordination"
 stop_service "ml_inference"
 stop_service "ml_service"
@@ -53,9 +54,10 @@ pkill -f "react-scripts.*3000" 2>/dev/null || true
 pkill -f "python.*ml_service" 2>/dev/null || true
 pkill -f "python.*enhanced_inference" 2>/dev/null || true
 pkill -f "python.*ai_coordination_hub" 2>/dev/null || true
+pkill -f "uvicorn.*training_service" 2>/dev/null || true
 
 # Clean up port usage if needed
-for port in 3000 3001 8000 8001 8002; do
+for port in 3000 3001 8000 8001 8002 8003; do
     if lsof -i :$port | grep -q LISTEN; then
         echo -e "${YELLOW}🔓 Releasing port $port...${NC}"
         lsof -ti :$port | xargs kill -9 2>/dev/null || true

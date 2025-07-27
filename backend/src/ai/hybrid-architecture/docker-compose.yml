@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # Python Training Service
+  python-trainer:
+    build:
+      context: ./python-trainer
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./models:/app/models
+      - ./datasets:/app/datasets
+    depends_on:
+      - redis
+      - mlflow
+    networks:
+      - ai-network
+
+  # MLflow Tracking Server
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    ports:
+      - "5000:5000"
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow.db --default-artifact-root /mlflow/artifacts
+    volumes:
+      - ./mlflow:/mlflow
+    networks:
+      - ai-network
+
+  # Redis for Celery
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - ai-network
+
+  # Optional: TensorBoard
+  tensorboard:
+    image: tensorflow/tensorflow:latest
+    ports:
+      - "6006:6006"
+    command: tensorboard --logdir=/logs --host=0.0.0.0
+    volumes:
+      - ./logs:/logs
+    networks:
+      - ai-network
+
+  # Optional: Jupyter for experimentation
+  jupyter:
+    image: jupyter/tensorflow-notebook:latest
+    ports:
+      - "8888:8888"
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - ./models:/home/jovyan/models
+      - ./datasets:/home/jovyan/datasets
+    networks:
+      - ai-network
+
+networks:
+  ai-network:
+    driver: bridge
+
+volumes:
+  redis-data:

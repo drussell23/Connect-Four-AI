@@ -1,5 +1,5 @@
 // backend/src/ai/async/async-ai-orchestrator.ts
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CellValue } from '../connect4AI';
 import { AsyncCacheManager } from './cache-manager';
@@ -8,6 +8,7 @@ import { RequestBatcher } from './request-batcher';
 import { DynamicStrategySelector, AIStrategy } from './strategy-selector';
 import { PerformanceMonitor } from './performance-monitor';
 import { PrecomputationEngine } from './precomputation-engine';
+import { OpeningBook } from '../opening-book/opening-book';
 
 export interface AIRequest {
   gameId: string;
@@ -60,7 +61,8 @@ export class AsyncAIOrchestrator {
     private readonly requestBatcher: RequestBatcher,
     private readonly strategySelector: DynamicStrategySelector,
     private readonly performanceMonitor: PerformanceMonitor,
-    private readonly precomputationEngine: PrecomputationEngine
+    private readonly precomputationEngine: PrecomputationEngine,
+    @Optional() private readonly openingBook?: OpeningBook
   ) {
     this.config = {
       enableCaching: true,
@@ -326,6 +328,33 @@ export class AsyncAIOrchestrator {
     const startTime = Date.now();
 
     try {
+      // Check opening book first
+      if (this.openingBook) {
+        try {
+          const openingMove = await this.openingBook.lookup(request.board);
+          if (openingMove !== null) {
+            const computeTime = Date.now() - startTime;
+            this.logger.log(`📚 [Opening Book] Found move: ${openingMove}, Time: ${computeTime}ms`);
+            
+            this.performanceMonitor.endSpan('ai.compute', spanId, {
+              strategy: 'opening-book',
+              computeTime
+            });
+
+            return {
+              move: openingMove,
+              confidence: 0.95,
+              strategy: 'opening-book' as AIStrategy,
+              computeTime,
+              cached: false,
+              explanation: 'Move from opening book based on known optimal play'
+            };
+          }
+        } catch (error) {
+          this.logger.warn(`Opening book lookup failed: ${error.message}`);
+        }
+      }
+
       // Select strategy dynamically
       const moveNumber = request.board.flat().filter(c => c !== 'Empty').length;
       const strategySelection = await this.strategySelector.selectStrategy({

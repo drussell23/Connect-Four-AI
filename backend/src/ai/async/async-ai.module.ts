@@ -34,7 +34,8 @@ import { AsyncAIOrchestrator } from './async-ai-orchestrator';
     DynamicStrategySelector,
     AsyncCacheManager,
     CircuitBreaker,
-    PrecomputationEngine
+    PrecomputationEngine,
+    RequestBatcher
   ]
 })
 export class AsyncAIModule {}

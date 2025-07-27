@@ -66,6 +66,9 @@ start_service "ml_inference" "ml_service" "ML_INFERENCE_PORT=8001 python3 enhanc
 echo -e "${BLUE}🔗 Starting AI Coordination Hub...${NC}"
 start_service "ai_coordination" "ml_service" "AI_COORDINATION_PORT=8002 python3 ai_coordination_hub.py"
 
+echo -e "${BLUE}🎓 Starting Python Trainer Service (Minimal)...${NC}"
+start_service "python_trainer" "backend/src/ai/hybrid-architecture/python-trainer" "PORT=8003 python3 training_service_minimal.py"
+
 # Wait and check services
 echo -e "${YELLOW}⏳ Waiting for services to start...${NC}"
 sleep 5
@@ -93,14 +96,23 @@ BACKEND_OK=false
 FRONTEND_OK=false
 ML_OK=false
 
-# Backend needs more time, so we'll retry it
-for i in {1..3}; do
+# Backend needs more time due to ML model initialization
+BACKEND_RETRIES=10
+BACKEND_RETRY_DELAY=5
+for i in $(seq 1 $BACKEND_RETRIES); do
     if check_service 3000 "Backend"; then
         BACKEND_OK=true
         break
-    elif [ $i -lt 3 ]; then
-        echo -e "${YELLOW}   Retrying backend check in 5 seconds...${NC}"
-        sleep 5
+    elif [ $i -lt $BACKEND_RETRIES ]; then
+        echo -e "${YELLOW}   Backend initialization in progress (attempt $i/$BACKEND_RETRIES)...${NC}"
+        # Show what the backend is doing
+        if [ -f "logs/backend.log" ]; then
+            LAST_LOG=$(tail -1 logs/backend.log | head -c 100)
+            if [ ! -z "$LAST_LOG" ]; then
+                echo -e "${YELLOW}   Status: ${LAST_LOG}...${NC}"
+            fi
+        fi
+        sleep $BACKEND_RETRY_DELAY
     fi
 done
 
@@ -110,11 +122,13 @@ check_service 8000 "ML Service" && ML_OK=true
 # Check additional AI services
 ML_INFERENCE_OK=false
 AI_COORD_OK=false
+PYTHON_TRAINER_OK=false
 check_service 8001 "ML Inference" && ML_INFERENCE_OK=true
 check_service 8002 "AI Coordination" && AI_COORD_OK=true
+check_service 8003 "Python Trainer" && PYTHON_TRAINER_OK=true
 
 echo ""
-if [ "$BACKEND_OK" = true ] && [ "$FRONTEND_OK" = true ] && [ "$ML_OK" = true ] && [ "$ML_INFERENCE_OK" = true ] && [ "$AI_COORD_OK" = true ]; then
+if [ "$BACKEND_OK" = true ] && [ "$FRONTEND_OK" = true ] && [ "$ML_OK" = true ] && [ "$ML_INFERENCE_OK" = true ] && [ "$AI_COORD_OK" = true ] && [ "$PYTHON_TRAINER_OK" = true ]; then
     echo -e "${GREEN}✅ All services are running successfully!${NC}"
     echo ""
     echo -e "${BLUE}📋 Service URLs:${NC}"
@@ -125,6 +139,7 @@ if [ "$BACKEND_OK" = true ] && [ "$FRONTEND_OK" = true ] && [ "$ML_OK" = true ] 
     echo "   - ML Service: http://localhost:8000"
     echo "   - ML Inference: http://localhost:8001"
     echo "   - AI Coordination: http://localhost:8002"
+    echo "   - Python Trainer: http://localhost:8003"
     echo ""
     echo -e "${YELLOW}📁 Logs available in:${NC}"
     echo "   - Backend: logs/backend.log"
@@ -132,6 +147,7 @@ if [ "$BACKEND_OK" = true ] && [ "$FRONTEND_OK" = true ] && [ "$ML_OK" = true ] 
     echo "   - ML Service: logs/ml_service.log"
     echo "   - ML Inference: logs/ml_inference.log"
     echo "   - AI Coordination: logs/ai_coordination.log"
+    echo "   - Python Trainer: logs/python_trainer.log"
     echo ""
     echo -e "${BLUE}🛑 To stop all services, run:${NC} npm run stop:all"
 else
