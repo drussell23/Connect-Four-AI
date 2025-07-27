@@ -35,8 +35,11 @@ const Footer: React.FC = () => {
           </motion.h3>
           
           {/* Name with special animation */}
-          <motion.span
-            className="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent"
+          <motion.a
+            href="https://www.linkedin.com/in/derek-j-russell/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent cursor-pointer no-underline"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 1, duration: 0.5, type: "spring" }}
@@ -46,7 +49,7 @@ const Footer: React.FC = () => {
             }}
           >
             Derek J. Russell
-          </motion.span>
+          </motion.a>
           
           {/* Animated AI brain */}
           <motion.div
