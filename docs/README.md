@@ -18,6 +18,8 @@ AI/ML system documentation, intelligence features, and enhancements.
 
 - **[AI Enhancements Summary](./ai-ml/AI_ENHANCEMENTS_SUMMARY.md)** - Overview of all AI improvements
 - **[AI Health Check Intelligence](./ai-ml/AI_HEALTH_CHECK_INTELLIGENCE.md)** - AI-powered health monitoring system
+- **[AI Status Analysis](./ai-ml/AI_STATUS_ANALYSIS.md)** - Current AI system status and capabilities
+- **[Model Health Report](./ai-ml/MODEL_HEALTH_REPORT.md)** - ML model status and performance
 
 ### 🏗️ **[Architecture](./architecture/)**
 System architecture, integration guides, and modernization documentation.
@@ -25,6 +27,7 @@ System architecture, integration guides, and modernization documentation.
 - **[Integration Complete Summary](./architecture/INTEGRATION_COMPLETE_SUMMARY.md)** - Enterprise integration overview
 - **[Script Modernization Plan](./architecture/SCRIPT_MODERNIZATION_PLAN.md)** - Script organization strategy
 - **[Script Organization Complete](./architecture/SCRIPT_ORGANIZATION_COMPLETE.md)** - Modernization results
+- **[Service Architecture](./architecture/SERVICE-ARCHITECTURE.md)** - Microservices architecture overview
 
 ### ⚙️ **[System Management](./system-management/)**
 Operations, management, and system administration documentation.
@@ -40,6 +43,44 @@ System reports, monitoring data, and analysis documentation.
 - **[Model Cleanup Report](./reports/MODEL_CLEANUP_REPORT.md)** - AI model maintenance and cleanup
 - **[Model Health Report](./reports/MODEL_HEALTH_REPORT.md)** - AI model performance and health
 - **[Security Fixes](./reports/SECURITY_FIXES.md)** - Security improvements and patches
+
+### 🚀 **[Deployment](./deployment/)**
+Deployment guides for various environments and configurations.
+
+- **[Deployment Guide](./deployment/deployment-guide.md)** - General deployment instructions
+- **[Simple Deployment Guide](./deployment/SIMPLE_DEPLOYMENT_GUIDE.md)** - Quick deployment setup
+- **[Website Deployment](./deployment/WEBSITE_DEPLOYMENT.md)** - Web deployment specifics
+- **[Offline Deployment Guide](./deployment/OFFLINE-DEPLOYMENT-GUIDE.md)** - Offline mode deployment
+- **[Offline Implementation](./deployment/OFFLINE-IMPLEMENTATION.md)** - Offline feature details
+
+### 💻 **[Development](./development/)**
+Development setup, configuration, and improvement documentation.
+
+- **[Enhanced Restart Script Analysis](./development/ENHANCED_RESTART_SCRIPT_ANALYSIS.md)** - Script improvements
+- **[Enhanced Restart Script Improvements](./development/ENHANCED_RESTART_SCRIPT_IMPROVEMENTS.md)** - Implementation details
+- **[NPM Configuration Fixes](./development/NPM_CONFIGURATION_FIXES.md)** - Package management setup
+- **[API Endpoint Double API Fix](./development/API_ENDPOINT_DOUBLE_API_FIX.md)** - API routing fixes
+- **[Documentation Organization Complete](./development/DOCUMENTATION_ORGANIZATION_COMPLETE.md)** - Doc structure
+
+### 🧪 **[Testing](./testing/)**
+Testing documentation and analysis.
+
+- **[Move Analysis Testing](./MOVE_ANALYSIS_TESTING.md)** - AI move analysis tests
+- **[AI Test Summary](../backend/test/ai/ai-test-summary.md)** - Comprehensive AI test results
+
+### 🤝 **[Claude Agents](./claude-agents/)**
+Documentation for Claude AI assistant agents.
+
+- **[Adaptive Difficulty Designer](./claude-agents/adaptive-difficulty-designer.md)** - Dynamic difficulty system
+- **[AI Strategy Optimizer](./claude-agents/ai-strategy-optimizer.md)** - AI performance optimization
+- **[AI System Modernizer](./claude-agents/ai-system-modernizer.md)** - System modernization analysis
+- **[API Docs Generator](./claude-agents/api-docs-generator.md)** - API documentation automation
+- **[Backend Health Diagnostician](./claude-agents/backend-health-diagnostician.md)** - Backend health analysis
+- **[Frontend Diagnostics Engineer](./claude-agents/frontend-diagnostics-engineer.md)** - Frontend debugging
+- **[ML Ops Automation](./claude-agents/ml-ops-automation.md)** - ML pipeline automation
+- **[Responsive UI Guardian](./claude-agents/responsive-ui-guardian.md)** - UI responsiveness checks
+- **[UI Performance Optimizer](./claude-agents/ui-performance-optimizer.md)** - UI optimization
+- **[WebSocket Reliability Engineer](./claude-agents/websocket-reliability-engineer.md)** - Real-time reliability
 
 ## 🎯 **Quick Navigation**
 
@@ -107,7 +148,11 @@ docs/
 ├── ai-ml/                       # AI/ML documentation
 ├── architecture/                # System architecture docs
 ├── system-management/           # Operations and management
-└── reports/                     # Reports and analysis
+├── reports/                     # Reports and analysis
+├── deployment/                  # Deployment guides
+├── development/                 # Development documentation
+├── testing/                     # Testing documentation
+└── claude-agents/               # Claude AI agent docs
 ```
 
 ---
