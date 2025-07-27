@@ -1452,7 +1452,7 @@ const App: React.FC = () => {
         transition={{ duration: 0.8 }}
       >
         <h1 className="text-4xl font-extrabold title-gradient mb-2">
-          Connect Four vs. AI
+          Connect Four AI
         </h1>
         <div className="flex items-center justify-center gap-4">
           <div className="ai-info-display bg-white bg-opacity-10 rounded-lg px-4 py-2">
