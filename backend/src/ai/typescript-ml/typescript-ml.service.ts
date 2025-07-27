@@ -58,7 +58,8 @@ export class TypeScriptMLService implements OnModuleInit {
       await this.registerBrainNetworks();
 
       // Register ML5.js transfer learning models
-      await this.registerML5Models();
+      // Temporarily disabled for faster startup
+      // await this.registerML5Models();
 
       // Register ensemble members
       await this.registerEnsembleMembers();

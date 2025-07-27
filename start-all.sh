@@ -52,22 +52,26 @@ rm -f logs/*.pid
 
 # Start all services with proper environment variables
 echo -e "${BLUE}📦 Starting Backend Service...${NC}"
-start_service "backend" "backend" "PORT=3000 BACKEND_PORT=3000 npm run start:dev"
+start_service "backend" "backend" "PORT=3000 BACKEND_PORT=3000 ENABLE_CONTINUOUS_LEARNING=true ENABLE_PATTERN_DEFENSE=true ENABLE_DIFFICULTY_AWARE_LEARNING=true ENABLE_SERVICE_INTEGRATION=true SIMULATION_WORKERS=2 INTEGRATION_PORT=8888 npm run start:dev"
 
 echo -e "${BLUE}⚛️  Starting Frontend Service...${NC}"
 start_service "frontend" "frontend" "PORT=3001 npm start"
 
-echo -e "${BLUE}🤖 Starting ML Service...${NC}"
-start_service "ml_service" "ml_service" "PORT=8000 python3 ml_service.py"
+echo -e "${BLUE}🤖 Starting ML Service with Continuous Learning...${NC}"
+start_service "ml_service" "ml_service" "PORT=8000 ML_WEBSOCKET_PORT=8002 ENABLE_LEARNING_MONITOR=true ENABLE_DIFFICULTY_AWARE_LEARNING=true DIFFICULTY_MODELS_COUNT=10 python3 start_with_continuous_learning.py"
 
 echo -e "${BLUE}🧠 Starting ML Inference Service...${NC}"
 start_service "ml_inference" "ml_service" "ML_INFERENCE_PORT=8001 python3 enhanced_inference.py"
 
 echo -e "${BLUE}🔗 Starting AI Coordination Hub...${NC}"
-start_service "ai_coordination" "ml_service" "AI_COORDINATION_PORT=8002 python3 ai_coordination_hub.py"
+start_service "ai_coordination" "ml_service" "AI_COORDINATION_PORT=8003 python3 ai_coordination_hub.py"
 
 echo -e "${BLUE}🎓 Starting Python Trainer Service (Minimal)...${NC}"
-start_service "python_trainer" "backend/src/ai/hybrid-architecture/python-trainer" "PORT=8003 python3 training_service_minimal.py"
+start_service "python_trainer" "backend/src/ai/hybrid-architecture/python-trainer" "PORT=8004 python3 training_service_minimal.py"
+
+echo -e "${BLUE}🌐 Starting Integration WebSocket Gateway...${NC}"
+# Integration WebSocket is part of backend service, no separate process needed
+echo "   Integration WebSocket will start on port 8888 with backend service"
 
 # Wait and check services
 echo -e "${YELLOW}⏳ Waiting for services to start...${NC}"
@@ -121,14 +125,18 @@ check_service 8000 "ML Service" && ML_OK=true
 
 # Check additional AI services
 ML_INFERENCE_OK=false
+CL_WS_OK=false
 AI_COORD_OK=false
 PYTHON_TRAINER_OK=false
+INTEGRATION_WS_OK=false
 check_service 8001 "ML Inference" && ML_INFERENCE_OK=true
-check_service 8002 "AI Coordination" && AI_COORD_OK=true
-check_service 8003 "Python Trainer" && PYTHON_TRAINER_OK=true
+check_service 8002 "Continuous Learning WebSocket" && CL_WS_OK=true
+check_service 8003 "AI Coordination" && AI_COORD_OK=true
+check_service 8004 "Python Trainer" && PYTHON_TRAINER_OK=true
+check_service 8888 "Integration WebSocket" && INTEGRATION_WS_OK=true
 
 echo ""
-if [ "$BACKEND_OK" = true ] && [ "$FRONTEND_OK" = true ] && [ "$ML_OK" = true ] && [ "$ML_INFERENCE_OK" = true ] && [ "$AI_COORD_OK" = true ] && [ "$PYTHON_TRAINER_OK" = true ]; then
+if [ "$BACKEND_OK" = true ] && [ "$FRONTEND_OK" = true ] && [ "$ML_OK" = true ] && [ "$ML_INFERENCE_OK" = true ] && [ "$CL_WS_OK" = true ] && [ "$AI_COORD_OK" = true ] && [ "$PYTHON_TRAINER_OK" = true ] && [ "$INTEGRATION_WS_OK" = true ]; then
     echo -e "${GREEN}✅ All services are running successfully!${NC}"
     echo ""
     echo -e "${BLUE}📋 Service URLs:${NC}"
@@ -138,18 +146,33 @@ if [ "$BACKEND_OK" = true ] && [ "$FRONTEND_OK" = true ] && [ "$ML_OK" = true ] 
     echo "   - AI Resources: http://localhost:3000/api/games/ai/resources"
     echo "   - ML Service: http://localhost:8000"
     echo "   - ML Inference: http://localhost:8001"
-    echo "   - AI Coordination: http://localhost:8002"
-    echo "   - Python Trainer: http://localhost:8003"
+    echo "   - Continuous Learning: ws://localhost:8002/ws"
+    echo "   - AI Coordination: http://localhost:8003"
+    echo "   - Python Trainer: http://localhost:8004"
+    echo "   - Integration WebSocket: ws://localhost:8888"
+    echo ""
+    echo -e "${GREEN}🎯 Advanced Features:${NC}"
+    echo "   - 10 difficulty levels with separate models"
+    echo "   - Pattern learning segmented by difficulty"
+    echo "   - Cross-level pattern transfer enabled"
+    echo "   - Multi-model ensemble predictions"
+    echo "   - Real-time service integration"
+    echo "   - Background AI vs AI simulations"
+    echo "   - Seamless data flow between services"
+    echo "   - Automatic model synchronization"
     echo ""
     echo -e "${YELLOW}📁 Logs available in:${NC}"
     echo "   - Backend: logs/backend.log"
     echo "   - Frontend: logs/frontend.log"
     echo "   - ML Service: logs/ml_service.log"
     echo "   - ML Inference: logs/ml_inference.log"
+    echo "   - Continuous Learning: logs/continuous_learning.log"
     echo "   - AI Coordination: logs/ai_coordination.log"
     echo "   - Python Trainer: logs/python_trainer.log"
     echo ""
     echo -e "${BLUE}🛑 To stop all services, run:${NC} npm run stop:all"
+    echo -e "${BLUE}🔄 To restart with integration checks:${NC} npm run restart:integrated"
+    echo -e "${BLUE}🧪 To test integration:${NC} npm run test:integration"
 else
     echo -e "${RED}⚠️  Some services failed to start!${NC}"
     echo "Check the logs in the logs/ directory for details"

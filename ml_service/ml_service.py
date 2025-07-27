@@ -543,6 +543,32 @@ class ModelManager:
             "request_counts": self.request_counts,
             "available_types": ["lightweight", "standard", "heavyweight", "legacy"],
         }
+    
+    async def reload_model(self, model_type: str) -> None:
+        """Reload a model with updated weights"""
+        try:
+            # Remove from cache
+            if model_type in self.models:
+                del self.models[model_type]
+                logger.info(f"Removed {model_type} from cache")
+            
+            # Reload with latest weights
+            model_path = config.MODEL_VERSIONS.get(model_type)
+            if not model_path:
+                # Check for versioned model file
+                model_file = config.MODEL_DIR / f"{model_type}_v*.pt"
+                import glob
+                matches = glob.glob(str(model_file))
+                if matches:
+                    # Use the latest version
+                    model_path = sorted(matches)[-1]
+            
+            await self.load_model(model_type, model_path)
+            logger.info(f"✅ Reloaded {model_type} with latest weights")
+            
+        except Exception as e:
+            logger.error(f"Failed to reload model {model_type}: {e}")
+            raise
 
 
 model_manager = ModelManager()
@@ -1292,6 +1318,19 @@ async def general_exception_handler(request: Request, exc: Exception):
         },
     )
 
+
+# -----------------------------------------------------------------------------
+# Model Synchronization Setup
+# -----------------------------------------------------------------------------
+# Import and setup model sync endpoints
+try:
+    from model_sync_endpoint import setup_model_sync_routes
+    setup_model_sync_routes(app, model_manager)
+    logger.info("✅ Model synchronization endpoints configured")
+except ImportError:
+    logger.warning("Model sync endpoints not available")
+except Exception as e:
+    logger.error(f"Failed to setup model sync endpoints: {e}")
 
 # -----------------------------------------------------------------------------
 # Main Entry Point

@@ -40,6 +40,9 @@ import { HybridArchitectureModule } from './hybrid-architecture/hybrid-architect
 import { HybridAIService } from './hybrid-architecture/hybrid-ai.service';
 import { LocalFirstModule } from './local-first/local-first.module';
 import { LocalFirstAIService } from './local-first/local-first-ai.service';
+import { ContinuousLearningService } from './continuous-learning.service';
+import { PatternDefenseService } from './pattern-defense.service';
+import { DifficultyAwarePatternDefenseService } from './difficulty-aware-pattern-defense.service';
 
 /**
  * Integration module that wires the async AI architecture with the existing AI services
@@ -69,6 +72,9 @@ import { LocalFirstAIService } from './local-first/local-first-ai.service';
     OpeningBook,
     UltimateAIFactory,
     ParallelAIOrchestrator,
+    ContinuousLearningService,
+    PatternDefenseService,
+    DifficultyAwarePatternDefenseService,
     // Provide EnhancedAsyncOrchestrator as AsyncAIOrchestrator for M1 optimization
     {
       provide: AsyncAIOrchestrator,
@@ -265,7 +271,10 @@ import { LocalFirstAIService } from './local-first/local-first-ai.service';
     AICoordinationModule,  // Export coordination module (includes CoordinationGameIntegrationService)
     TypeScriptMLModule,  // Export TypeScript ML module (includes TypeScriptMLService)
     HybridArchitectureModule,  // Export Hybrid Architecture module (includes HybridAIService)
-    LocalFirstModule  // Export Local-First module (includes LocalFirstAIService)
+    LocalFirstModule,  // Export Local-First module (includes LocalFirstAIService)
+    ContinuousLearningService,  // Export continuous learning service
+    PatternDefenseService,  // Export pattern defense service
+    DifficultyAwarePatternDefenseService  // Export difficulty-aware pattern defense service
   ]
 })
 export class AIIntegrationModule implements OnModuleInit {

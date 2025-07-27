@@ -1,9 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UltimateConnect4AI, AIDecision, UltimateAIConfig, tryDrop } from '../ai/connect4AI';
 import { SimpleAIService } from '../ai/simple-ai.service';
 import type { CellValue } from '../ai/connect4AI';
 import { GameHistoryService, GameHistoryEntry } from './game-history.service';
 import { AIGameIntegrationService } from '../ai/ai-game-integration.service';
+import { MlClientService } from '../ml/ml-client.service';
 
 export interface GameMove {
   playerId: string;
@@ -13,6 +15,22 @@ export interface GameMove {
   thinkingTime?: number;
   confidence?: number;
   aiDecision?: AIDecision;
+}
+
+export interface LossPattern {
+  type: 'horizontal' | 'vertical' | 'diagonal' | 'anti-diagonal';
+  criticalPositions: Array<{ row: number; column: number }>;
+  aiMistakes: Array<{ 
+    move: number; 
+    position: { row: number; column: number };
+    missedThreat: string;
+  }>;
+  threatsMissed: Array<{
+    type: string;
+    position: { row: number; column: number };
+    moveNumber: number;
+  }>;
+  winningSequence: Array<{ row: number; column: number }>;
 }
 
 export interface PlayerProfile {
@@ -78,6 +96,8 @@ export class GameService {
   constructor(
     private readonly gameHistoryService: GameHistoryService,
     private readonly simpleAI: SimpleAIService,
+    private readonly eventEmitter: EventEmitter2,
+    private readonly mlClientService: MlClientService,
     private readonly aiIntegration?: AIGameIntegrationService
   ) {
     this.logger.log('🚀 GameService initialized - AI will be loaded on demand');
@@ -198,6 +218,16 @@ export class GameService {
     this.logger.log(`🎯 Starting player: ${game.currentPlayer}`);
     this.logger.log(`🤖 AI personality: ${aiPersonality}`);
 
+    // Emit game started event for integration
+    this.eventEmitter.emit('game.started', {
+      gameId,
+      players: game.players,
+      difficulty: game.difficulty,
+      aiPersonality,
+      startingPlayer: game.currentPlayer,
+      timestamp: new Date(),
+    });
+
     return gameId;
   }
 
@@ -292,6 +322,16 @@ export class GameService {
       this.updatePlayerProfileFromMove(playerId, Date.now() - move.timestamp, game);
     }
 
+    // Emit move made event for integration
+    this.eventEmitter.emit('game.move.made', {
+      gameId,
+      board: game.board,
+      move: { column, row, player: playerColor },
+      player: playerId,
+      timestamp: new Date(),
+      gamePhase: game.gamePhase,
+    });
+
     // Check for winner
     const hasWinner = this.checkWin(game.board, row, column, playerColor);
     const isDraw = !hasWinner && game.board.every(row => row.every(cell => cell !== 'Empty'));
@@ -359,6 +399,18 @@ export class GameService {
     }
 
     const startTime = Date.now();
+
+    // Emit AI move request event for integration
+    this.eventEmitter.emit('ai.move.requested', {
+      gameId,
+      board: game.board,
+      gameState: {
+        currentPlayer: aiDisc,
+        moveCount: game.moves.length,
+        gamePhase: game.gamePhase,
+        difficulty: game.difficulty,
+      },
+    });
 
     // Use advanced AI integration service if available
     if (this.aiIntegration) {
@@ -604,6 +656,88 @@ export class GameService {
       }
     }
 
+    // LOG GAME TO ML SERVICE FOR CONTINUOUS LEARNING
+    try {
+      const aiPlayer = 'Yellow' as CellValue; // AI typically plays as Yellow
+      const humanPlayer = 'Red' as CellValue;
+      const aiLost = winner === humanPlayer;
+      
+      // Analyze loss pattern if AI lost
+      let lossPattern: LossPattern | null = null;
+      if (aiLost && game.moves.length > 0) {
+        lossPattern = this.analyzeLossPattern(game.board, game.moves, winner as CellValue);
+        this.logger.log(`🔍 AI Loss Pattern Detected: ${lossPattern.type} with ${lossPattern.aiMistakes.length} mistakes`);
+      }
+
+      // Prepare comprehensive game data for ML service
+      const gameData = {
+        gameId,
+        finalBoard: game.board,
+        outcome: winner === aiPlayer ? 'win' : winner === humanPlayer ? 'loss' : 'draw' as 'win' | 'loss' | 'draw',
+        winner,
+        timestamp: Date.now(),
+        moves: game.moves.map(move => ({
+          ...move,
+          boardStateBefore: this.reconstructBoardState(game.moves, move.timestamp, false),
+          boardStateAfter: this.reconstructBoardState(game.moves, move.timestamp, true)
+        })),
+        difficulty: game.difficulty,
+        lossPattern,
+        gameMetrics: {
+          ...game.gameMetrics,
+          gamePhase: game.gamePhase,
+          totalMoves: game.moves.length,
+          aiThinkingTime: game.moves.filter(m => m.playerId === 'AI').reduce((sum, m) => sum + (m.thinkingTime || 0), 0) / Math.max(1, game.moves.filter(m => m.playerId === 'AI').length),
+          humanThinkingTime: game.moves.filter(m => m.playerId !== 'AI').reduce((sum, m) => sum + (m.thinkingTime || 0), 0) / Math.max(1, game.moves.filter(m => m.playerId !== 'AI').length)
+        },
+        playerProfile: game.playerProfiles.get(Array.from(game.playerProfiles.keys()).find(id => id !== 'AI') || '')
+      };
+
+      // Send to ML service
+      await this.mlClientService.logGame(gameData);
+      this.logger.log(`🤖 Game ${gameId} logged to ML service for continuous learning`);
+
+      // Emit event for real-time learning if AI lost
+      if (aiLost) {
+        this.eventEmitter.emit('ai.critical.loss', {
+          gameId,
+          lossPattern,
+          gameData,
+          priority: 'high',
+          difficulty: game.difficulty
+        });
+        this.logger.warn(`⚠️ AI Critical Loss Event emitted for immediate learning at difficulty ${game.difficulty}`);
+        
+        // Also emit difficulty-specific loss event
+        this.eventEmitter.emit('ai.loss.pattern.detected', {
+          lossPattern,
+          board: game.board,
+          moves: game.moves,
+          difficulty: game.difficulty
+        });
+      }
+
+      // Emit general game completion event for learning
+      this.eventEmitter.emit('game.completed.for.learning', gameData);
+      
+      // Emit comprehensive game ended event for integration
+      this.eventEmitter.emit('game.ended', {
+        gameId,
+        winner,
+        moves: game.moves,
+        finalBoard: game.board,
+        patterns: lossPattern ? [lossPattern] : [],
+        duration: Date.now() - game.startTime,
+        difficulty: game.difficulty,
+        playerTypes: game.players.map(p => p === 'AI' ? 'ai' : 'human'),
+        gamePhase: game.gamePhase,
+        aiStrategy: game.aiPersonality,
+      });
+      
+    } catch (error) {
+      this.logger.error(`Failed to log game to ML service: ${error.message}`, error.stack);
+    }
+
     // Update Ultimate AI with game experience
     // Temporarily disabled while fixing circular dependency
     /*if (this.ultimateAI) {
@@ -839,6 +973,257 @@ export class GameService {
       if (count >= 4) return true;
     }
     return false;
+  }
+
+  /**
+   * Analyze how the AI lost to identify patterns for learning
+   */
+  private analyzeLossPattern(board: CellValue[][], moves: GameMove[], winner: CellValue): LossPattern {
+    const lastMove = moves[moves.length - 1];
+    const winType = this.detectWinType(board, lastMove);
+    const winningSequence = this.findWinningSequence(board, lastMove, winner);
+    
+    return {
+      type: winType,
+      criticalPositions: this.findCriticalMissedPositions(board, moves, winner),
+      aiMistakes: this.identifyAIMistakes(board, moves, winningSequence),
+      threatsMissed: this.findMissedThreats(board, moves, winner),
+      winningSequence
+    };
+  }
+
+  /**
+   * Detect the type of win (horizontal, vertical, diagonal)
+   */
+  private detectWinType(board: CellValue[][], lastMove: GameMove): 'horizontal' | 'vertical' | 'diagonal' | 'anti-diagonal' {
+    const { row, column } = lastMove;
+    const player = board[row][column];
+    
+    // Check horizontal
+    let count = 1;
+    for (let c = column - 1; c >= 0 && board[row][c] === player; c--) count++;
+    for (let c = column + 1; c < 7 && board[row][c] === player; c++) count++;
+    if (count >= 4) return 'horizontal';
+    
+    // Check vertical
+    count = 1;
+    for (let r = row - 1; r >= 0 && board[r][column] === player; r--) count++;
+    for (let r = row + 1; r < 6 && board[r][column] === player; r++) count++;
+    if (count >= 4) return 'vertical';
+    
+    // Check diagonal
+    count = 1;
+    for (let i = 1; row - i >= 0 && column - i >= 0 && board[row - i][column - i] === player; i++) count++;
+    for (let i = 1; row + i < 6 && column + i < 7 && board[row + i][column + i] === player; i++) count++;
+    if (count >= 4) return 'diagonal';
+    
+    // Check anti-diagonal
+    count = 1;
+    for (let i = 1; row - i >= 0 && column + i < 7 && board[row - i][column + i] === player; i++) count++;
+    for (let i = 1; row + i < 6 && column - i >= 0 && board[row + i][column - i] === player; i++) count++;
+    if (count >= 4) return 'anti-diagonal';
+    
+    return 'horizontal'; // Default fallback
+  }
+
+  /**
+   * Find the winning sequence positions
+   */
+  private findWinningSequence(board: CellValue[][], lastMove: GameMove, winner: CellValue): Array<{ row: number; column: number }> {
+    const { row, column } = lastMove;
+    const directions = [
+      { dr: 0, dc: 1 },   // horizontal
+      { dr: 1, dc: 0 },   // vertical
+      { dr: 1, dc: 1 },   // diagonal
+      { dr: 1, dc: -1 }   // anti-diagonal
+    ];
+    
+    for (const { dr, dc } of directions) {
+      const sequence: Array<{ row: number; column: number }> = [{ row, column }];
+      
+      // Check in positive direction
+      for (let i = 1; i < 4; i++) {
+        const r = row + i * dr;
+        const c = column + i * dc;
+        if (r >= 0 && r < 6 && c >= 0 && c < 7 && board[r][c] === winner) {
+          sequence.push({ row: r, column: c });
+        } else break;
+      }
+      
+      // Check in negative direction
+      for (let i = 1; i < 4; i++) {
+        const r = row - i * dr;
+        const c = column - i * dc;
+        if (r >= 0 && r < 6 && c >= 0 && c < 7 && board[r][c] === winner) {
+          sequence.unshift({ row: r, column: c });
+        } else break;
+      }
+      
+      if (sequence.length >= 4) return sequence.slice(0, 4);
+    }
+    
+    return [{ row, column }];
+  }
+
+  /**
+   * Find positions where AI should have blocked but didn't
+   */
+  private findCriticalMissedPositions(board: CellValue[][], moves: GameMove[], winner: CellValue): Array<{ row: number; column: number }> {
+    const criticalPositions: Array<{ row: number; column: number }> = [];
+    const aiMoves = moves.filter(m => m.playerId === 'AI');
+    
+    // Look at the last few AI moves
+    const recentAIMoves = aiMoves.slice(-3);
+    
+    for (const aiMove of recentAIMoves) {
+      // Reconstruct board state before this AI move
+      const boardBefore = this.reconstructBoardState(moves, aiMove.timestamp, false);
+      
+      // Check if there were any winning threats for the opponent
+      for (let col = 0; col < 7; col++) {
+        const row = this.getLowestEmptyRow(boardBefore, col);
+        if (row !== -1) {
+          // Simulate opponent move
+          boardBefore[row][col] = winner;
+          if (this.checkWin(boardBefore, row, col, winner)) {
+            criticalPositions.push({ row, column: col });
+          }
+          boardBefore[row][col] = 'Empty';
+        }
+      }
+    }
+    
+    return criticalPositions;
+  }
+
+  /**
+   * Identify specific AI mistakes
+   */
+  private identifyAIMistakes(board: CellValue[][], moves: GameMove[], winningSequence: Array<{ row: number; column: number }>): Array<{ move: number; position: { row: number; column: number }; missedThreat: string }> {
+    const mistakes: Array<{ move: number; position: { row: number; column: number }; missedThreat: string }> = [];
+    const aiMoves = moves.filter(m => m.playerId === 'AI');
+    
+    // Analyze each AI move
+    aiMoves.forEach((move, index) => {
+      // Check if AI could have blocked the winning sequence
+      const couldBlock = winningSequence.some(pos => 
+        pos.column === move.column && pos.row === move.row + 1
+      );
+      
+      if (!couldBlock && index >= aiMoves.length - 3) {
+        // AI made a non-blocking move in the last 3 moves
+        mistakes.push({
+          move: moves.indexOf(move),
+          position: { row: move.row, column: move.column },
+          missedThreat: 'Failed to block opponent winning sequence'
+        });
+      }
+    });
+    
+    return mistakes;
+  }
+
+  /**
+   * Find threats that AI missed
+   */
+  private findMissedThreats(board: CellValue[][], moves: GameMove[], winner: CellValue): Array<{ type: string; position: { row: number; column: number }; moveNumber: number }> {
+    const threats: Array<{ type: string; position: { row: number; column: number }; moveNumber: number }> = [];
+    
+    // Analyze board state at different points
+    for (let i = Math.max(0, moves.length - 6); i < moves.length; i++) {
+      const move = moves[i];
+      if (move.playerId !== 'AI') continue;
+      
+      const boardState = this.reconstructBoardState(moves, move.timestamp, false);
+      
+      // Check for 3-in-a-row threats
+      for (let row = 0; row < 6; row++) {
+        for (let col = 0; col < 7; col++) {
+          if (boardState[row][col] === 'Empty') continue;
+          
+          // Check all directions for potential threats
+          const threatInfo = this.checkForThreats(boardState, row, col, winner);
+          if (threatInfo) {
+            threats.push({
+              type: threatInfo.type,
+              position: { row, column: col },
+              moveNumber: i
+            });
+          }
+        }
+      }
+    }
+    
+    return threats;
+  }
+
+  /**
+   * Check for potential threats at a position
+   */
+  private checkForThreats(board: CellValue[][], row: number, col: number, player: CellValue): { type: string } | null {
+    const directions = [
+      { dr: 0, dc: 1, type: '3-in-a-row horizontal' },
+      { dr: 1, dc: 0, type: '3-in-a-row vertical' },
+      { dr: 1, dc: 1, type: '3-in-a-row diagonal' },
+      { dr: 1, dc: -1, type: '3-in-a-row anti-diagonal' }
+    ];
+    
+    for (const { dr, dc, type } of directions) {
+      let count = 0;
+      let emptyCount = 0;
+      
+      // Check in both directions
+      for (let i = -3; i <= 3; i++) {
+        const r = row + i * dr;
+        const c = col + i * dc;
+        
+        if (r >= 0 && r < 6 && c >= 0 && c < 7) {
+          if (board[r][c] === player) count++;
+          else if (board[r][c] === 'Empty') emptyCount++;
+          else {
+            // Reset if opponent piece found
+            if (count >= 3 && emptyCount === 1) {
+              return { type };
+            }
+            count = 0;
+            emptyCount = 0;
+          }
+        }
+      }
+      
+      if (count >= 3 && emptyCount === 1) {
+        return { type };
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Reconstruct board state at a specific point in time
+   */
+  private reconstructBoardState(moves: GameMove[], upToTimestamp: number, inclusive: boolean): CellValue[][] {
+    const board: CellValue[][] = Array(6).fill(null).map(() => Array(7).fill('Empty'));
+    
+    for (const move of moves) {
+      if (inclusive ? move.timestamp <= upToTimestamp : move.timestamp < upToTimestamp) {
+        board[move.row][move.column] = move.playerId === 'AI' ? 'Yellow' : 'Red';
+      }
+    }
+    
+    return board;
+  }
+
+  /**
+   * Get the lowest empty row in a column
+   */
+  private getLowestEmptyRow(board: CellValue[][], column: number): number {
+    for (let row = 5; row >= 0; row--) {
+      if (board[row][column] === 'Empty') {
+        return row;
+      }
+    }
+    return -1;
   }
 
   // Helper methods for AI profile tracking

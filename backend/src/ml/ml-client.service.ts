@@ -12,12 +12,18 @@ export interface LogGameDto {
     gameId: string;
     /** Final board state as a 6×7 matrix of cell values */
     finalBoard: CellValue[][];
-    /** Outcome of the game: AI win or draw */
-    outcome: 'win' | 'draw';
+    /** Outcome of the game: AI win, loss or draw */
+    outcome: 'win' | 'draw' | 'loss';
     /** ID of the winning player, or null if a draw */
     winner: string | null;
     /** Timestamp (in ms since Unix epoch) when the game ended */
     timestamp: number;
+    /** Optional extended data for continuous learning */
+    moves?: any[];
+    difficulty?: number;
+    lossPattern?: any;
+    gameMetrics?: any;
+    playerProfile?: any;
 }
 
 @Injectable()
