@@ -55,7 +55,7 @@ echo -e "${BLUE}📦 Starting Backend Service...${NC}"
 start_service "backend" "backend" "PORT=3000 BACKEND_PORT=3000 ENABLE_CONTINUOUS_LEARNING=true ENABLE_PATTERN_DEFENSE=true ENABLE_DIFFICULTY_AWARE_LEARNING=true ENABLE_SERVICE_INTEGRATION=true SIMULATION_WORKERS=2 INTEGRATION_PORT=8888 npm run start:dev"
 
 echo -e "${BLUE}⚛️  Starting Frontend Service...${NC}"
-start_service "frontend" "frontend" "PORT=3001 npm start"
+start_service "frontend" "frontend" "PORT=3001 REACT_APP_API_URL=http://localhost:3000/api npm start"
 
 echo -e "${BLUE}🤖 Starting ML Service with Continuous Learning...${NC}"
 start_service "ml_service" "ml_service" "PORT=8000 ML_WEBSOCKET_PORT=8002 ENABLE_LEARNING_MONITOR=true ENABLE_DIFFICULTY_AWARE_LEARNING=true DIFFICULTY_MODELS_COUNT=10 python3 start_with_continuous_learning.py"

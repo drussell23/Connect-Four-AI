@@ -2,6 +2,7 @@
 import io, { Socket, Manager } from 'socket.io-client';
 import { appConfig } from '../config/environment';
 import { socketLogger } from './socketLogger';
+import { integrationLogger } from '../utils/integrationLogger';
 
 // Types for enhanced socket functionality
 export interface ConnectionStatus {
@@ -161,6 +162,13 @@ class EnhancedSocketManager {
       socketLogger.logInfo('🚀 Transport:', this.socket?.io.engine.transport.name);
       socketLogger.markConnectionComplete();
 
+      // Log to integration logger
+      integrationLogger.logServiceConnection('Backend API', true, {
+        socketId: this.socket?.id,
+        transport: this.socket?.io.engine.transport.name,
+        namespace: '/game'
+      });
+
       this.connectionStartTime = new Date();
       this.reconnectAttempts = 0;
       this.isReconnecting = false;
@@ -177,6 +185,9 @@ class EnhancedSocketManager {
 
     this.socket.on('disconnect', (reason: string) => {
       socketLogger.logWarning('WebSocket disconnected', reason);
+      
+      // Log to integration logger
+      integrationLogger.logServiceConnection('Backend API', false, { reason });
 
       this.stopHeartbeat();
       this.updateMetrics();
@@ -262,6 +273,22 @@ class EnhancedSocketManager {
         console.log(`🎮 ${event}:`, data);
         this.metrics.messagesReceived++;
         this.updateMetrics();
+
+        // Log to integration logger
+        integrationLogger.logWebSocketEvent(event, data, 'in');
+        
+        // Special handling for AI events
+        if (event === 'aiMove' && data.aiMetrics) {
+          integrationLogger.logAIDecision({
+            column: data.column,
+            confidence: data.aiMetrics.confidence || 0,
+            algorithm: data.aiMetrics.algorithm || 'unknown',
+            difficulty: data.aiMetrics.difficulty || 0,
+            timeMs: data.aiMetrics.responseTime || 0,
+            strategy: data.aiMetrics.strategy,
+            alternatives: data.aiMetrics.alternatives
+          });
+        }
 
         // Notify event listeners
         this.notifyEventListeners(event, data);
@@ -368,6 +395,9 @@ class EnhancedSocketManager {
       this.socket.emit(event, data, callback);
       this.metrics.messagesSent++;
       this.updateMetrics();
+
+      // Log to integration logger
+      integrationLogger.logWebSocketEvent(event, data, 'out');
 
       if (appConfig.dev.verboseLogging) {
         console.log(`📤 Emitted: ${event}`, data);

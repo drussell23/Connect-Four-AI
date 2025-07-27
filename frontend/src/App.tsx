@@ -23,6 +23,8 @@ import GameHistory from './components/game-history/GameHistory';
 import UserSettings from './components/settings/UserSettings';
 import apiSocket, { getConnectionStatus } from './api/socket';
 import { appConfig, enterprise, ai, game, ui, dev, analytics } from './config/environment';
+import { integrationLogger } from './utils/integrationLogger';
+import { serviceHealthMonitor } from './utils/serviceHealthMonitor';
 import type { CellValue, PlayerStats, AIPersonalityData } from './declarations';
 
 interface Move {
@@ -170,6 +172,46 @@ const App: React.FC = () => {
     if (process.env.NODE_ENV === 'production' && window.location.hostname !== 'localhost') {
       injectSpeedInsights();
     }
+  }, []);
+
+  // Initialize integration monitoring
+  useEffect(() => {
+    console.log('🚀 Initializing service integration monitoring...');
+    
+    // Show initial dashboard
+    integrationLogger.showDashboard();
+    
+    // Start service health monitoring
+    serviceHealthMonitor.startMonitoring();
+    
+    // Monitor service connections periodically
+    const monitoringInterval = setInterval(() => {
+      integrationLogger.getServiceSummary();
+    }, 30000); // Every 30 seconds
+    
+    // Add keyboard shortcuts for debugging
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Ctrl/Cmd + Shift + D for dashboard
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'D') {
+        integrationLogger.showDashboard();
+      }
+      // Ctrl/Cmd + Shift + T for test integration
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'T') {
+        serviceHealthMonitor.testIntegration();
+      }
+      // Ctrl/Cmd + Shift + L for toggle detailed logging
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'L') {
+        integrationLogger.toggleDetailedMode();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    
+    return () => {
+      clearInterval(monitoringInterval);
+      serviceHealthMonitor.stopMonitoring();
+      window.removeEventListener('keydown', handleKeyPress);
+    };
   }, []);
 
   // App initialization effect

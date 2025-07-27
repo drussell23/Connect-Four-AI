@@ -18,6 +18,7 @@ from enum import Enum
 import websockets
 import aioredis
 from fastapi import FastAPI, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 
@@ -985,6 +986,15 @@ coordination_hub = AICoordinationHub()
 
 # FastAPI app for coordination endpoints
 app = FastAPI(title="AI Coordination Hub", version="1.0.0")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.websocket("/ws/{ai_service_id}")
