@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ThreatMeter from './ThreatMeter';
+import socket from '../../api/socket';
+import { integrationLogger } from '../../utils/integrationLogger';
 import './Sidebar.css';
 
 interface Move {
@@ -28,6 +30,90 @@ interface PlayerStats {
   totalGamesPlayed: number;
   highestLevelReached: number;
   averageMovesPerGame: number;
+}
+
+interface GameStats {
+  totalGames: number;
+  playerWins: number;
+  aiWins: number;
+  draws: number;
+  longestGame: number;
+  shortestGame: number;
+  averageGameLength: number;
+  winStreak: number;
+  lossStreak: number;
+  currentStreak: number;
+  currentStreakType: 'win' | 'loss' | 'none';
+}
+
+interface AIPerformance {
+  model: string;
+  accuracy: number;
+  avgResponseTime: number;
+  decisionsQuality: number;
+  learningProgress: number;
+  patternsRecognized: number;
+  strategiesUsed: string[];
+}
+
+interface MoveExplanation {
+  moveId: string;
+  column: number;
+  player: string;
+  timestamp: number;
+  reasoning: {
+    primary: string;
+    factors: string[];
+    threatAssessment: {
+      level: 'low' | 'medium' | 'high' | 'critical';
+      description: string;
+    };
+  };
+  confidence: {
+    score: number;
+    distribution: { column: number; probability: number }[];
+  };
+  mlInsights: {
+    modelUsed: string;
+    inferenceTime: number;
+    features: { name: string; value: number; importance: number }[];
+  };
+  coordinationData: {
+    strategies: string[];
+    consensusScore: number;
+    votingResults: { strategy: string; votes: number }[];
+  };
+  learningImpact: {
+    patternDetected: boolean;
+    patternType?: string;
+    adaptationTriggered: boolean;
+    learningUpdate?: string;
+  };
+}
+
+interface MoveAnalysis {
+  boardState: {
+    threats: { position: [number, number]; type: string; severity: number }[];
+    opportunities: { position: [number, number]; type: string; value: number }[];
+    control: { player: number; ai: number; contested: number };
+  };
+  strategicAssessment: {
+    currentStrategy: string;
+    effectiveness: number;
+    alternativeStrategies: { name: string; score: number }[];
+    recommendation: string;
+  };
+  predictedOutcome: {
+    winProbability: { player: number; ai: number; draw: number };
+    estimatedMovesRemaining: number;
+    criticalPositions: [number, number][];
+  };
+  continuousLearning: {
+    patternsActive: string[];
+    adaptationLevel: number;
+    learningRate: number;
+    recentInsights: string[];
+  };
 }
 
 interface SidebarProps {
@@ -65,6 +151,40 @@ const Sidebar: React.FC<SidebarProps> = ({
     highestLevelReached: 1,
     averageMovesPerGame: 0
   });
+  
+  // Real-time game statistics
+  const [gameStats, setGameStats] = useState<GameStats>({
+    totalGames: 0,
+    playerWins: 0,
+    aiWins: 0,
+    draws: 0,
+    longestGame: 0,
+    shortestGame: 0,
+    averageGameLength: 0,
+    winStreak: 0,
+    lossStreak: 0,
+    currentStreak: 0,
+    currentStreakType: 'none'
+  });
+  
+  // AI performance metrics
+  const [aiPerformance, setAIPerformance] = useState<AIPerformance>({
+    model: 'Unknown',
+    accuracy: 0,
+    avgResponseTime: 0,
+    decisionsQuality: 0,
+    learningProgress: 0,
+    patternsRecognized: 0,
+    strategiesUsed: []
+  });
+  
+  // Historical game data
+  const [gameHistory, setGameHistory] = useState<any[]>([]);
+  
+  // Move explanation and analysis data
+  const [currentMoveExplanation, setCurrentMoveExplanation] = useState<MoveExplanation | null>(null);
+  const [moveHistory, setMoveHistory] = useState<MoveExplanation[]>([]);
+  const [boardAnalysis, setBoardAnalysis] = useState<MoveAnalysis | null>(null);
 
   // Load stats from localStorage or props
   useEffect(() => {
@@ -91,6 +211,76 @@ const Sidebar: React.FC<SidebarProps> = ({
     };
     window.addEventListener('statsUpdate', handleStatsUpdate as EventListener);
     return () => window.removeEventListener('statsUpdate', handleStatsUpdate as EventListener);
+  }, []);
+  
+  // Socket.IO listeners for real-time data
+  useEffect(() => {
+    // Game statistics updates
+    socket.on('gameStatsUpdate', (data: GameStats) => {
+      setGameStats(data);
+      integrationLogger.logIntegrationEvent('backend', 'frontend', 'game_stats_update', data);
+    });
+    
+    // AI performance updates
+    socket.on('aiPerformanceUpdate', (data: AIPerformance) => {
+      setAIPerformance(data);
+      integrationLogger.logIntegrationEvent('ai_service', 'frontend', 'ai_performance_update', data);
+    });
+    
+    // Historical games update
+    socket.on('gameHistoryUpdate', (data: any[]) => {
+      setGameHistory(data);
+    });
+    
+    // Player stats update from backend
+    socket.on('playerStatsUpdate', (data: PlayerStats) => {
+      setStats(data);
+      // Also save to localStorage
+      localStorage.setItem('connect4EnhancedStats', JSON.stringify(data));
+    });
+    
+    // Move explanation updates from ML Inference Engine
+    socket.on('moveExplanation', (data: MoveExplanation) => {
+      setCurrentMoveExplanation(data);
+      setMoveHistory(prev => [data, ...prev].slice(0, 20)); // Keep last 20 moves
+      integrationLogger.logIntegrationEvent('ml_inference', 'frontend', 'move_explanation', data);
+    });
+    
+    // Board analysis updates from AI Coordination Module
+    socket.on('boardAnalysis', (data: MoveAnalysis) => {
+      setBoardAnalysis(data);
+      integrationLogger.logIntegrationEvent('ai_coordination', 'frontend', 'board_analysis', data);
+    });
+    
+    // Continuous learning insights
+    socket.on('learningInsight', (data: any) => {
+      if (boardAnalysis) {
+        setBoardAnalysis(prev => prev ? {
+          ...prev,
+          continuousLearning: {
+            ...prev.continuousLearning,
+            recentInsights: [data.insight, ...prev.continuousLearning.recentInsights].slice(0, 5)
+          }
+        } : null);
+      }
+    });
+    
+    // Request initial data
+    socket.emit('requestGameStats');
+    socket.emit('requestAIPerformance');
+    socket.emit('requestGameHistory');
+    socket.emit('requestLatestMoveExplanation');
+    socket.emit('requestBoardAnalysis');
+    
+    return () => {
+      socket.off('gameStatsUpdate');
+      socket.off('aiPerformanceUpdate');
+      socket.off('gameHistoryUpdate');
+      socket.off('playerStatsUpdate');
+      socket.off('moveExplanation');
+      socket.off('boardAnalysis');
+      socket.off('learningInsight');
+    };
   }, []);
 
   const getWinRate = () => {
@@ -287,20 +477,20 @@ const Sidebar: React.FC<SidebarProps> = ({
         <h3 className="section-title">Quick Stats</h3>
         <div className="quick-stats-grid">
           <div className="quick-stat">
-            <div className="stat-value wins">{stats.wins}</div>
+            <div className="stat-value wins">{gameStats.playerWins || stats.wins}</div>
             <div className="stat-label">Wins</div>
           </div>
           <div className="quick-stat">
-            <div className="stat-value losses">{stats.losses}</div>
+            <div className="stat-value losses">{gameStats.aiWins || stats.losses}</div>
             <div className="stat-label">Losses</div>
           </div>
           <div className="quick-stat">
-            <div className="stat-value draws">{stats.draws}</div>
+            <div className="stat-value draws">{gameStats.draws || stats.draws}</div>
             <div className="stat-label">Draws</div>
           </div>
           <div className="quick-stat">
-            <div className="stat-value streak">{stats.winStreak}</div>
-            <div className="stat-label">Win Streak</div>
+            <div className="stat-value streak">{gameStats.winStreak || stats.winStreak}</div>
+            <div className="stat-label">Best Streak</div>
           </div>
         </div>
       </div>
@@ -385,12 +575,12 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-icon">🎮</div>
-            <div className="stat-number">{stats.totalGamesPlayed}</div>
+            <div className="stat-number">{gameStats.totalGames || stats.totalGamesPlayed}</div>
             <div className="stat-text">Total Games</div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">🏁</div>
-            <div className="stat-number">{stats.averageMovesPerGame.toFixed(1)}</div>
+            <div className="stat-number">{gameStats.averageGameLength.toFixed(1)}</div>
             <div className="stat-text">Avg Moves</div>
           </div>
           <div className="stat-card">
@@ -400,8 +590,31 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <div className="stat-card">
             <div className="stat-icon">🔥</div>
-            <div className="stat-number">{stats.currentLevelWins}</div>
-            <div className="stat-text">Level Wins</div>
+            <div className="stat-number">{gameStats.currentStreak}</div>
+            <div className="stat-text">{gameStats.currentStreakType === 'win' ? 'Win' : gameStats.currentStreakType === 'loss' ? 'Loss' : ''} Streak</div>
+          </div>
+        </div>
+        
+        {/* AI Performance Metrics */}
+        <div className="ai-performance-metrics">
+          <h4 className="subsection-title">AI Performance</h4>
+          <div className="ai-metrics-grid">
+            <div className="ai-metric">
+              <span className="metric-label">Model:</span>
+              <span className="metric-value">{aiPerformance.model}</span>
+            </div>
+            <div className="ai-metric">
+              <span className="metric-label">Accuracy:</span>
+              <span className="metric-value">{(aiPerformance.accuracy * 100).toFixed(1)}%</span>
+            </div>
+            <div className="ai-metric">
+              <span className="metric-label">Response Time:</span>
+              <span className="metric-value">{aiPerformance.avgResponseTime.toFixed(0)}ms</span>
+            </div>
+            <div className="ai-metric">
+              <span className="metric-label">Learning Progress:</span>
+              <span className="metric-value">{(aiPerformance.learningProgress * 100).toFixed(1)}%</span>
+            </div>
           </div>
         </div>
       </div>
@@ -532,16 +745,48 @@ const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
         </div>
+        
+        {/* Historical Games */}
+        {gameHistory.length > 0 && (
+          <div className="section-card">
+            <h3 className="section-title">Recent Games History</h3>
+            <div className="games-history-list">
+              {gameHistory.slice(0, 5).map((game, idx) => (
+                <div key={idx} className="historical-game-item">
+                  <div className="game-header">
+                    <span className="game-number">Game #{game.id || idx + 1}</span>
+                    <span className="game-date">{new Date(game.timestamp).toLocaleDateString()}</span>
+                  </div>
+                  <div className="game-details">
+                    <div className="game-stat">
+                      <span className="stat-icon">{game.winner === 'player' ? '🏆' : game.winner === 'ai' ? '🤖' : '🤝'}</span>
+                      <span className="stat-text">
+                        {game.winner === 'player' ? 'You won' : game.winner === 'ai' ? 'AI won' : 'Draw'}
+                      </span>
+                    </div>
+                    <div className="game-stat">
+                      <span className="stat-icon">🎯</span>
+                      <span className="stat-text">{game.moves} moves</span>
+                    </div>
+                    <div className="game-stat">
+                      <span className="stat-icon">⏱️</span>
+                      <span className="stat-text">{game.duration}min</span>
+                    </div>
+                    <div className="game-stat">
+                      <span className="stat-icon">🎮</span>
+                      <span className="stat-text">Level {game.aiLevel}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </motion.div>
     );
   };
 
   const renderAnalytics = () => {
-    const columnAnalysis = getColumnAnalysis();
-    const playerPattern = getPlayerMovePattern();
-    const aiPattern = getAiMovePattern();
-    const maxMoves = Math.max(...columnAnalysis, 1);
-
     return (
       <motion.div
         className="sidebar-section analytics-section"
@@ -549,82 +794,276 @@ const Sidebar: React.FC<SidebarProps> = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Column Usage Analysis */}
+        {/* Latest Move Explanation */}
         <div className="section-card">
-          <h3 className="section-title">Column Usage</h3>
-          <div className="column-analysis">
-            {columnAnalysis.map((count, idx) => (
-              <div key={idx} className="column-bar">
-                <div className="column-label">C{idx + 1}</div>
-                <div className="bar-container">
-                  <motion.div
-                    className="usage-bar"
-                    initial={{ height: 0 }}
-                    animate={{ height: `${(count / maxMoves) * 100}%` }}
-                    transition={{ duration: 0.8, delay: idx * 0.1 }}
-                  />
+          <h3 className="section-title">Move Explanation</h3>
+          {currentMoveExplanation ? (
+            <div className="move-explanation">
+              <div className="move-header">
+                <span className="move-player">{currentMoveExplanation.player}</span>
+                <span className="move-column">Column {currentMoveExplanation.column + 1}</span>
+                <span className="confidence-badge" style={{
+                  background: currentMoveExplanation.confidence.score > 0.8 ? 'rgba(34, 197, 94, 0.2)' :
+                             currentMoveExplanation.confidence.score > 0.6 ? 'rgba(251, 191, 36, 0.2)' :
+                             'rgba(239, 68, 68, 0.2)',
+                  color: currentMoveExplanation.confidence.score > 0.8 ? '#22c55e' :
+                         currentMoveExplanation.confidence.score > 0.6 ? '#fbbf24' :
+                         '#ef4444'
+                }}>
+                  {(currentMoveExplanation.confidence.score * 100).toFixed(0)}% confident
+                </span>
+              </div>
+              
+              <div className="reasoning-section">
+                <h4>AI Reasoning</h4>
+                <p className="primary-reason">{currentMoveExplanation.reasoning.primary}</p>
+                <div className="reasoning-factors">
+                  {currentMoveExplanation.reasoning.factors.map((factor, idx) => (
+                    <div key={idx} className="factor-item">
+                      <span className="factor-icon">→</span>
+                      <span className="factor-text">{factor}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="column-count">{count}</div>
+              </div>
+              
+              <div className="threat-assessment">
+                <h4>Threat Level</h4>
+                <div className={`threat-indicator ${currentMoveExplanation.reasoning.threatAssessment.level}`}>
+                  <span className="threat-level">{currentMoveExplanation.reasoning.threatAssessment.level.toUpperCase()}</span>
+                  <span className="threat-desc">{currentMoveExplanation.reasoning.threatAssessment.description}</span>
+                </div>
+              </div>
+              
+              <div className="ml-insights">
+                <h4>ML Insights</h4>
+                <div className="insight-grid">
+                  <div className="insight-item">
+                    <span className="label">Model:</span>
+                    <span className="value">{currentMoveExplanation.mlInsights.modelUsed}</span>
+                  </div>
+                  <div className="insight-item">
+                    <span className="label">Inference Time:</span>
+                    <span className="value">{currentMoveExplanation.mlInsights.inferenceTime}ms</span>
+                  </div>
+                </div>
+                
+                {/* Top Features */}
+                <div className="top-features">
+                  <h5>Key Features</h5>
+                  {currentMoveExplanation.mlInsights.features.slice(0, 3).map((feature, idx) => (
+                    <div key={idx} className="feature-item">
+                      <span className="feature-name">{feature.name}</span>
+                      <div className="feature-bar">
+                        <div className="feature-fill" style={{ width: `${feature.importance * 100}%` }} />
+                      </div>
+                      <span className="feature-value">{feature.value.toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="coordination-data">
+                <h4>Strategy Coordination</h4>
+                <div className="strategies-list">
+                  {currentMoveExplanation.coordinationData.strategies.map((strategy, idx) => (
+                    <span key={idx} className="strategy-chip">{strategy}</span>
+                  ))}
+                </div>
+                <div className="consensus-score">
+                  <span className="label">Consensus:</span>
+                  <span className="value">{(currentMoveExplanation.coordinationData.consensusScore * 100).toFixed(0)}%</span>
+                </div>
+              </div>
+              
+              {currentMoveExplanation.learningImpact.patternDetected && (
+                <div className="learning-impact">
+                  <h4>Learning Impact</h4>
+                  <div className="impact-badge pattern">
+                    Pattern Detected: {currentMoveExplanation.learningImpact.patternType}
+                  </div>
+                  {currentMoveExplanation.learningImpact.adaptationTriggered && (
+                    <div className="impact-badge adaptation">
+                      Adaptation: {currentMoveExplanation.learningImpact.learningUpdate}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="no-data">
+              <p>No move explanation available yet. Make a move to see AI reasoning!</p>
+            </div>
+          )}
+        </div>
+
+        {/* Board Analysis */}
+        <div className="section-card">
+          <h3 className="section-title">Board Analysis</h3>
+          {boardAnalysis ? (
+            <div className="board-analysis">
+              {/* Board State */}
+              <div className="board-state-section">
+                <h4>Board State</h4>
+                <div className="state-metrics">
+                  <div className="control-meter">
+                    <span className="label">Board Control</span>
+                    <div className="control-bars">
+                      <div className="control-bar player" style={{ width: `${boardAnalysis.boardState.control.player}%` }}>
+                        {boardAnalysis.boardState.control.player}%
+                      </div>
+                      <div className="control-bar contested" style={{ width: `${boardAnalysis.boardState.control.contested}%` }}>
+                        {boardAnalysis.boardState.control.contested}%
+                      </div>
+                      <div className="control-bar ai" style={{ width: `${boardAnalysis.boardState.control.ai}%` }}>
+                        {boardAnalysis.boardState.control.ai}%
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="threats-opportunities">
+                    <div className="threats">
+                      <h5>Threats ({boardAnalysis.boardState.threats.length})</h5>
+                      {boardAnalysis.boardState.threats.slice(0, 3).map((threat, idx) => (
+                        <div key={idx} className="threat-item">
+                          <span className="position">({threat.position[0]}, {threat.position[1]})</span>
+                          <span className="type">{threat.type}</span>
+                          <span className="severity level-{threat.severity}">L{threat.severity}</span>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="opportunities">
+                      <h5>Opportunities ({boardAnalysis.boardState.opportunities.length})</h5>
+                      {boardAnalysis.boardState.opportunities.slice(0, 3).map((opp, idx) => (
+                        <div key={idx} className="opportunity-item">
+                          <span className="position">({opp.position[0]}, {opp.position[1]})</span>
+                          <span className="type">{opp.type}</span>
+                          <span className="value">+{opp.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Strategic Assessment */}
+              <div className="strategic-assessment">
+                <h4>Strategic Assessment</h4>
+                <div className="current-strategy">
+                  <span className="label">Current Strategy:</span>
+                  <span className="strategy-name">{boardAnalysis.strategicAssessment.currentStrategy}</span>
+                  <div className="effectiveness-meter">
+                    <div className="effectiveness-fill" style={{ width: `${boardAnalysis.strategicAssessment.effectiveness * 100}%` }} />
+                    <span className="effectiveness-value">{(boardAnalysis.strategicAssessment.effectiveness * 100).toFixed(0)}% effective</span>
+                  </div>
+                </div>
+                
+                <div className="alternative-strategies">
+                  <h5>Alternative Strategies</h5>
+                  {boardAnalysis.strategicAssessment.alternativeStrategies.map((alt, idx) => (
+                    <div key={idx} className="alt-strategy">
+                      <span className="name">{alt.name}</span>
+                      <span className="score">{(alt.score * 100).toFixed(0)}%</span>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="recommendation">
+                  <span className="rec-icon">💡</span>
+                  <span className="rec-text">{boardAnalysis.strategicAssessment.recommendation}</span>
+                </div>
+              </div>
+              
+              {/* Predicted Outcome */}
+              <div className="predicted-outcome">
+                <h4>Predicted Outcome</h4>
+                <div className="win-probabilities">
+                  <div className="prob-item player">
+                    <span className="label">Player Win</span>
+                    <div className="prob-bar">
+                      <div className="prob-fill" style={{ width: `${boardAnalysis.predictedOutcome.winProbability.player * 100}%` }} />
+                    </div>
+                    <span className="prob-value">{(boardAnalysis.predictedOutcome.winProbability.player * 100).toFixed(1)}%</span>
+                  </div>
+                  <div className="prob-item ai">
+                    <span className="label">AI Win</span>
+                    <div className="prob-bar">
+                      <div className="prob-fill" style={{ width: `${boardAnalysis.predictedOutcome.winProbability.ai * 100}%` }} />
+                    </div>
+                    <span className="prob-value">{(boardAnalysis.predictedOutcome.winProbability.ai * 100).toFixed(1)}%</span>
+                  </div>
+                  <div className="prob-item draw">
+                    <span className="label">Draw</span>
+                    <div className="prob-bar">
+                      <div className="prob-fill" style={{ width: `${boardAnalysis.predictedOutcome.winProbability.draw * 100}%` }} />
+                    </div>
+                    <span className="prob-value">{(boardAnalysis.predictedOutcome.winProbability.draw * 100).toFixed(1)}%</span>
+                  </div>
+                </div>
+                <div className="moves-remaining">
+                  Estimated moves remaining: {boardAnalysis.predictedOutcome.estimatedMovesRemaining}
+                </div>
+              </div>
+              
+              {/* Continuous Learning */}
+              <div className="continuous-learning">
+                <h4>Continuous Learning</h4>
+                <div className="learning-metrics">
+                  <div className="metric">
+                    <span className="label">Adaptation Level:</span>
+                    <span className="value">{(boardAnalysis.continuousLearning.adaptationLevel * 100).toFixed(0)}%</span>
+                  </div>
+                  <div className="metric">
+                    <span className="label">Learning Rate:</span>
+                    <span className="value">{boardAnalysis.continuousLearning.learningRate.toFixed(4)}</span>
+                  </div>
+                </div>
+                
+                <div className="active-patterns">
+                  <h5>Active Patterns</h5>
+                  <div className="pattern-chips">
+                    {boardAnalysis.continuousLearning.patternsActive.map((pattern, idx) => (
+                      <span key={idx} className="pattern-chip">{pattern}</span>
+                    ))}
+                  </div>
+                </div>
+                
+                {boardAnalysis.continuousLearning.recentInsights.length > 0 && (
+                  <div className="recent-insights">
+                    <h5>Recent Insights</h5>
+                    {boardAnalysis.continuousLearning.recentInsights.map((insight, idx) => (
+                      <div key={idx} className="insight-item">
+                        <span className="insight-icon">💡</span>
+                        <span className="insight-text">{insight}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="no-data">
+              <p>No board analysis available. Start playing to see strategic insights!</p>
+            </div>
+          )}
+        </div>
+
+        {/* Move History Analysis */}
+        <div className="section-card">
+          <h3 className="section-title">Recent Move History</h3>
+          <div className="move-history-list">
+            {moveHistory.slice(0, 5).map((move, idx) => (
+              <div key={idx} className="history-move-item">
+                <div className="move-summary">
+                  <span className="move-number">Move #{history.length - idx}</span>
+                  <span className="move-player-chip {move.player.toLowerCase()}">{move.player}</span>
+                  <span className="move-col">Col {move.column + 1}</span>
+                  <span className="confidence-mini">{(move.confidence.score * 100).toFixed(0)}%</span>
+                </div>
+                <div className="move-reason">{move.reasoning.primary}</div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Move Patterns */}
-        <div className="section-card">
-          <h3 className="section-title">Move Patterns</h3>
-          <div className="pattern-comparison">
-            <div className="pattern-section">
-              <h4 className="pattern-title">Your Pattern</h4>
-              <div className="pattern-bars">
-                {playerPattern.map((count, idx) => (
-                  <div key={idx} className="pattern-bar red">
-                    <div
-                      className="bar-fill"
-                      style={{ height: `${(count / Math.max(...playerPattern, 1)) * 100}%` }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="pattern-section">
-              <h4 className="pattern-title">AI Pattern</h4>
-              <div className="pattern-bars">
-                {aiPattern.map((count, idx) => (
-                  <div key={idx} className="pattern-bar yellow">
-                    <div
-                      className="bar-fill"
-                      style={{ height: `${(count / Math.max(...aiPattern, 1)) * 100}%` }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Game Insights */}
-        <div className="section-card">
-          <h3 className="section-title">Game Insights</h3>
-          <div className="insights-list">
-            <div className="insight-item">
-              <span className="insight-icon">🎯</span>
-              <span className="insight-text">
-                Most used column: {columnAnalysis.indexOf(Math.max(...columnAnalysis)) + 1}
-              </span>
-            </div>
-            <div className="insight-item">
-              <span className="insight-icon">⚡</span>
-              <span className="insight-text">
-                Game pace: {history.length < 10 ? 'Fast' : history.length < 20 ? 'Medium' : 'Slow'}
-              </span>
-            </div>
-            <div className="insight-item">
-              <span className="insight-icon">🎯</span>
-              <span className="insight-text">
-                Strategy: {playerPattern.some(count => count > 2) ? 'Focused' : 'Distributed'}
-              </span>
-            </div>
           </div>
         </div>
       </motion.div>

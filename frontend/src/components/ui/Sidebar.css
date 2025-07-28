@@ -1046,6 +1046,720 @@
     }
 }
 
+/* AI Performance Metrics Styles */
+.ai-performance-metrics {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.subsection-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    margin-bottom: 12px;
+}
+
+.ai-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.ai-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.metric-label {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.metric-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+
+/* Historical Games Styles */
+.games-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.historical-game-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.3s ease;
+}
+
+.historical-game-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(-4px);
+    box-shadow: -4px 0 12px rgba(59, 130, 246, 0.2);
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.game-number {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #60a5fa;
+}
+
+.game-date {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.game-details {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.game-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.game-stat .stat-icon {
+    font-size: 1.2rem;
+}
+
+.game-stat .stat-text {
+    font-size: 0.7rem;
+    color: #cbd5e1;
+    text-align: center;
+}
+
+/* Strategy Tags */
+.strategies-used {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.strategies-label {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.strategy-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.strategy-tag {
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+/* Move Explanation Styles */
+.move-explanation {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.move-explanation .move-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.move-player {
+    font-weight: 600;
+    color: #f1f5f9;
+}
+
+.move-column {
+    color: #94a3b8;
+}
+
+.confidence-badge {
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.reasoning-section {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.reasoning-section h4 {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+}
+
+.primary-reason {
+    font-size: 0.9rem;
+    color: #f1f5f9;
+    margin-bottom: 12px;
+}
+
+.reasoning-factors {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.factor-item {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.factor-icon {
+    color: #60a5fa;
+    flex-shrink: 0;
+}
+
+.factor-text {
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.threat-assessment {
+    margin-top: 12px;
+}
+
+.threat-indicator {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.threat-indicator.low {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.threat-indicator.medium {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.threat-indicator.high {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.threat-indicator.critical {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    animation: pulse 2s infinite;
+}
+
+.threat-level {
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.threat-desc {
+    font-size: 0.85rem;
+    color: #cbd5e1;
+}
+
+/* ML Insights */
+.ml-insights {
+    background: rgba(59, 130, 246, 0.05);
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.ml-insights h4 {
+    font-size: 0.9rem;
+    color: #60a5fa;
+    margin-bottom: 12px;
+}
+
+.insight-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.insight-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.top-features h5 {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-bottom: 8px;
+}
+
+.feature-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.feature-name {
+    font-size: 0.75rem;
+    color: #cbd5e1;
+}
+
+.feature-bar {
+    width: 60px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.feature-fill {
+    height: 100%;
+    background: #60a5fa;
+}
+
+.feature-value {
+    font-size: 0.7rem;
+    color: #94a3b8;
+}
+
+/* Coordination Data */
+.coordination-data {
+    background: rgba(168, 85, 247, 0.05);
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.coordination-data h4 {
+    font-size: 0.9rem;
+    color: #a78bfa;
+    margin-bottom: 12px;
+}
+
+.strategies-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.strategy-chip {
+    background: rgba(168, 85, 247, 0.2);
+    color: #a78bfa;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+}
+
+.consensus-score {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Learning Impact */
+.learning-impact {
+    background: rgba(34, 197, 94, 0.05);
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.learning-impact h4 {
+    font-size: 0.9rem;
+    color: #22c55e;
+    margin-bottom: 12px;
+}
+
+.impact-badge {
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+    display: inline-block;
+}
+
+.impact-badge.pattern {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.impact-badge.adaptation {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+/* Board Analysis Styles */
+.board-analysis {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.board-state-section h4,
+.strategic-assessment h4,
+.predicted-outcome h4,
+.continuous-learning h4 {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    margin-bottom: 12px;
+}
+
+.control-meter {
+    margin-bottom: 16px;
+}
+
+.control-bars {
+    display: flex;
+    height: 24px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.control-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.control-bar.player {
+    background: #ef4444;
+}
+
+.control-bar.contested {
+    background: #6b7280;
+}
+
+.control-bar.ai {
+    background: #fbbf24;
+}
+
+.threats-opportunities {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.threats h5,
+.opportunities h5 {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-bottom: 8px;
+}
+
+.threat-item,
+.opportunity-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.75rem;
+    margin-bottom: 6px;
+}
+
+.position {
+    color: #64748b;
+}
+
+.type {
+    color: #cbd5e1;
+}
+
+.severity {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+}
+
+.severity.level-1 {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.severity.level-2 {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+}
+
+.severity.level-3 {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+/* Strategic Assessment */
+.current-strategy {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.strategy-name {
+    font-weight: 600;
+    color: #60a5fa;
+    margin-left: 8px;
+}
+
+.effectiveness-meter {
+    position: relative;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.effectiveness-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444 0%, #fbbf24 50%, #22c55e 100%);
+    transition: width 0.5s ease;
+}
+
+.effectiveness-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.alternative-strategies {
+    margin-bottom: 12px;
+}
+
+.alt-strategy {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.recommendation {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    background: rgba(59, 130, 246, 0.1);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.rec-icon {
+    font-size: 1.2rem;
+}
+
+.rec-text {
+    font-size: 0.85rem;
+    color: #cbd5e1;
+}
+
+/* Predicted Outcome */
+.win-probabilities {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.prob-item {
+    display: grid;
+    grid-template-columns: 80px 1fr 50px;
+    gap: 12px;
+    align-items: center;
+}
+
+.prob-bar {
+    height: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.prob-fill {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+
+.prob-item.player .prob-fill {
+    background: #ef4444;
+}
+
+.prob-item.ai .prob-fill {
+    background: #fbbf24;
+}
+
+.prob-item.draw .prob-fill {
+    background: #6b7280;
+}
+
+.prob-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: right;
+}
+
+.moves-remaining {
+    text-align: center;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+/* Continuous Learning Section */
+.learning-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.learning-metrics .metric {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pattern-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.pattern-chip {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+}
+
+.recent-insights {
+    margin-top: 16px;
+}
+
+.recent-insights h5 {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-bottom: 8px;
+}
+
+.recent-insights .insight-item {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.insight-icon {
+    font-size: 0.9rem;
+}
+
+.insight-text {
+    font-size: 0.85rem;
+    color: #cbd5e1;
+}
+
+/* Move History Analysis */
+.move-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.history-move-item {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.move-summary {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.move-number {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.move-player-chip {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+}
+
+.move-player-chip.red {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.move-player-chip.yellow {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+}
+
+.move-col {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.confidence-mini {
+    margin-left: auto;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #60a5fa;
+}
+
+.move-reason {
+    font-size: 0.8rem;
+    color: #cbd5e1;
+}
+
 /* Dark mode enhancements */
 @media (prefers-color-scheme: dark) {
     .enhanced-sidebar {
