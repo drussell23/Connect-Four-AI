@@ -129,7 +129,7 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
    * Connect to Continuous Learning for real-time model updates
    */
   private async connectToContinuousLearning(): Promise<void> {
-    const clWsUrl = 'ws://localhost:8002';
+    const clWsUrl = 'ws://localhost:8005';
     
     try {
       this.continuousLearningWebSocket = new WebSocket(clWsUrl);

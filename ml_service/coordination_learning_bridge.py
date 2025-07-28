@@ -36,7 +36,7 @@ class LearningBroadcast:
 class CoordinationLearningBridge:
     """Bridge between Continuous Learning and AI Coordination Hub"""
     
-    def __init__(self, cl_ws_url: str = "ws://localhost:8002/ws", 
+    def __init__(self, cl_ws_url: str = "ws://localhost:8005/ws", 
                  coord_ws_url: str = "ws://localhost:8003/ws/continuous_learning"):
         self.cl_ws_url = cl_ws_url
         self.coord_ws_url = coord_ws_url

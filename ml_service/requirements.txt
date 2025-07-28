@@ -46,6 +46,7 @@ aiofiles>=23.2.0
 python-multipart>=0.0.6
 websockets>=12.0
 python-socketio[asyncio]>=5.10.0
+aiohttp>=3.9.0
 
 # Environment and Configuration
 python-dotenv>=1.0.0

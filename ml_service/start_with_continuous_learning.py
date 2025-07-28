@@ -157,6 +157,40 @@ async def start_integrated_service():
         pipeline = ContinuousLearningPipeline(model_manager, config)
         logger.info("Using standard continuous learning pipeline as fallback")
     
+    # Start HTTP health endpoint for continuous learning
+    async def start_cl_http():
+        from aiohttp import web
+        
+        async def health_handler(request):
+            return web.json_response({
+                "status": "healthy",
+                "service": "continuous_learning",
+                "timestamp": time.time(),
+                "buffer_size": len(pipeline.experience_buffer.buffer) if hasattr(pipeline, 'experience_buffer') else 0
+            }, headers={
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            })
+        
+        async def handle_options(request):
+            return web.Response(headers={
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            })
+        
+        app = web.Application()
+        app.router.add_get('/health', health_handler)
+        app.router.add_options('/health', handle_options)
+        
+        runner = web.AppRunner(app)
+        await runner.setup()
+        http_port = int(os.environ.get("ML_WEBSOCKET_PORT", "8002"))
+        site = web.TCPSite(runner, 'localhost', http_port)
+        await site.start()
+        logger.info(f"Continuous Learning HTTP health endpoint started on http://localhost:{http_port}/health")
+    
     # Start WebSocket server for continuous learning in background
     async def start_cl_websocket():
         ws_port = int(os.environ.get("ML_WEBSOCKET_PORT", "8002"))
@@ -164,15 +198,18 @@ async def start_integrated_service():
         async def websocket_handler(websocket):
             await pipeline.handle_websocket(websocket, "/")
         
+        # Use a different port for WebSocket to avoid conflict with HTTP
+        ws_actual_port = 8005  # Use 8005 for WebSocket to avoid conflicts
         server = await websockets.serve(
             websocket_handler,
             "localhost",
-            ws_port
+            ws_actual_port
         )
-        logger.info(f"Continuous Learning WebSocket server started on ws://localhost:{ws_port}")
+        logger.info(f"Continuous Learning WebSocket server started on ws://localhost:{ws_actual_port}")
         await asyncio.Future()  # Run forever
     
-    # Start WebSocket server as background task
+    # Start both HTTP and WebSocket servers as background tasks
+    asyncio.create_task(start_cl_http())
     asyncio.create_task(start_cl_websocket())
     
     # Start coordination-learning bridge if AI coordination is available
