@@ -66,6 +66,9 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
     // Initialize background simulations
     await this.initializeBackgroundSimulations();
     
+    // Integration WebSocket is part of the backend service
+    this.serviceStatus.set('integration_websocket', true);
+    
     // Do initial health check and broadcast status
     await this.checkAllServicesHealth();
     
