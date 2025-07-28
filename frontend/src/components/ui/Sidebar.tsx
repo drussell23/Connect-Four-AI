@@ -114,6 +114,24 @@ interface MoveAnalysis {
     learningRate: number;
     recentInsights: string[];
   };
+  recommendedMoves: {
+    column: number;
+    score: number;
+    reasoning: string;
+    outcome: string;
+  }[];
+  movesToAvoid: {
+    column: number;
+    risk: number;
+    warning: string;
+    consequence: string;
+  }[];
+  immediateAnalysis: {
+    criticalMove: boolean;
+    urgency: 'low' | 'medium' | 'high' | 'critical';
+    keyFactors: string[];
+    timeRecommendation: string;
+  };
 }
 
 interface SidebarProps {
@@ -252,6 +270,25 @@ const Sidebar: React.FC<SidebarProps> = ({
       integrationLogger.logIntegrationEvent('ai_coordination', 'frontend', 'board_analysis', data);
     });
     
+    // Real-time move recommendations
+    socket.on('moveRecommendations', (data: { recommendedMoves: MoveAnalysis['recommendedMoves'], movesToAvoid: MoveAnalysis['movesToAvoid'] }) => {
+      setBoardAnalysis(prev => prev ? {
+        ...prev,
+        recommendedMoves: data.recommendedMoves,
+        movesToAvoid: data.movesToAvoid
+      } : null);
+      integrationLogger.logIntegrationEvent('ai_coordination', 'frontend', 'move_recommendations', data);
+    });
+    
+    // Immediate move analysis
+    socket.on('immediateAnalysis', (data: MoveAnalysis['immediateAnalysis']) => {
+      setBoardAnalysis(prev => prev ? {
+        ...prev,
+        immediateAnalysis: data
+      } : null);
+      integrationLogger.logIntegrationEvent('ai_coordination', 'frontend', 'immediate_analysis', data);
+    });
+    
     // Continuous learning insights
     socket.on('learningInsight', (data: any) => {
       if (boardAnalysis) {
@@ -279,6 +316,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       socket.off('playerStatsUpdate');
       socket.off('moveExplanation');
       socket.off('boardAnalysis');
+      socket.off('moveRecommendations');
+      socket.off('immediateAnalysis');
       socket.off('learningInsight');
     };
   }, []);
@@ -974,6 +1013,79 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <span className="rec-text">{boardAnalysis.strategicAssessment.recommendation}</span>
                 </div>
               </div>
+
+              {/* Immediate Analysis */}
+              {boardAnalysis.immediateAnalysis && (
+                <div className={`immediate-analysis urgency-${boardAnalysis.immediateAnalysis.urgency}`}>
+                  <h4>
+                    <span className="urgency-icon">
+                      {boardAnalysis.immediateAnalysis.urgency === 'critical' ? '🚨' : 
+                       boardAnalysis.immediateAnalysis.urgency === 'high' ? '⚠️' : 
+                       boardAnalysis.immediateAnalysis.urgency === 'medium' ? '📊' : '✓'}
+                    </span>
+                    Immediate Analysis
+                  </h4>
+                  <div className="immediate-content">
+                    {boardAnalysis.immediateAnalysis.criticalMove && (
+                      <div className="critical-alert">⚡ CRITICAL MOVE DETECTED</div>
+                    )}
+                    <div className="time-recommendation">
+                      {boardAnalysis.immediateAnalysis.timeRecommendation}
+                    </div>
+                    <div className="key-factors">
+                      <span className="factors-label">Key Factors:</span>
+                      <ul>
+                        {boardAnalysis.immediateAnalysis.keyFactors.map((factor, idx) => (
+                          <li key={idx}>{factor}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Recommended Moves */}
+              {boardAnalysis.recommendedMoves && boardAnalysis.recommendedMoves.length > 0 && (
+                <div className="recommended-moves">
+                  <h4>✅ Recommended Moves</h4>
+                  <div className="moves-list">
+                    {boardAnalysis.recommendedMoves.map((move, idx) => (
+                      <div key={idx} className="recommended-move">
+                        <div className="move-header">
+                          <span className="column-indicator">Column {move.column + 1}</span>
+                          <span className="move-score">{(move.score * 100).toFixed(1)}%</span>
+                        </div>
+                        <div className="move-reasoning">{move.reasoning}</div>
+                        <div className="move-outcome">{move.outcome}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Moves to Avoid */}
+              {boardAnalysis.movesToAvoid && boardAnalysis.movesToAvoid.length > 0 && (
+                <div className="moves-to-avoid">
+                  <h4>⚠️ Moves to Avoid</h4>
+                  <div className="moves-list">
+                    {boardAnalysis.movesToAvoid.map((move, idx) => (
+                      <div key={idx} className="avoid-move">
+                        <div className="move-header">
+                          <span className="column-indicator">Column {move.column + 1}</span>
+                          <span className="risk-level" style={{
+                            color: move.risk > 0.8 ? '#f44336' : 
+                                   move.risk > 0.5 ? '#ff9800' : '#ffc107'
+                          }}>
+                            Risk: {(move.risk * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <div className="move-warning">{move.warning}</div>
+                        <div className="move-consequence">{move.consequence}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               {/* Predicted Outcome */}
               <div className="predicted-outcome">

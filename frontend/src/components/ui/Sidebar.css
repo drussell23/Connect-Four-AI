@@ -1769,3 +1769,204 @@
                 rgba(30, 41, 59, 0.98) 100%);
     }
 }
+
+/* Immediate Analysis */
+.immediate-analysis {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.immediate-analysis.urgency-critical {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.immediate-analysis.urgency-high {
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.immediate-analysis.urgency-medium {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.immediate-analysis.urgency-low {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.immediate-analysis h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.urgency-icon {
+    font-size: 1.2rem;
+}
+
+.immediate-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.critical-alert {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+.time-recommendation {
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.key-factors {
+    margin-top: 8px;
+}
+
+.factors-label {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.key-factors ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.key-factors li {
+    color: #cbd5e1;
+    font-size: 0.85rem;
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+}
+
+.key-factors li:before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #64748b;
+}
+
+/* Recommended Moves */
+.recommended-moves {
+    background: rgba(16, 185, 129, 0.03);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.recommended-moves h4 {
+    color: #10b981;
+    margin-bottom: 12px;
+}
+
+.moves-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.recommended-move {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.move-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.column-indicator {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.move-score {
+    color: #10b981;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.move-reasoning {
+    color: #e2e8f0;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+}
+
+.move-outcome {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
+/* Moves to Avoid */
+.moves-to-avoid {
+    background: rgba(239, 68, 68, 0.03);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.moves-to-avoid h4 {
+    color: #f59e0b;
+    margin-bottom: 12px;
+}
+
+.avoid-move {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid rgba(239, 68, 68, 0.1);
+}
+
+.risk-level {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.move-warning {
+    color: #fbbf24;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.move-consequence {
+    color: #fca5a5;
+    font-size: 0.8rem;
+    font-style: italic;
+}
