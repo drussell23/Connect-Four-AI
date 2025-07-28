@@ -1167,10 +1167,17 @@ const App: React.FC = () => {
       setPlayerProgress(data);
     });
 
+    // Service status updates
+    socket.on('serviceStatusUpdate', (data: any) => {
+      console.log('📊 Service status update:', data);
+      integrationLogger.updateServiceStatuses(data);
+    });
+
     return () => {
       socket.off('playerMove');
       socket.off('aiThinking');
       socket.off('aiMove');
+      socket.off('serviceStatusUpdate');
     };
   }, [socket, aiLevel]);
 

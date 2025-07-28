@@ -66,6 +66,9 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
     // Initialize background simulations
     await this.initializeBackgroundSimulations();
     
+    // Do initial health check and broadcast status
+    await this.checkAllServicesHealth();
+    
     this.logger.log('✅ Service Integration Orchestrator initialized successfully');
   }
 
@@ -73,8 +76,9 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
    * Connect to all microservices via WebSocket for real-time communication
    */
   private async connectToAllServices(): Promise<void> {
-    // Connect to ML Service WebSocket
-    await this.connectToMLService();
+    // ML Service doesn't provide WebSocket, only HTTP API
+    // Mark it as connected if health check passes
+    this.checkMLServiceHealth();
     
     // Connect to Continuous Learning WebSocket
     await this.connectToContinuousLearning();
@@ -86,43 +90,27 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
   }
 
   /**
-   * Connect to ML Service for predictions and model updates
+   * Check ML Service health via HTTP
    */
-  private async connectToMLService(): Promise<void> {
-    const mlWsUrl = 'ws://localhost:8002/ws';
-    
+  private async checkMLServiceHealth(): Promise<void> {
     try {
-      this.mlWebSocket = new WebSocket(mlWsUrl);
-      
-      this.mlWebSocket.on('open', () => {
+      const response = await fetch('http://localhost:8000/health');
+      if (response.ok) {
         this.serviceStatus.set('ml_service', true);
-        this.logger.log('✅ Connected to ML Service WebSocket');
-        
-        // Send handshake
-        this.sendToMLService({
-          type: 'handshake',
-          service: 'backend_orchestrator',
-          capabilities: ['game_data', 'pattern_analysis', 'model_sync'],
-        });
-      });
-      
-      this.mlWebSocket.on('message', (data) => {
-        this.handleMLServiceMessage(JSON.parse(data.toString()));
-      });
-      
-      this.mlWebSocket.on('error', (error) => {
-        this.logger.error('ML Service WebSocket error:', error);
+        this.logger.log('✅ ML Service is healthy');
+        this.broadcastServiceStatus();
+      } else {
         this.serviceStatus.set('ml_service', false);
-      });
-      
-      this.mlWebSocket.on('close', () => {
-        this.serviceStatus.set('ml_service', false);
-        setTimeout(() => this.connectToMLService(), 5000);
-      });
+        this.logger.warn('ML Service health check failed');
+        this.broadcastServiceStatus();
+      }
     } catch (error) {
-      this.logger.error('Failed to connect to ML Service:', error);
-      setTimeout(() => this.connectToMLService(), 5000);
+      this.serviceStatus.set('ml_service', false);
+      this.logger.error('Failed to check ML Service health:', error);
     }
+    
+    // Schedule next health check
+    setTimeout(() => this.checkMLServiceHealth(), 30000);
   }
 
   /**
@@ -137,6 +125,7 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
       this.continuousLearningWebSocket.on('open', () => {
         this.serviceStatus.set('continuous_learning', true);
         this.logger.log('✅ Connected to Continuous Learning WebSocket');
+        this.broadcastServiceStatus();
         
         // Subscribe to model updates
         this.sendToContinuousLearning({
@@ -176,6 +165,7 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
       this.aiCoordinationWebSocket.on('open', () => {
         this.serviceStatus.set('ai_coordination', true);
         this.logger.log('✅ Connected to AI Coordination Hub');
+        this.broadcastServiceStatus();
         
         // Register capabilities
         this.sendToAICoordination({
@@ -375,12 +365,8 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
       },
     });
     
-    // Send to ML service for immediate processing
-    this.sendToMLService({
-      type: 'process_game',
-      priority: 'low', // Background simulations are lower priority
-      data: simulationData,
-    });
+    // ML service processing is handled via HTTP API
+    // Background simulations are processed through the MLClientService
   }
 
   /**
@@ -405,14 +391,8 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
   private async handleMoveMade(data: any): Promise<void> {
     this.metrics.dataFlowEvents++;
     
-    // Send move data to ML service for real-time analysis
-    this.sendToMLService({
-      type: 'analyze_move',
-      gameId: data.gameId,
-      board: data.board,
-      move: data.move,
-      player: data.player,
-    });
+    // ML service analysis is handled via HTTP API
+    // Move analysis is processed through the MLClientService
     
     // Send to continuous learning for pattern detection
     this.sendToContinuousLearning({
@@ -652,16 +632,12 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
     }
     
     this.metrics.lastHealthCheck = new Date();
+    
+    // Broadcast updated status
+    this.broadcastServiceStatus();
   }
 
-  /**
-   * Send message to ML Service
-   */
-  private sendToMLService(message: any): void {
-    if (this.mlWebSocket?.readyState === WebSocket.OPEN) {
-      this.mlWebSocket.send(JSON.stringify(message));
-    }
-  }
+  // ML Service communication is handled via HTTP API through MLClientService
 
   /**
    * Send message to Continuous Learning
@@ -685,27 +661,12 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
    * Broadcast message to all connected services
    */
   private broadcastToAllServices(message: any): void {
-    this.sendToMLService(message);
+    // ML Service receives updates via HTTP API
     this.sendToContinuousLearning(message);
     this.sendToAICoordination(message);
   }
 
-  /**
-   * Handle ML Service messages
-   */
-  private handleMLServiceMessage(message: any): void {
-    switch (message.type) {
-      case 'prediction_ready':
-        this.eventEmitter.emit('ml.prediction.ready', message.data);
-        break;
-      case 'model_improved':
-        this.eventEmitter.emit('ml.model.improved', message.data);
-        break;
-      case 'analysis_complete':
-        this.eventEmitter.emit('ml.analysis.complete', message.data);
-        break;
-    }
-  }
+  // ML Service events are handled via HTTP API responses
 
   /**
    * Handle Continuous Learning messages
@@ -757,6 +718,23 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
         result: result,
       });
     }
+  }
+
+  /**
+   * Broadcast service status updates
+   */
+  private broadcastServiceStatus(): void {
+    const statusUpdate = {
+      ml_service: this.serviceStatus.get('ml_service') || false,
+      ml_inference: this.serviceStatus.get('ml_inference') || false,
+      continuous_learning: this.serviceStatus.get('continuous_learning') || false,
+      ai_coordination: this.serviceStatus.get('ai_coordination') || false,
+      python_trainer: this.serviceStatus.get('python_trainer') || false,
+      integration_websocket: this.serviceStatus.get('integration_websocket') || false,
+    };
+    
+    // Emit service status update event
+    this.eventEmitter.emit('service.status.update', statusUpdate);
   }
 
   /**

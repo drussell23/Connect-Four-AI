@@ -293,6 +293,41 @@ class IntegrationLogger {
     }
   }
 
+  // Update multiple service statuses from backend
+  public updateServiceStatuses(statuses: {
+    ml_service?: boolean;
+    ml_inference?: boolean;
+    continuous_learning?: boolean;
+    ai_coordination?: boolean;
+    python_trainer?: boolean;
+    integration_websocket?: boolean;
+  }): void {
+    if (statuses.ml_service !== undefined) {
+      this.updateServiceStatus('ML Service', statuses.ml_service);
+      this.logServiceConnection('ML Service', statuses.ml_service);
+    }
+    if (statuses.ml_inference !== undefined) {
+      this.updateServiceStatus('ML Inference', statuses.ml_inference);
+      this.logServiceConnection('ML Inference', statuses.ml_inference);
+    }
+    if (statuses.continuous_learning !== undefined) {
+      this.updateServiceStatus('Continuous Learning', statuses.continuous_learning);
+      this.logServiceConnection('Continuous Learning', statuses.continuous_learning);
+    }
+    if (statuses.ai_coordination !== undefined) {
+      this.updateServiceStatus('AI Coordination', statuses.ai_coordination);
+      this.logServiceConnection('AI Coordination', statuses.ai_coordination);
+    }
+    if (statuses.python_trainer !== undefined) {
+      this.updateServiceStatus('Python Trainer', statuses.python_trainer);
+      this.logServiceConnection('Python Trainer', statuses.python_trainer);
+    }
+    if (statuses.integration_websocket !== undefined) {
+      this.updateServiceStatus('Integration WebSocket', statuses.integration_websocket);
+      this.logServiceConnection('Integration WebSocket', statuses.integration_websocket);
+    }
+  }
+
   // Get service summary
   public getServiceSummary(): void {
     console.group('%c📊 Service Integration Summary', 'font-size: 16px; color: #2196F3; font-weight: bold;');

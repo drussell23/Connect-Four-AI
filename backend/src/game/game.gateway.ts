@@ -1908,6 +1908,11 @@ export class GameGateway
     this.server.emit('aiCircuitBreakerStatus', payload);
   }
 
+  @OnEvent('service.status.update')
+  handleServiceStatusUpdate(payload: any) {
+    this.server.emit('serviceStatusUpdate', payload);
+  }
+
   /**
    * Determine the current game phase based on board state
    */
