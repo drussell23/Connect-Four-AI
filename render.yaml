@@ -1,4 +1,5 @@
 services:
+  # Backend API Service
   - type: web
     name: connect-four-backend
     runtime: node
@@ -16,5 +17,87 @@ services:
         value: https://connect-four-ai-derek.vercel.app
       - key: FRONTEND_URL
         value: https://connect-four-ai-derek.vercel.app
+      # Disable external services until they're deployed
+      - key: DISABLE_EXTERNAL_SERVICES
+        value: "false"
+      # Update these URLs to point to the actual deployed services
       - key: ML_SERVICE_URL
-        value: https://connect-four-ai-derek.onrender.com
+        value: https://connect-four-ml.onrender.com
+      - key: CONTINUOUS_LEARNING_WS_URL
+        value: wss://connect-four-learning.onrender.com
+      - key: AI_COORDINATION_WS_URL
+        value: wss://connect-four-coordination.onrender.com
+
+  # ML Service (Main ML inference)
+  - type: web
+    name: connect-four-ml
+    runtime: python
+    rootDir: ml_service
+    buildCommand: pip install -r requirements.production.txt
+    startCommand: python ml_service.py
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: ENVIRONMENT
+        value: production
+      - key: BACKEND_URL
+        value: https://connect-four-ai-roge.onrender.com
+      - key: CORS_ORIGINS
+        value: https://connect-four-ai-derek.vercel.app,https://connect-four-ai-roge.onrender.com
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+  # Continuous Learning Service
+  - type: web
+    name: connect-four-learning
+    runtime: python
+    rootDir: ml_service
+    buildCommand: pip install -r requirements.production.txt
+    startCommand: python continuous_learning.py
+    envVars:
+      - key: PORT
+        value: 8002
+      - key: ENVIRONMENT
+        value: production
+      - key: ML_SERVICE_URL
+        value: https://connect-four-ml.onrender.com
+      - key: BACKEND_URL
+        value: https://connect-four-ai-roge.onrender.com
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+  # AI Coordination Hub
+  - type: web
+    name: connect-four-coordination
+    runtime: python
+    rootDir: ml_service
+    buildCommand: pip install -r requirements.production.txt
+    startCommand: python ai_coordination_hub.py
+    envVars:
+      - key: PORT
+        value: 8003
+      - key: ENVIRONMENT
+        value: production
+      - key: BACKEND_URL
+        value: https://connect-four-ai-roge.onrender.com
+      - key: ML_SERVICE_URL
+        value: https://connect-four-ml.onrender.com
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+  # Python Trainer Service (for model training)
+  - type: web
+    name: connect-four-trainer
+    runtime: python
+    rootDir: backend/src/ai/hybrid-architecture/python-trainer
+    buildCommand: pip install -r requirements.txt
+    startCommand: python training_service_minimal.py
+    envVars:
+      - key: PORT
+        value: 8004
+      - key: ENVIRONMENT
+        value: production
+      - key: BACKEND_URL
+        value: https://connect-four-ai-roge.onrender.com
+      - key: PYTHONUNBUFFERED
+        value: "1"

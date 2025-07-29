@@ -43,6 +43,16 @@ export class AICoordinationClient implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit() {
+    // Check if service should be disabled
+    const isProduction = this.configService.get('NODE_ENV') === 'production';
+    const disableExternalServices = this.configService.get('DISABLE_EXTERNAL_SERVICES', 'false') === 'true';
+    const enableAICoordination = this.configService.get('ENABLE_AI_COORDINATION', 'true') === 'true';
+    
+    if (isProduction || disableExternalServices || !enableAICoordination) {
+      this.logger.log('⏭️ AI Coordination Client disabled');
+      return;
+    }
+    
     this.logger.log('🚀 Initializing AI Coordination Client');
     await this.connectToHub();
     this.setupReconnection();

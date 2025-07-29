@@ -54,6 +54,23 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
   async onModuleInit() {
     this.logger.log('🚀 Initializing Service Integration Orchestrator...');
     
+    // Check if services should be disabled in production
+    const isProduction = this.configService.get('NODE_ENV') === 'production';
+    const disableExternalServices = this.configService.get('DISABLE_EXTERNAL_SERVICES', 'false') === 'true';
+    
+    if (isProduction || disableExternalServices) {
+      this.logger.log('📦 External services disabled in production mode');
+      // Mark all services as unavailable
+      this.serviceStatus.set('ml_service', false);
+      this.serviceStatus.set('ml_inference', false);
+      this.serviceStatus.set('continuous_learning', false);
+      this.serviceStatus.set('ai_coordination', false);
+      this.serviceStatus.set('python_trainer', false);
+      this.serviceStatus.set('integration_websocket', true); // This is part of backend
+      this.broadcastServiceStatus();
+      return;
+    }
+    
     // Connect to all services
     await this.connectToAllServices();
     
@@ -79,25 +96,47 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
    * Connect to all microservices via WebSocket for real-time communication
    */
   private async connectToAllServices(): Promise<void> {
+    // Check individual service toggles
+    const enableMLService = this.configService.get('ENABLE_ML_SERVICE', 'true') === 'true';
+    const enableContinuousLearning = this.configService.get('ENABLE_CONTINUOUS_LEARNING', 'true') === 'true';
+    const enableAICoordination = this.configService.get('ENABLE_AI_COORDINATION', 'true') === 'true';
+    
     // ML Service doesn't provide WebSocket, only HTTP API
     // Mark it as connected if health check passes
-    this.checkMLServiceHealth();
+    if (enableMLService) {
+      this.checkMLServiceHealth();
+    } else {
+      this.serviceStatus.set('ml_service', false);
+      this.logger.log('⏭️ ML Service disabled by configuration');
+    }
     
     // Connect to Continuous Learning WebSocket
-    await this.connectToContinuousLearning();
+    if (enableContinuousLearning) {
+      await this.connectToContinuousLearning();
+    } else {
+      this.serviceStatus.set('continuous_learning', false);
+      this.logger.log('⏭️ Continuous Learning service disabled by configuration');
+    }
     
     // Connect to AI Coordination Hub
-    await this.connectToAICoordination();
+    if (enableAICoordination) {
+      await this.connectToAICoordination();
+    } else {
+      this.serviceStatus.set('ai_coordination', false);
+      this.logger.log('⏭️ AI Coordination service disabled by configuration');
+    }
     
-    this.logger.log('📡 Connected to all services');
+    this.logger.log('📡 Service connection initialization complete');
   }
 
   /**
    * Check ML Service health via HTTP
    */
   private async checkMLServiceHealth(): Promise<void> {
+    const mlServiceUrl = this.configService.get('ML_SERVICE_URL', 'http://localhost:8000');
+    
     try {
-      const response = await fetch('http://localhost:8000/health');
+      const response = await fetch(`${mlServiceUrl}/health`);
       if (response.ok) {
         this.serviceStatus.set('ml_service', true);
         this.logger.log('✅ ML Service is healthy');
@@ -112,15 +151,17 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
       this.logger.error('Failed to check ML Service health:', error);
     }
     
-    // Schedule next health check
-    setTimeout(() => this.checkMLServiceHealth(), 30000);
+    // Schedule next health check only if service is enabled
+    if (this.configService.get('ENABLE_ML_SERVICE', 'true') === 'true') {
+      setTimeout(() => this.checkMLServiceHealth(), 30000);
+    }
   }
 
   /**
    * Connect to Continuous Learning for real-time model updates
    */
   private async connectToContinuousLearning(): Promise<void> {
-    const clWsUrl = 'ws://localhost:8005';
+    const clWsUrl = this.configService.get('CONTINUOUS_LEARNING_WS_URL', 'ws://localhost:8005');
     
     try {
       this.continuousLearningWebSocket = new WebSocket(clWsUrl);
@@ -160,7 +201,7 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
    * Connect to AI Coordination Hub for strategic decisions
    */
   private async connectToAICoordination(): Promise<void> {
-    const aiCoordUrl = 'ws://localhost:8003/ws/backend_orchestrator';
+    const aiCoordUrl = this.configService.get('AI_COORDINATION_WS_URL', 'ws://localhost:8003/ws/backend_orchestrator');
     
     try {
       this.aiCoordinationWebSocket = new WebSocket(aiCoordUrl);

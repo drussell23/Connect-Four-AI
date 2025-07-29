@@ -56,6 +56,16 @@ export class ContinuousLearningService implements OnModuleInit, OnModuleDestroy 
   ) {}
 
   async onModuleInit() {
+    // Check if service should be disabled
+    const isProduction = this.configService.get('NODE_ENV') === 'production';
+    const disableExternalServices = this.configService.get('DISABLE_EXTERNAL_SERVICES', 'false') === 'true';
+    const enableContinuousLearning = this.configService.get('ENABLE_CONTINUOUS_LEARNING', 'true') === 'true';
+    
+    if (isProduction || disableExternalServices || !enableContinuousLearning) {
+      this.logger.log('⏭️ Continuous Learning Service disabled');
+      return;
+    }
+    
     this.connectToMLService();
     this.setupEventListeners();
     this.logger.log('🧠 Continuous Learning Service initialized');
