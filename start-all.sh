@@ -69,6 +69,9 @@ start_service "ai_coordination" "ml_service" "AI_COORDINATION_PORT=8003 python3 
 echo -e "${BLUE}🎓 Starting Python Trainer Service (Minimal)...${NC}"
 start_service "python_trainer" "backend/src/ai/hybrid-architecture/python-trainer" "PORT=8004 python3 training_service_minimal.py"
 
+echo -e "${BLUE}📚 Starting Continuous Learning Service...${NC}"
+start_service "continuous_learning" "ml_service" "CONTINUOUS_LEARNING_PORT=8005 python3 continuous_learning.py"
+
 echo -e "${BLUE}🌐 Starting Integration WebSocket Gateway...${NC}"
 # Integration WebSocket is part of backend service, no separate process needed
 echo "   Integration WebSocket will start on port 8888 with backend service"
@@ -128,15 +131,17 @@ ML_INFERENCE_OK=false
 CL_WS_OK=false
 AI_COORD_OK=false
 PYTHON_TRAINER_OK=false
+CL_SERVICE_OK=false
 INTEGRATION_WS_OK=false
 check_service 8001 "ML Inference" && ML_INFERENCE_OK=true
 check_service 8002 "Continuous Learning WebSocket" && CL_WS_OK=true
 check_service 8003 "AI Coordination" && AI_COORD_OK=true
 check_service 8004 "Python Trainer" && PYTHON_TRAINER_OK=true
+check_service 8005 "Continuous Learning Service" && CL_SERVICE_OK=true
 check_service 8888 "Integration WebSocket" && INTEGRATION_WS_OK=true
 
 echo ""
-if [ "$BACKEND_OK" = true ] && [ "$FRONTEND_OK" = true ] && [ "$ML_OK" = true ] && [ "$ML_INFERENCE_OK" = true ] && [ "$CL_WS_OK" = true ] && [ "$AI_COORD_OK" = true ] && [ "$PYTHON_TRAINER_OK" = true ] && [ "$INTEGRATION_WS_OK" = true ]; then
+if [ "$BACKEND_OK" = true ] && [ "$FRONTEND_OK" = true ] && [ "$ML_OK" = true ] && [ "$ML_INFERENCE_OK" = true ] && [ "$CL_WS_OK" = true ] && [ "$AI_COORD_OK" = true ] && [ "$PYTHON_TRAINER_OK" = true ] && [ "$CL_SERVICE_OK" = true ] && [ "$INTEGRATION_WS_OK" = true ]; then
     echo -e "${GREEN}✅ All services are running successfully!${NC}"
     echo ""
     echo -e "${BLUE}📋 Service URLs:${NC}"
@@ -149,6 +154,7 @@ if [ "$BACKEND_OK" = true ] && [ "$FRONTEND_OK" = true ] && [ "$ML_OK" = true ] 
     echo "   - Continuous Learning: ws://localhost:8002/ws"
     echo "   - AI Coordination: http://localhost:8003"
     echo "   - Python Trainer: http://localhost:8004"
+    echo "   - Continuous Learning: http://localhost:8005"
     echo "   - Integration WebSocket: ws://localhost:8888"
     echo ""
     echo -e "${GREEN}🎯 Advanced Features:${NC}"

@@ -60,7 +60,7 @@ pkill -f "python.*start_with_continuous_learning" 2>/dev/null || true
 pkill -f "python.*continuous_learning" 2>/dev/null || true
 
 # Clean up port usage if needed
-for port in 3000 3001 8000 8001 8002 8003 8004 8888; do
+for port in 3000 3001 8000 8001 8002 8003 8004 8005 8888; do
     if lsof -i :$port | grep -q LISTEN; then
         echo -e "${YELLOW}🔓 Releasing port $port...${NC}"
         lsof -ti :$port | xargs kill -9 2>/dev/null || true
