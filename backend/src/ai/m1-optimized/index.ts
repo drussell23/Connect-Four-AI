@@ -13,4 +13,4 @@ export * from './enhanced-async-orchestrator';
 export type { WorkerTask, WorkerResult } from './parallel-ai-worker';
 export type { ParallelComputeRequest, ParallelComputeResult } from './parallel-ai-orchestrator';
 export type { WebGPUNetworkConfig, BatchPrediction } from './webgpu-optimized-cnn';
-export type { M1OptimizationConfig, M1OptimizedConfig } from './tensorflow-webgpu-init';
+export type { M1OptimizationConfig } from './tensorflow-webgpu-init';

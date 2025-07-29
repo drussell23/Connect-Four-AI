@@ -46,7 +46,7 @@ export interface ModelEnsemblePrediction extends ModelPrediction {
 @Injectable()
 export class ONNXModelEngine {
   private readonly logger = new Logger(ONNXModelEngine.name);
-  private sessions: Map<string, ort.InferenceSession> = new Map();
+  private sessions: Map<string, any> = new Map();
   private modelConfigs: Map<string, ONNXModelConfig> = new Map();
   private inferenceStats: Map<string, {
     totalInferences: number;
@@ -74,7 +74,7 @@ export class ONNXModelEngine {
       await fs.access(config.modelPath);
       
       // Create session options with optimizations
-      const sessionOptions: ort.InferenceSession.SessionOptions = {
+      const sessionOptions: any = {
         executionProviders: config.executionProviders || ['cpu'],
         graphOptimizationLevel: config.graphOptimizationLevel || 'all',
         enableCpuMemArena: config.enableCpuMemArena ?? true,
@@ -145,7 +145,7 @@ export class ONNXModelEngine {
       const inputTensor = this.boardToTensor(board, config.inputShape);
       
       // Create feeds
-      const feeds: Record<string, ort.Tensor> = {
+      const feeds: Record<string, any> = {
         [session.inputNames[0]]: inputTensor
       };
 
@@ -169,7 +169,7 @@ export class ONNXModelEngine {
 
       // Clean up tensors
       inputTensor.dispose();
-      Object.values(results).forEach(tensor => tensor.dispose());
+      Object.values(results).forEach((tensor: any) => tensor.dispose());
 
       return {
         policy,
@@ -209,7 +209,7 @@ export class ONNXModelEngine {
       const batchTensor = this.boardsToBatchTensor(boards, config.inputShape);
       
       // Create feeds
-      const feeds: Record<string, ort.Tensor> = {
+      const feeds: Record<string, any> = {
         [session.inputNames[0]]: batchTensor
       };
 
@@ -228,7 +228,7 @@ export class ONNXModelEngine {
 
       // Clean up
       batchTensor.dispose();
-      Object.values(results).forEach(tensor => tensor.dispose());
+      Object.values(results).forEach((tensor: any) => tensor.dispose());
 
       // Create predictions
       return boards.map((board, i) => ({
@@ -383,7 +383,7 @@ torch.onnx.export(
   /**
    * Board to tensor conversion
    */
-  private boardToTensor(board: CellValue[][], shape: number[]): ort.Tensor {
+  private boardToTensor(board: CellValue[][], shape: number[]): any {
     const [channels, height, width] = shape.slice(1);
     const data = new Float32Array(1 * channels * height * width);
     
@@ -409,7 +409,7 @@ torch.onnx.export(
   /**
    * Convert multiple boards to batch tensor
    */
-  private boardsToBatchTensor(boards: CellValue[][][], shape: number[]): ort.Tensor {
+  private boardsToBatchTensor(boards: CellValue[][][], shape: number[]): any {
     const batchSize = boards.length;
     const [channels, height, width] = shape.slice(1);
     const data = new Float32Array(batchSize * channels * height * width);
@@ -437,7 +437,7 @@ torch.onnx.export(
   /**
    * Extract policy from model output
    */
-  private async extractPolicy(results: ort.InferenceSession.OnnxValueMapType, outputName: string): Promise<number[]> {
+  private async extractPolicy(results: any, outputName: string): Promise<number[]> {
     const policyTensor = results[outputName];
     const policyData = await policyTensor.getData();
     
@@ -452,7 +452,7 @@ torch.onnx.export(
   /**
    * Extract value from model output
    */
-  private async extractValue(results: ort.InferenceSession.OnnxValueMapType, outputName: string): Promise<number> {
+  private async extractValue(results: any, outputName: string): Promise<number> {
     const valueTensor = results[outputName];
     const valueData = await valueTensor.getData();
     return (valueData as Float32Array)[0];
@@ -461,7 +461,7 @@ torch.onnx.export(
   /**
    * Extract features from model output
    */
-  private async extractFeatures(results: ort.InferenceSession.OnnxValueMapType, outputName: string): Promise<Float32Array> {
+  private async extractFeatures(results: any, outputName: string): Promise<Float32Array> {
     const featureTensor = results[outputName];
     const featureData = await featureTensor.getData();
     return new Float32Array(featureData as Float32Array);
@@ -471,7 +471,7 @@ torch.onnx.export(
    * Extract batch policies
    */
   private async extractBatchPolicies(
-    results: ort.InferenceSession.OnnxValueMapType,
+    results: any,
     outputName: string,
     batchSize: number
   ): Promise<number[][]> {
@@ -500,7 +500,7 @@ torch.onnx.export(
    * Extract batch values
    */
   private async extractBatchValues(
-    results: ort.InferenceSession.OnnxValueMapType,
+    results: any,
     outputName: string,
     batchSize: number
   ): Promise<number[]> {

@@ -2,7 +2,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AsyncAIOrchestrator, AIRequest, AIResponse } from './async-ai-orchestrator';
 import { PerformanceMonitor } from './performance-monitor';
-import { DynamicStrategySelector } from './strategy-selector';
+import { DynamicStrategySelector, AIStrategy } from './strategy-selector';
 import { CellValue } from '../connect4AI';
 
 /**
@@ -250,7 +250,7 @@ export class AsyncAIIntegrationExample {
     try {
       // Create a hybrid strategy combining multiple approaches
       const hybridStrategy = this.strategySelector.createHybridStrategy(
-        ['MINIMAX', 'MCTS', 'DQN'],
+        [AIStrategy.MINIMAX, AIStrategy.MCTS, AIStrategy.DQN],
         [0.3, 0.5, 0.2] // Weights for each strategy
       );
 

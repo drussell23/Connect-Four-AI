@@ -7,7 +7,8 @@
 
 import { CellValue } from '../connect4AI';
 
-declare const self: ServiceWorkerGlobalScope;
+// For Web Worker context (not Service Worker)
+declare const self: DedicatedWorkerGlobalScope;
 
 interface WorkerMessage {
   type: 'compute' | 'precompute' | 'batch' | 'train' | 'cache' | 'model';
@@ -101,7 +102,7 @@ class AIWorker {
           throw new Error(`Unknown message type: ${message.type}`);
       }
     } catch (error) {
-      self.postMessage({
+      (self as any).postMessage({
         id: message.id,
         error: error.message,
         type: 'error'
@@ -120,7 +121,7 @@ class AIWorker {
     const cached = this.precomputeCache.get(cacheKey);
     
     if (cached && cached.depth >= (request.depth || 5)) {
-      self.postMessage({
+      (self as any).postMessage({
         id: message.id,
         type: 'result',
         data: {
@@ -169,7 +170,7 @@ class AIWorker {
       });
     }
     
-    self.postMessage({
+    (self as any).postMessage({
       id: message.id,
       type: 'acknowledged',
       data: { queued: request.boards.length }
@@ -205,7 +206,7 @@ class AIWorker {
       results.push(...chunk);
     }
     
-    self.postMessage({
+    (self as any).postMessage({
       id: message.id,
       type: 'batch-result',
       data: results
@@ -230,7 +231,7 @@ class AIWorker {
       progress.loss *= 0.9;
       
       // Send progress update
-      self.postMessage({
+      (self as any).postMessage({
         id: message.id,
         type: 'training-progress',
         data: progress
@@ -240,7 +241,7 @@ class AIWorker {
     // "Save" trained model
     const modelWeights = new ArrayBuffer(1024 * 1024); // 1MB dummy weights
     
-    self.postMessage({
+    (self as any).postMessage({
       id: message.id,
       type: 'training-complete',
       data: {
@@ -260,7 +261,7 @@ class AIWorker {
     switch (operation) {
       case 'get':
         const cached = this.precomputeCache.get(key);
-        self.postMessage({
+        (self as any).postMessage({
           id: message.id,
           type: 'cache-result',
           data: cached
@@ -270,7 +271,7 @@ class AIWorker {
       case 'set':
         this.precomputeCache.set(key, value);
         this.pruneCache();
-        self.postMessage({
+        (self as any).postMessage({
           id: message.id,
           type: 'cache-set',
           data: { success: true }
@@ -279,7 +280,7 @@ class AIWorker {
         
       case 'clear':
         this.precomputeCache.clear();
-        self.postMessage({
+        (self as any).postMessage({
           id: message.id,
           type: 'cache-cleared',
           data: { success: true }
@@ -287,7 +288,7 @@ class AIWorker {
         break;
         
       case 'stats':
-        self.postMessage({
+        (self as any).postMessage({
           id: message.id,
           type: 'cache-stats',
           data: {
@@ -308,7 +309,7 @@ class AIWorker {
     switch (operation) {
       case 'load':
         await this.loadModel(modelId, weights, type);
-        self.postMessage({
+        (self as any).postMessage({
           id: message.id,
           type: 'model-loaded',
           data: { modelId }
@@ -317,7 +318,7 @@ class AIWorker {
         
       case 'unload':
         this.models.delete(modelId);
-        self.postMessage({
+        (self as any).postMessage({
           id: message.id,
           type: 'model-unloaded',
           data: { modelId }
@@ -326,7 +327,7 @@ class AIWorker {
         
       case 'list':
         const modelList = Array.from(this.models.keys());
-        self.postMessage({
+        (self as any).postMessage({
           id: message.id,
           type: 'model-list',
           data: modelList
@@ -361,7 +362,7 @@ class AIWorker {
         
         // Send result if not precompute
         if (!item.request.data.isPrecompute) {
-          self.postMessage({
+          (self as any).postMessage({
             id: item.request.id,
             type: 'result',
             data: result
@@ -374,7 +375,7 @@ class AIWorker {
         console.error('Compute error:', error);
         
         if (!item.request.data.isPrecompute) {
-          self.postMessage({
+          (self as any).postMessage({
             id: item.request.id,
             type: 'error',
             error: error.message
@@ -945,6 +946,9 @@ self.addEventListener('message', (event) => {
   aiWorker.handleMessage(event as any);
 });
 
+// Note: These service worker events are commented out because this is a Web Worker, not a Service Worker
+// If you need Service Worker functionality, create a separate service worker file
+/*
 self.addEventListener('install', (event) => {
   console.log('AI Service Worker installed');
   self.skipWaiting();
@@ -954,6 +958,7 @@ self.addEventListener('activate', (event) => {
   console.log('AI Service Worker activated');
   event.waitUntil(clients.claim());
 });
+*/
 
 // Export for TypeScript
 export { AIWorker };
