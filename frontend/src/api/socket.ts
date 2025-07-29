@@ -1,6 +1,8 @@
 // frontend/src/api/socket.ts
 import io, { Socket, Manager } from 'socket.io-client';
 import { appConfig } from '../config/environment';
+import { socketLogger } from './socketLogger';
+import { integrationLogger } from '../utils/integrationLogger';
 
 // Types for enhanced socket functionality
 export interface ConnectionStatus {
@@ -52,8 +54,8 @@ const DEFAULT_CONFIG: SocketConfig = {
   reconnectionDelay: 1000,
   reconnectionDelayMax: 10000,
   timeout: 30000,
-  heartbeatInterval: 30000,
-  heartbeatTimeout: 10000,
+  heartbeatInterval: 20000, // Reduced from 30s to 20s to prevent timeouts
+  heartbeatTimeout: 15000,  // Increased from 10s to 15s for more tolerance
   maxQueueSize: 100,
   enableMetrics: true,
   enableHeartbeat: true,
@@ -73,6 +75,8 @@ class EnhancedSocketManager {
   private isReconnecting: boolean = false;
   private eventListeners: Map<string, Set<Function>> = new Map();
   private statusCallbacks: Set<(status: ConnectionStatus) => void> = new Set();
+  private connectionRetryTimer: NodeJS.Timeout | null = null;
+  private connectionAttemptCount: number = 0;
 
   constructor(config: Partial<SocketConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -90,22 +94,24 @@ class EnhancedSocketManager {
   public initialize(): any {
     const { api } = appConfig;
 
-    console.log('🔌 Initializing Enhanced WebSocket Manager');
-    console.log('🏢 Enterprise Mode:', appConfig.enterprise.mode);
-    console.log('🔗 Connecting to:', `${api.baseUrl}`);
-    console.log('📍 Will connect to namespace: /game');
+    socketLogger.logInfo('🔌 Initializing Enhanced WebSocket Manager');
+    socketLogger.logInfo('🏢 Enterprise Mode:', appConfig.enterprise.mode);
+    socketLogger.logInfo('🔗 Connecting to:', `${api.baseUrl}`);
+    socketLogger.logInfo('📍 Will connect to namespace: /game');
 
     // Create manager for connection pooling - DO NOT include namespace in URL!
     this.manager = new Manager(api.baseUrl, {
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'], // Start with polling for stability
       autoConnect: false,
       reconnection: this.config.reconnection,
       reconnectionAttempts: this.config.reconnectionAttempts,
       reconnectionDelay: this.config.reconnectionDelay,
       reconnectionDelayMax: this.config.reconnectionDelayMax,
+      randomizationFactor: 0.5,
       timeout: this.config.timeout,
       forceNew: false,
       upgrade: true,
+      rememberUpgrade: true
     });
 
     // Create socket instance on the /game namespace
@@ -133,7 +139,7 @@ class EnhancedSocketManager {
 
   // Generate unique client ID
   private generateClientId(): string {
-    return `client_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `client_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   // Get enabled features for auth
@@ -151,9 +157,17 @@ class EnhancedSocketManager {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      console.log('✅ WebSocket connected successfully');
-      console.log('🔗 Socket ID:', this.socket?.id);
-      console.log('🚀 Transport:', this.socket?.io.engine.transport.name);
+      socketLogger.logSuccess('WebSocket connected successfully');
+      socketLogger.logInfo('🔗 Socket ID:', this.socket?.id);
+      socketLogger.logInfo('🚀 Transport:', this.socket?.io.engine.transport.name);
+      socketLogger.markConnectionComplete();
+
+      // Log to integration logger
+      integrationLogger.logServiceConnection('Backend API', true, {
+        socketId: this.socket?.id,
+        transport: this.socket?.io.engine.transport.name,
+        namespace: '/game'
+      });
 
       this.connectionStartTime = new Date();
       this.reconnectAttempts = 0;
@@ -165,32 +179,41 @@ class EnhancedSocketManager {
       this.notifyStatusChange();
 
       if (appConfig.dev.debugMode) {
-        console.log('📊 Connection Metrics:', this.getMetrics());
+        socketLogger.logInfo('📊 Connection Metrics:', this.getMetrics());
       }
     });
 
     this.socket.on('disconnect', (reason: string) => {
-      console.log('❌ WebSocket disconnected:', reason);
+      socketLogger.logWarning('WebSocket disconnected', reason);
+      
+      // Log to integration logger
+      integrationLogger.logServiceConnection('Backend API', false, { reason });
 
       this.stopHeartbeat();
       this.updateMetrics();
       this.notifyStatusChange();
 
       if (reason === 'io server disconnect') {
-        console.log('🔄 Server initiated disconnect - attempting manual reconnection...');
+        socketLogger.logWarning('Server initiated disconnect - attempting manual reconnection');
         this.manualReconnect();
       }
     });
 
     this.socket.on('connect_error', (error: any) => {
-      console.error('🚨 WebSocket connection error:', error.message);
+      socketLogger.logError('WebSocket connection error', error.message);
       this.metrics.errorCount++;
       this.updateMetrics();
       this.notifyStatusChange();
+      
+      // Implement smart retry logic
+      if (this.connectionAttemptCount < 3) {
+        this.connectionAttemptCount++;
+        this.scheduleSmartRetry();
+      }
     });
 
     this.socket.on('reconnect', (attemptNumber: number) => {
-      console.log(`✅ WebSocket reconnected after ${attemptNumber} attempts`);
+      socketLogger.logSuccess(`WebSocket reconnected after ${attemptNumber} attempts`);
       this.metrics.reconnectionCount++;
       this.reconnectAttempts = 0;
       this.isReconnecting = false;
@@ -199,20 +222,20 @@ class EnhancedSocketManager {
     });
 
     this.socket.on('reconnect_attempt', (attemptNumber: number) => {
-      console.log(`🔄 WebSocket reconnection attempt ${attemptNumber}`);
+      socketLogger.logInfo(`WebSocket reconnection attempt ${attemptNumber}`);
       this.reconnectAttempts = attemptNumber;
       this.isReconnecting = true;
       this.notifyStatusChange();
     });
 
     this.socket.on('reconnect_error', (error: any) => {
-      console.error('🚨 WebSocket reconnection error:', error.message);
+      socketLogger.logError('WebSocket reconnection error', error.message);
       this.metrics.errorCount++;
       this.updateMetrics();
     });
 
     this.socket.on('reconnect_failed', () => {
-      console.error('💥 WebSocket reconnection failed - giving up');
+      socketLogger.logError('WebSocket reconnection failed - giving up');
       this.isReconnecting = false;
       this.notifyStatusChange();
     });
@@ -223,14 +246,14 @@ class EnhancedSocketManager {
     if (!this.socket) return;
 
     this.socket.on('error', (error: any) => {
-      console.error('🎮 Game error:', error);
+      socketLogger.logError('Game error', error);
       this.metrics.errorCount++;
       this.updateMetrics();
     });
 
     // Handle transport errors
     this.socket.io.on('error', (error: any) => {
-      console.error('🚨 Transport error:', error);
+      socketLogger.logError('Transport error', error);
       this.metrics.errorCount++;
       this.updateMetrics();
     });
@@ -250,6 +273,22 @@ class EnhancedSocketManager {
         console.log(`🎮 ${event}:`, data);
         this.metrics.messagesReceived++;
         this.updateMetrics();
+
+        // Log to integration logger
+        integrationLogger.logWebSocketEvent(event, data, 'in');
+        
+        // Special handling for AI events
+        if (event === 'aiMove' && data.aiMetrics) {
+          integrationLogger.logAIDecision({
+            column: data.column,
+            confidence: data.aiMetrics.confidence || 0,
+            algorithm: data.aiMetrics.algorithm || 'unknown',
+            difficulty: data.aiMetrics.difficulty || 0,
+            timeMs: data.aiMetrics.responseTime || 0,
+            strategy: data.aiMetrics.strategy,
+            alternatives: data.aiMetrics.alternatives
+          });
+        }
 
         // Notify event listeners
         this.notifyEventListeners(event, data);
@@ -272,10 +311,19 @@ class EnhancedSocketManager {
   private startHeartbeat(): void {
     if (!this.config.enableHeartbeat || !this.socket) return;
 
+    // Clear any existing heartbeat timer
+    this.stopHeartbeat();
+
     this.heartbeatTimer = setInterval(() => {
       if (this.socket?.connected) {
         const startTime = Date.now();
+        const timeoutId = setTimeout(() => {
+          console.warn('⚠️ Heartbeat timeout - no pong received');
+          // Don't disconnect, just log the warning
+        }, this.config.heartbeatTimeout);
+
         this.socket.emit('ping', {}, () => {
+          clearTimeout(timeoutId);
           const latency = Date.now() - startTime;
           this.updateLatency(latency);
 
@@ -348,6 +396,9 @@ class EnhancedSocketManager {
       this.metrics.messagesSent++;
       this.updateMetrics();
 
+      // Log to integration logger
+      integrationLogger.logWebSocketEvent(event, data, 'out');
+
       if (appConfig.dev.verboseLogging) {
         console.log(`📤 Emitted: ${event}`, data);
       }
@@ -376,23 +427,73 @@ class EnhancedSocketManager {
   public forceReconnect(): void {
     console.log('🔄 Forcing WebSocket reconnection...');
     if (this.socket) {
-      this.socket.disconnect();
+      // Only disconnect if connected
+      if (this.socket.connected) {
+        this.socket.disconnect();
+      }
       setTimeout(() => {
-        this.socket?.connect();
+        if (this.socket && !this.socket.connected) {
+          this.socket.connect();
+        }
       }, 1000);
     }
   }
 
   // Connection management
-  public connect(): void {
-    if (this.socket) {
-      this.socket.connect();
+  public async connect(): Promise<void> {
+    if (!this.socket) {
+      console.warn('🚨 Socket not initialized');
+      return;
     }
+
+    // Check if already connected or connecting
+    if (this.socket.connected || this.socket.connecting) {
+      console.log('✅ Socket already connected or connecting');
+      return;
+    }
+
+    // Validate server availability first
+    const isServerAvailable = await this.validateServerConnection();
+    if (!isServerAvailable) {
+      console.warn('⚠️ Server not available, scheduling retry...');
+      this.scheduleSmartRetry();
+      return;
+    }
+
+    this.connectionAttemptCount = 0;
+    this.socket.connect();
+  }
+
+  private async validateServerConnection(): Promise<boolean> {
+    try {
+      const response = await fetch(`${appConfig.api.baseUrl}/health`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(3000)
+      });
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  private scheduleSmartRetry(): void {
+    if (this.connectionRetryTimer) {
+      clearTimeout(this.connectionRetryTimer);
+    }
+
+    const delay = Math.min(1000 * Math.pow(1.5, this.connectionAttemptCount), 10000);
+    const jitter = Math.random() * 1000;
+    
+    console.log(`⏰ Scheduling connection retry in ${Math.round((delay + jitter) / 1000)}s...`);
+    
+    this.connectionRetryTimer = setTimeout(() => {
+      this.connect();
+    }, delay + jitter);
   }
 
   public disconnect(): void {
     this.stopHeartbeat();
-    if (this.socket) {
+    if (this.socket && this.socket.connected) {
       this.socket.disconnect();
     }
   }
@@ -487,19 +588,25 @@ class EnhancedSocketManager {
   // Cleanup
   public destroy(): void {
     this.stopHeartbeat();
+    
+    if (this.connectionRetryTimer) {
+      clearTimeout(this.connectionRetryTimer);
+      this.connectionRetryTimer = null;
+    }
+    
     this.eventQueue = [];
     this.eventListeners.clear();
     this.statusCallbacks.clear();
 
     if (this.socket) {
-      this.socket.disconnect();
+      if (this.socket.connected) {
+        this.socket.disconnect();
+      }
       this.socket = null;
     }
 
-    if (this.manager) {
-      this.manager.close();
-      this.manager = null;
-    }
+    // Clear the manager reference
+    this.manager = null;
   }
 }
 
@@ -509,7 +616,8 @@ const socketManager = new EnhancedSocketManager({
   enableHeartbeat: appConfig.enterprise.mode,
   enableQueue: appConfig.enterprise.mode,
   reconnectionAttempts: appConfig.enterprise.mode ? 15 : 5,
-  heartbeatInterval: appConfig.enterprise.mode ? 15000 : 30000,
+  heartbeatInterval: appConfig.enterprise.mode ? 15000 : 20000, // Reduced for better stability
+  timeout: 45000, // Increased timeout to prevent disconnections
 });
 
 // Initialize the socket

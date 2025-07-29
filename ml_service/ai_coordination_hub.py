@@ -18,6 +18,7 @@ from enum import Enum
 import websockets
 import aioredis
 from fastapi import FastAPI, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 
@@ -490,7 +491,17 @@ class AICoordinationHub:
 
         try:
             websocket = self.connected_ais[ai_id]["websocket"]
-            await websocket.send_text(json.dumps(asdict(message)))
+            # Convert message to serializable format
+            message_dict = {
+                'sender_id': message.sender_id,
+                'receiver_id': message.receiver_id,
+                'message_type': message.message_type.value,  # Convert enum to string
+                'payload': message.payload,
+                'timestamp': message.timestamp,
+                'urgency': message.urgency,
+                'requires_response': message.requires_response
+            }
+            await websocket.send_text(json.dumps(message_dict))
 
             self.collaboration_stats["messages_exchanged"] += 1
             self.connected_ais[ai_id]["message_count"] += 1
@@ -623,7 +634,17 @@ class AICoordinationHub:
 
         try:
             websocket = self.connected_ais[ai_id]["websocket"]
-            await websocket.send_text(json.dumps(asdict(message)))
+            # Convert message to serializable format
+            message_dict = {
+                'sender_id': message.sender_id,
+                'receiver_id': message.receiver_id,
+                'message_type': message.message_type.value,  # Convert enum to string
+                'payload': message.payload,
+                'timestamp': message.timestamp,
+                'urgency': message.urgency,
+                'requires_response': message.requires_response
+            }
+            await websocket.send_text(json.dumps(message_dict))
 
             # For urgent messages, wait for immediate response
             if message.requires_response:
@@ -855,6 +876,109 @@ class AICoordinationHub:
         consistency_bonus = max(0, 0.1 - confidence_variance) * 2
 
         return min(avg_confidence + diversity_bonus + consistency_bonus, 1.0)
+    
+    async def handle_continuous_learning_update(self, update_type: str, data: Dict[str, Any]):
+        """Handle updates from the continuous learning system"""
+        if update_type == "loss_pattern_discovered":
+            # Broadcast critical loss pattern to all AIs
+            pattern_insight = AIInsight(
+                source_model="continuous_learning",
+                insight_type=f"critical_{data['pattern']}_vulnerability",
+                confidence=0.95,
+                board_state=data.get('board', []),
+                discovered_pattern=data['pattern'],
+                effectiveness_score=data.get('severity', 0.8),
+                opponent_context="human_expert"
+            )
+            await self.share_learning_insight("continuous_learning", pattern_insight)
+            
+        elif update_type == "model_improved":
+            # Notify all AIs about model improvements
+            for ai_id in self.connected_ais:
+                update_msg = AIMessage(
+                    sender_id="continuous_learning",
+                    receiver_id=ai_id,
+                    message_type=MessageType.STRATEGY_UPDATE,
+                    payload={
+                        "update_type": "model_enhancement",
+                        "improvements": data.get('improvements', {}),
+                        "version": data.get('version'),
+                        "recommendation": "Consider updating local strategies"
+                    },
+                    timestamp=time.time(),
+                    urgency=7
+                )
+                await self._send_message(ai_id, update_msg)
+                
+        elif update_type == "pattern_defense_learned":
+            # Share new defense strategies
+            await self._broadcast_defense_strategies(data.get('defenses', {}))
+            
+    async def _broadcast_defense_strategies(self, defenses: Dict[str, Any]):
+        """Broadcast learned defense strategies to all AIs"""
+        for pattern, defense in defenses.items():
+            # Create strategy update for each pattern
+            strategy_update = {
+                "pattern_type": pattern,
+                "critical_positions": defense.get('critical_positions', []),
+                "blocking_moves": defense.get('blocking_moves', []),
+                "confidence": defense.get('confidence', 0.8),
+                "source": "continuous_learning_system",
+                "games_tested": defense.get('games_tested', 0)
+            }
+            
+            # Broadcast to all connected AIs
+            for ai_id, ai_info in self.connected_ais.items():
+                if ai_info.get("websocket"):
+                    try:
+                        await ai_info["websocket"].send_text(json.dumps({
+                            "type": "defense_strategy_update",
+                            "pattern": pattern,
+                            "strategy": strategy_update,
+                            "timestamp": time.time()
+                        }))
+                    except Exception as e:
+                        logging.error(f"Failed to send defense strategy to {ai_id}: {e}")
+                        
+        self.collaboration_stats["strategy_adaptations"] += len(defenses)
+        
+    async def request_collective_pattern_analysis(self, board_state: List[List[str]], 
+                                                 threat_patterns: List[str]) -> Dict[str, Any]:
+        """Request collective analysis of threat patterns from all AIs"""
+        analysis_results = []
+        
+        # Request analysis from each AI personality
+        for ai_id, ai_info in self.connected_ais.items():
+            personality = self.ai_personalities.get(ai_id, {})
+            
+            # Skip if AI doesn't specialize in pattern analysis
+            if "pattern" not in personality.get("strengths", []):
+                continue
+                
+            analysis_request = {
+                "type": "pattern_analysis_request",
+                "board_state": board_state,
+                "patterns": threat_patterns,
+                "urgency": 8
+            }
+            
+            if ai_info.get("websocket"):
+                try:
+                    await ai_info["websocket"].send_text(json.dumps(analysis_request))
+                    # Would normally await response here
+                    analysis_results.append({
+                        "ai_id": ai_id,
+                        "personality": personality.get("personality"),
+                        "analysis": "pending"
+                    })
+                except Exception as e:
+                    logging.error(f"Failed to request analysis from {ai_id}: {e}")
+                    
+        return {
+            "collective_analysis": analysis_results,
+            "timestamp": time.time(),
+            "patterns_analyzed": threat_patterns
+        }
 
 
 # Global coordination hub instance
@@ -862,6 +986,15 @@ coordination_hub = AICoordinationHub()
 
 # FastAPI app for coordination endpoints
 app = FastAPI(title="AI Coordination Hub", version="1.0.0")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.websocket("/ws/{ai_service_id}")
@@ -884,12 +1017,41 @@ async def websocket_endpoint(websocket: WebSocket, ai_service_id: str):
                     message["game_id"], message["board_state"], message["context"]
                 )
                 await websocket.send_text(json.dumps(result))
+                
+            elif message.get("type") == "continuous_learning_update":
+                # Handle updates from continuous learning system
+                await coordination_hub.handle_continuous_learning_update(
+                    message["update_type"], message["data"]
+                )
+                
+            elif message.get("type") == "pattern_analysis_request":
+                # Collective pattern analysis request
+                result = await coordination_hub.request_collective_pattern_analysis(
+                    message["board_state"], message["patterns"]
+                )
+                await websocket.send_text(json.dumps(result))
+                
+            elif message.get("type") == "defense_coordination":
+                # Coordinate defensive strategies
+                await coordination_hub._broadcast_defense_strategies(
+                    message.get("defenses", {})
+                )
 
     except Exception as e:
         logging.error(f"WebSocket error for {ai_service_id}: {e}")
     finally:
         if ai_service_id in coordination_hub.connected_ais:
             del coordination_hub.connected_ais[ai_service_id]
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "service": "ai_coordination_hub",
+        "timestamp": time.time()
+    }
 
 
 @app.get("/coordination/stats")

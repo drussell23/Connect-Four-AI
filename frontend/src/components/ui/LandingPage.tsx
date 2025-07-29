@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getValidBoxShadowWithOpacity } from '../../utils/animationUtils';
+import Footer from './Footer';
 import './LandingPage.css';
 
 interface LandingPageProps {
@@ -363,6 +364,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           </motion.div>
         )}
       </AnimatePresence>
+      
+      <Footer />
     </motion.div>
   );
 };

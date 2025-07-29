@@ -40,6 +40,7 @@ export interface AppConfig {
         hintsEnabled: boolean;
         undoEnabled: boolean;
         autoSave: boolean;
+        fastAIMode: boolean;
     };
 
     // UI/UX Configuration
@@ -125,11 +126,12 @@ export const appConfig: AppConfig = {
 
     game: {
         timeout: getEnvNumber('REACT_APP_GAME_TIMEOUT', 300000),
-        aiThinkTime: getEnvNumber('REACT_APP_AI_THINK_TIME', 1000),
+        aiThinkTime: getEnvNumber('REACT_APP_AI_THINK_TIME', 50),
         historyEnabled: getEnvBool('REACT_APP_ENABLE_GAME_HISTORY', true),
         hintsEnabled: getEnvBool('REACT_APP_ENABLE_MOVE_HINTS', true),
         undoEnabled: getEnvBool('REACT_APP_ENABLE_UNDO', true),
         autoSave: getEnvBool('REACT_APP_AUTO_SAVE_GAMES', true),
+        fastAIMode: getEnvBool('REACT_APP_FAST_AI_MODE', true),
     },
 
     ui: {
@@ -170,9 +172,22 @@ export const { api, enterprise, ai, game, ui, dev, analytics } = appConfig;
 export const buildApiEndpoint = (path: string): string => {
     const baseUrl = appConfig.api.baseUrl;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    const shouldUsePrefix = needsApiPrefix();
+
+    // Debug logging
+    if (appConfig.dev.debugMode || appConfig.dev.verboseLogging) {
+        console.log('🔧 buildApiEndpoint:', {
+            baseUrl,
+            path,
+            cleanPath,
+            shouldUsePrefix,
+            apiUrl: getEnvVar('REACT_APP_API_URL', 'http://localhost:3001'),
+            useApiPrefix: getEnvVar('REACT_APP_USE_API_PREFIX', 'false')
+        });
+    }
 
     // Add /api prefix for production (Render) URLs
-    if (needsApiPrefix()) {
+    if (shouldUsePrefix) {
         return `${baseUrl}/api${cleanPath}`;
     }
 

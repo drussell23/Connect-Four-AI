@@ -12,11 +12,32 @@ import { DashboardService } from './dashboard.service';
 import { TrainingService } from './training.service';
 import { SettingsService } from './settings.service';
 import { MlModule } from '../ml/ml.module';
+import { AIIntegrationModule } from '../ai/ai-integration.module';
+import { AIGameIntegrationService } from '../ai/ai-game-integration.service';
+import { UnifiedAIIntegrationModule } from '../ai/unified/unified-ai-integration.module';
+import { AICoordinationModule } from '../ai/coordination/ai-coordination.module';
 
 @Module({
-  imports: [MlModule, EventEmitterModule.forRoot()],
+  imports: [
+    MlModule,
+    AIIntegrationModule,
+    UnifiedAIIntegrationModule,
+    AICoordinationModule, // ← Added AI Coordination Hub integration!
+    EventEmitterModule.forRoot()
+  ],
   controllers: [GameController, AIProfileController],
-  providers: [GameService, GameHistoryService, GameGateway, AiProfileService, GameAIService, DashboardService, TrainingService, SettingsService],
+  providers: [
+    GameService,
+    GameHistoryService,
+    GameGateway,
+    AiProfileService,
+    GameAIService,
+    DashboardService,
+    TrainingService,
+    SettingsService,
+    AIGameIntegrationService,
+    // AdaptiveAIOrchestrator is already provided by AIIntegrationModule - removed to avoid duplicate instantiation
+  ],
   exports: [GameService, GameGateway],
 })
 export class GameModule { }

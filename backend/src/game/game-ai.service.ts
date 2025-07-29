@@ -1,9 +1,12 @@
 // src/game/game-ai.service.ts
-import { Injectable, Logger } from '@nestjs/common';
-import { CellValue, legalMoves } from '../ai/connect4AI';
+import { Injectable, Logger, Optional } from '@nestjs/common';
+import { CellValue, legalMoves, UltimateConnect4AI } from '../ai/connect4AI';
 import { minimax, mcts } from '../ai/connect4AI';
 import { AiProfileService } from './ai-profile.service';
 import { MlClientService } from '../ml/ml-client.service';
+import { AsyncAIOrchestrator, AIRequest } from '../ai/async/async-ai-orchestrator';
+import { AIStrategy } from '../ai/async/strategy-selector';
+import { OpeningBook } from '../ai/opening-book/opening-book';
 
 @Injectable()
 export class GameAIService {
@@ -13,6 +16,9 @@ export class GameAIService {
   constructor(
     private readonly aiProfileService: AiProfileService,
     private readonly mlClientService: MlClientService,
+    @Optional() private readonly asyncAIOrchestrator?: AsyncAIOrchestrator,
+    @Optional() private readonly openingBook?: OpeningBook,
+    @Optional() private readonly ultimateAI?: UltimateConnect4AI,
   ) { }
 
   /**
@@ -27,9 +33,52 @@ export class GameAIService {
     board: CellValue[][],
     aiDisc: CellValue = 'Yellow',
     playerId: string = 'default_player',
+    gameId?: string,
   ): Promise<number> {
     const profile = await this.aiProfileService.getOrCreateProfile(playerId);
     const aiLevel = profile.level;
+    
+    // Check opening book first (for all AI levels)
+    if (this.openingBook) {
+      try {
+        const openingMove = await this.openingBook.lookup(board);
+        if (openingMove !== null) {
+          this.logger.log(`Opening book suggests column ${openingMove} for AI level ${aiLevel}`);
+          return openingMove;
+        }
+      } catch (error) {
+        this.logger.warn(`Opening book lookup failed: ${error.message}`);
+      }
+    }
+    
+    // Use async orchestrator if available and level > 3
+    if (this.asyncAIOrchestrator && aiLevel > 3 && gameId) {
+      try {
+        const request: AIRequest = {
+          gameId,
+          board,
+          player: aiDisc,
+          difficulty: aiLevel,
+          timeLimit: this.getTimeLimitForLevel(aiLevel),
+          strategy: this.getStrategyForLevel(aiLevel),
+          priority: aiLevel >= 7 ? 10 : 5,
+        };
+
+        const response = await this.asyncAIOrchestrator.getAIMove(request);
+        
+        this.logger.log(
+          `Async AI chose column ${response.move} with ${response.confidence.toFixed(2)} confidence ` +
+          `using ${response.strategy} strategy (cached: ${response.cached})`
+        );
+        
+        return response.move;
+      } catch (error) {
+        this.logger.warn(`Async AI failed, falling back to standard implementation: ${error.message}`);
+        // Fall through to standard implementation
+      }
+    }
+    
+    // Standard implementation (levels 1-3 or fallback)
     const key = JSON.stringify(board) + aiDisc + aiLevel;
 
     if (this.cache.has(key)) {
@@ -60,7 +109,7 @@ export class GameAIService {
     } else if (aiLevel <= 6) {
       // Levels 4-6: Enhanced MCTS
       // Iterations increase with level.
-      const timeMs = 500 + (aiLevel - 4) * 500; // 500ms, 1000ms, 1500ms
+      const timeMs = 50 + (aiLevel - 4) * 50; // 50ms, 100ms, 150ms - 10x faster
       this.logger.log(`Using MCTS with time ${timeMs}ms, enhanced by ML.`);
       try {
         const { probs } = await this.mlClientService.getPrediction(board);
@@ -77,38 +126,90 @@ export class GameAIService {
       try {
         const moveProbs = await this.getMoveProbabilities(board);
         if (moveProbs) {
-          const iterations = 1000 * (aiLevel - 6); // Level 7 -> 1000, Level 8 -> 2000
+          const iterations = 200 * (aiLevel - 6); // Level 7 -> 200, Level 8 -> 400 - 5x faster
           // Pass probabilities to MCTS
           move = mcts(board, aiDisc, iterations, moveProbs);
         } else {
           this.logger.warn('ML-guided MCTS failed to get probs, falling back to standard MCTS');
-          move = mcts(board, aiDisc, 2000); // Fallback iterations
+          move = mcts(board, aiDisc, 400); // Fallback iterations - 5x faster
         }
       } catch (error) {
         this.logger.error('Error in ML-Guided MCTS, falling back to standard MCTS', error);
-        move = mcts(board, aiDisc, 2000);
+        move = mcts(board, aiDisc, 400); // 5x faster
       }
-    } else {
-      // Level 9+ (Nightmare Mode): Full ML Model
-      this.logger.log('Engaging Nightmare Mode: Fetching move from ML model...');
+    } else if (aiLevel <= 19) {
+      // Levels 9-19: ML Model with varying confidence
+      this.logger.log('Engaging Advanced AI Mode: Level ' + aiLevel);
       try {
         if (process.env.USE_ML_MODEL === 'true') {
           move = await this.mlClientService.getBestMove(board, aiDisc);
           this.logger.log(`ML Model chose column: ${move}`);
         } else {
           this.logger.warn('ML Model is disabled. Falling back to advanced MCTS.');
-          // Fallback to a very high iteration MCTS if ML is off
-          move = mcts(board, aiDisc, 10000);
+          const iterations = 1000 + (aiLevel - 9) * 100;
+          move = mcts(board, aiDisc, iterations);
         }
       } catch (error) {
         this.logger.error('Failed to get move from ML service, falling back to advanced MCTS.', error);
-        move = mcts(board, aiDisc, 10000);
+        move = mcts(board, aiDisc, 1000);
+      }
+    } else {
+      // Level 20+ (Ultimate AI Mode): Use UltimateConnect4AI
+      this.logger.log('🔥 Engaging ULTIMATE AI Mode: Level ' + aiLevel);
+      if (this.ultimateAI) {
+        try {
+          const options = {
+            timeLimit: 5000 + (aiLevel - 20) * 1000, // More time for higher levels
+            enableExplanation: true,
+            enableDebate: aiLevel >= 25,
+            enableOpponentModeling: aiLevel >= 22,
+            enableSafety: true
+          };
+          
+          move = await this.ultimateAI.getMove(board, aiDisc, options);
+          this.logger.log(`🧠 Ultimate AI chose column: ${move} with supreme confidence`);
+        } catch (error) {
+          this.logger.error('Ultimate AI failed, falling back to ML model', error);
+          // Fallback to ML model
+          try {
+            move = await this.mlClientService.getBestMove(board, aiDisc);
+          } catch (mlError) {
+            this.logger.error('ML fallback also failed, using MCTS', mlError);
+            move = mcts(board, aiDisc, 2000);
+          }
+        }
+      } else {
+        this.logger.warn('Ultimate AI not available, using enhanced MCTS');
+        move = mcts(board, aiDisc, 2000);
       }
     }
 
     this.cache.set(key, move);
     this.logger.log(`AI chose column: ${move}`);
     return move;
+  }
+
+  /**
+   * Gets the appropriate time limit for the given AI level
+   */
+  private getTimeLimitForLevel(level: number): number {
+    // Much faster time limits for responsive gameplay
+    if (level <= 3) return 50;  // 10x faster
+    if (level <= 6) return 100 + (level - 4) * 50; // 100ms, 150ms, 200ms
+    if (level <= 8) return 300; // 10x faster
+    return 500; // Level 9+ - still fast but accurate
+  }
+
+  /**
+   * Gets the appropriate AI strategy for the given level
+   */
+  private getStrategyForLevel(level: number): AIStrategy {
+    if (level <= 3) return AIStrategy.MINIMAX;
+    if (level <= 6) return AIStrategy.MCTS;
+    if (level === 7) return AIStrategy.DQN;
+    if (level === 8) return AIStrategy.PPO;
+    if (level === 9) return AIStrategy.ALPHAZERO;
+    return AIStrategy.MUZERO; // Level 10+
   }
 
   /**
@@ -162,4 +263,3 @@ export class GameAIService {
     }
   }
 }
-

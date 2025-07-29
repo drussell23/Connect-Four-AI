@@ -1,24 +1,53 @@
 import 'reflect-metadata';
+import './tensorflow-init'; // Initialize TensorFlow.js with Node.js backend
+import { TensorFlowM1Initializer } from './ai/m1-optimized/tensorflow-webgpu-init';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import * as express from 'express';
-import { IoAdapter } from '@nestjs/platform-socket.io';
+import { CustomIoAdapter } from './websocket/custom-io.adapter';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   try {
     logger.log('🚀 Starting Enterprise Connect Four Backend...');
+    
+    // Check for fast mode
+    const isFastMode = process.env.FAST_MODE === 'true' || process.env.SKIP_ML_INIT === 'true';
+    if (isFastMode) {
+      logger.log('⚡ Running in FAST MODE - ML initialization skipped');
+    }
+    
+    // Initialize M1-optimized TensorFlow.js
+    const isM1Mac = process.platform === 'darwin' && process.arch === 'arm64';
+    if (isM1Mac && !isFastMode) {
+      logger.log('🍎 Detected M1 Mac - Initializing WebGPU acceleration...');
+      try {
+        await TensorFlowM1Initializer.initialize({
+          preferWebGPU: true,
+          enableMemoryGrowth: true,
+          powerPreference: 'high-performance',
+          numThreads: 8,
+          enableFloat16: true
+        });
+        
+        const backendInfo = TensorFlowM1Initializer.getBackendInfo();
+        logger.log(`✅ TensorFlow.js initialized with ${backendInfo.backend} backend`);
+        logger.log(`   Features: ${JSON.stringify(backendInfo.features)}`);
+      } catch (error) {
+        logger.warn('⚠️ Failed to initialize M1 optimizations, falling back to standard TensorFlow.js');
+      }
+    }
 
     const app = await NestFactory.create(AppModule, {
       logger: ['error', 'warn', 'log'],
     });
 
-    // Configure WebSocket adapter for socket.io
-    app.useWebSocketAdapter(new IoAdapter(app));
+    // Configure WebSocket adapter with custom settings
+    app.useWebSocketAdapter(new CustomIoAdapter(app));
 
     const configService = app.get(ConfigService);
 
@@ -64,14 +93,9 @@ async function bootstrap() {
 
     logger.log(`✅ CORS enabled for origins: ${corsOrigins.join(', ')}`);
 
-    // Set API prefix (only in production)
-    const isProduction = process.env.NODE_ENV === 'production';
-    if (isProduction) {
-      app.setGlobalPrefix('api');
-      logger.log('✅ API prefix set to /api (production mode)');
-    } else {
-      logger.log('ℹ️ No API prefix in development mode');
-    }
+    // Set API prefix
+    app.setGlobalPrefix('api');
+    logger.log('✅ API prefix set to /api');
 
     // Serve frontend static files
     const frontendPath = join(__dirname, '..', '..', 'frontend', 'build');
@@ -79,7 +103,7 @@ async function bootstrap() {
     logger.log('✅ Frontend static files served from: ' + frontendPath);
 
     // Enterprise Server Startup
-    const port = process.env.PORT || configService.get('port') || 3000;
+    const port = process.env.BACKEND_PORT || process.env.PORT || configService.get('port') || 3001;
     const frontendUrl = configService.get('frontendUrl');
 
     await app.listen(port);

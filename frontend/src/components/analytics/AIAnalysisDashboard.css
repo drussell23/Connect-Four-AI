@@ -1413,3 +1413,468 @@
     margin-left: 15px;
     flex: 0 0 auto;
 }
+
+/* Service Integration Styles */
+.service-integration-summary {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.service-integration-summary h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 15px 0;
+}
+
+.services-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.service-status-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.service-status-item.active {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.service-status-item.inactive {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.service-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.service-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.service-status {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.service-status.connected {
+    color: #22c55e;
+}
+
+.service-status.disconnected {
+    color: #ef4444;
+}
+
+/* Services Tab Styles */
+.dashboard-services {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.service-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.service-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 20px 0;
+}
+
+.service-status-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.service-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-indicator.active {
+    background: #22c55e;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+}
+
+.status-indicator.inactive {
+    background: #ef4444;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.service-name {
+    flex: 1;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.status-text {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-text.connected {
+    color: #22c55e;
+}
+
+.status-text.disconnected {
+    color: #ef4444;
+}
+
+/* Metrics Grid */
+.metrics-grid,
+.learning-metrics,
+.coordination-metrics,
+.training-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.metric .label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.metric .value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+}
+
+/* Progress Bar */
+.training-progress .progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+    transition: width 0.3s ease;
+}
+
+/* Insights List */
+.recent-insights {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.recent-insights h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 12px;
+}
+
+.insights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.insight-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.insight-type {
+    color: #60a5fa;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 10px;
+}
+
+.insight-desc {
+    color: rgba(255, 255, 255, 0.8);
+    flex: 1;
+}
+
+/* Strategies List */
+.strategies-list {
+    margin-top: 15px;
+}
+
+.strategies-list h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 10px;
+}
+
+.strategy-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.strategy-tag {
+    padding: 4px 12px;
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    font-size: 12px;
+    color: #60a5fa;
+}
+
+/* Model Performance */
+.models-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.model-item {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+}
+
+.model-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.model-metrics {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+}
+
+.model-metrics .metric {
+    padding: 0;
+    border: none;
+}
+
+.model-metrics .metric .label {
+    color: rgba(255, 255, 255, 0.6);
+    margin-right: 5px;
+}
+
+.model-metrics .metric .value {
+    font-size: 12px;
+    color: #60a5fa;
+}
+
+/* Insights Tab Styles */
+.dashboard-insights {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.insights-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding: 20px;
+}
+
+.insights-stats {
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.insights-stats span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.insight-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.insight-card.pattern {
+    border-color: rgba(96, 165, 250, 0.3);
+}
+
+.insight-card.strategy {
+    border-color: rgba(167, 139, 250, 0.3);
+}
+
+.insight-card.improvement {
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.insight-card.warning {
+    border-color: rgba(251, 191, 36, 0.3);
+}
+
+.insight-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.insight-timestamp {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 8px;
+}
+
+.no-insights {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Learning Timeline */
+.learning-timeline {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.timeline-container {
+    margin-top: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-marker {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+    margin-top: 5px;
+}
+
+.timeline-item.pattern .timeline-marker {
+    background: #60a5fa;
+}
+
+.timeline-item.strategy .timeline-marker {
+    background: #a78bfa;
+}
+
+.timeline-item.improvement .timeline-marker {
+    background: #22c55e;
+}
+
+.timeline-item.warning .timeline-marker {
+    background: #fbbf24;
+}
+
+.timeline-content {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.timeline-type {
+    font-size: 11px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.timeline-time {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.timeline-content h5 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 5px 0;
+}
+
+.timeline-content p {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    line-height: 1.5;
+}

@@ -4,6 +4,11 @@ import { GameService } from "./game.service";
 import { GameHistoryService, GameSearchFilters } from "./game-history.service";
 import { SettingsService } from "./settings.service";
 import { MlClientService, LogGameDto } from "../ml/ml-client.service";
+import { AIGameIntegrationService } from "../ai/ai-game-integration.service";
+import { AdaptiveResourceManager } from "../ai/adaptive-resource-manager";
+import { AIPerformanceCollector } from "../ai/ai-performance-collector";
+import { SelfTuningOptimizer } from "../ai/self-tuning-optimizer";
+import { AsyncDecisionEngine } from "../ai/async-decision-engine";
 import type { CellValue } from "../ai/connect4AI";
 
 interface CreateGameDto {
@@ -20,7 +25,12 @@ export class GameController {
         private readonly gameService: GameService,
         private readonly gameHistoryService: GameHistoryService,
         private readonly settingsService: SettingsService,
-        private readonly mlClient: MlClientService
+        private readonly mlClient: MlClientService,
+        private readonly aiIntegration: AIGameIntegrationService,
+        private readonly adaptiveResourceManager?: AdaptiveResourceManager,
+        private readonly performanceCollector?: AIPerformanceCollector,
+        private readonly selfTuningOptimizer?: SelfTuningOptimizer,
+        private readonly asyncDecisionEngine?: AsyncDecisionEngine
     ) { }
 
     @Post()
@@ -93,6 +103,135 @@ export class GameController {
     async getAIStatus() {
         try {
             return this.gameService.getAIHealthStatus();
+        } catch (e: any) {
+            throw new HttpException(e.message, 500);
+        }
+    }
+
+    @Get('ai/resources')
+    async getAIResourceStatus() {
+        try {
+            const resourceStatus = this.aiIntegration.getResourceStatus();
+            const performanceStats = await this.aiIntegration.getPerformanceStats();
+            
+            return {
+                resources: resourceStatus,
+                performance: performanceStats,
+                timestamp: new Date().toISOString()
+            };
+        } catch (e: any) {
+            throw new HttpException(e.message, 500);
+        }
+    }
+
+    @Get('ai/adaptive/status')
+    async getAdaptiveAIStatus() {
+        try {
+            const response: any = {
+                timestamp: new Date().toISOString(),
+                adaptive: {
+                    enabled: true,
+                    features: []
+                }
+            };
+            
+            // Learning metrics from adaptive resource manager
+            if (this.adaptiveResourceManager) {
+                const learningMetrics = this.adaptiveResourceManager.getLearningMetrics();
+                response.adaptive.learning = {
+                    patternsLearned: learningMetrics.patternsLearned,
+                    accuracy: learningMetrics.adaptationAccuracy,
+                    resourceSavings: `${(learningMetrics.resourceSavings * 100).toFixed(1)}%`,
+                    performanceImprovement: `${(learningMetrics.performanceImprovement * 100).toFixed(1)}%`,
+                    lastTraining: new Date(learningMetrics.lastTrainingTime).toISOString()
+                };
+                response.adaptive.features.push('ML-based resource adaptation');
+            }
+            
+            // Performance trends
+            if (this.performanceCollector) {
+                const trends = this.performanceCollector.getPerformanceTrends();
+                const currentLoad = this.performanceCollector.getCurrentLoad();
+                
+                response.performance = {
+                    trends: Object.entries(trends).map(([strategy, trend]) => ({
+                        strategy,
+                        avgResponseTime: `${trend.averageThinkingTime.toFixed(0)}ms`,
+                        successRate: `${(trend.successRate * 100).toFixed(1)}%`,
+                        trend: trend.trend,
+                        totalMoves: trend.totalMoves
+                    })),
+                    currentLoad: {
+                        activeRequests: currentLoad.activeRequests,
+                        avgResponseTime: `${currentLoad.averageResponseTime.toFixed(0)}ms`,
+                        peakCpu: `${(currentLoad.peakCpuUsage * 100).toFixed(1)}%`,
+                        peakMemory: `${(currentLoad.peakMemoryUsage * 100).toFixed(1)}%`
+                    }
+                };
+                response.adaptive.features.push('Performance trend analysis');
+            }
+            
+            // Self-tuning optimization
+            if (this.selfTuningOptimizer) {
+                const optimizationState = this.selfTuningOptimizer.getOptimizationState();
+                const parameters = this.selfTuningOptimizer.getCurrentParameters();
+                
+                response.optimization = {
+                    objective: optimizationState.currentObjective,
+                    performanceScore: `${(optimizationState.performanceScore * 100).toFixed(1)}%`,
+                    lastOptimization: optimizationState.lastOptimization.toISOString(),
+                    improvements: optimizationState.improvements,
+                    totalOptimizations: optimizationState.optimizationCount,
+                    currentParameters: {
+                        cacheSize: parameters.cacheSize.current,
+                        batchSize: parameters.batchSize.current,
+                        workerThreads: parameters.workerThreads.current,
+                        thinkingTimeMultiplier: parameters.thinkingTimeMultiplier.current
+                    }
+                };
+                response.adaptive.features.push('Self-tuning optimization');
+            }
+            
+            // Async decision engine
+            if (this.asyncDecisionEngine) {
+                const queueMetrics = this.asyncDecisionEngine.getQueueMetrics();
+                
+                response.asyncProcessing = {
+                    queue: {
+                        pending: queueMetrics.pending,
+                        processing: queueMetrics.processing,
+                        completed: queueMetrics.completed,
+                        failed: queueMetrics.failed
+                    },
+                    performance: {
+                        avgWaitTime: `${queueMetrics.averageWaitTime.toFixed(0)}ms`,
+                        avgProcessingTime: `${queueMetrics.averageProcessingTime.toFixed(0)}ms`
+                    }
+                };
+                response.adaptive.features.push('Asynchronous decision processing');
+            }
+            
+            return response;
+        } catch (e: any) {
+            throw new HttpException(e.message, 500);
+        }
+    }
+
+    @Get('ai/adaptive/report')
+    async getAdaptiveAIReport(@Query('hours') hours: string = '24') {
+        try {
+            const periodHours = parseInt(hours) || 24;
+            
+            if (!this.performanceCollector) {
+                throw new HttpException('Performance collector not available', 503);
+            }
+            
+            const report = this.performanceCollector.generateReport(periodHours);
+            
+            return {
+                ...report,
+                generated: new Date().toISOString()
+            };
         } catch (e: any) {
             throw new HttpException(e.message, 500);
         }

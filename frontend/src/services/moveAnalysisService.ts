@@ -3,7 +3,7 @@
 import { MoveExplanation, StrategicInsights } from '../api/ai-insights';
 
 // API base URL - adjust based on your backend configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 interface RealMoveAnalysis {
     move: number;

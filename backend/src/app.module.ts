@@ -1,8 +1,10 @@
 // backend/src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { GameModule } from './game/game.module';
 import { MlModule } from './ml/ml.module';
+import { ServiceIntegrationModule } from './integration/service-integration.module';
 import { HealthController } from './health.controller';
 
 // Enterprise Environment Configuration
@@ -48,6 +50,11 @@ const envConfiguration = () => ({
   performanceMonitoring: process.env.PERFORMANCE_MONITORING_ENABLED === 'true',
   healthCheckEnabled: process.env.HEALTH_CHECK_ENABLED === 'true',
   healthCheckInterval: parseInt(process.env.HEALTH_CHECK_INTERVAL, 10) || 30000,
+
+  // Service Integration
+  enableServiceIntegration: process.env.ENABLE_SERVICE_INTEGRATION !== 'false',
+  simulationWorkers: parseInt(process.env.SIMULATION_WORKERS, 10) || 2,
+  integrationPort: parseInt(process.env.INTEGRATION_PORT, 10) || 8888,
 });
 
 @Module({
@@ -58,6 +65,8 @@ const envConfiguration = () => ({
       load: [envConfiguration],
       cache: true,
     }),
+    ScheduleModule.forRoot(),
+    ServiceIntegrationModule,
     GameModule,
     MlModule
   ],

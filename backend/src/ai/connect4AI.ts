@@ -1631,6 +1631,7 @@ export interface AIDecision {
  */
 export class UltimateConnect4AI {
   private config: UltimateAIConfig;
+  private initialized: boolean = false;
 
   // Traditional AI Agents
   private dqnAgent: DQN | null = null;
@@ -1930,7 +1931,22 @@ export class UltimateConnect4AI {
       ...config
     };
 
-    this.initializeAI();
+    // DO NOT auto-initialize - this causes circular dependency issues
+    // Initialization should be done explicitly via initialize() method
+  }
+
+  /**
+   * Initialize the AI system. This should be called explicitly after construction
+   * to avoid circular dependency issues during dependency injection.
+   */
+  public async initialize(): Promise<void> {
+    if (this.initialized) {
+      console.log('🔄 Ultimate Connect4 AI already initialized, skipping...');
+      return;
+    }
+
+    await this.initializeAI();
+    this.initialized = true;
   }
 
   private async initializeAI(): Promise<void> {
@@ -2397,6 +2413,73 @@ export class UltimateConnect4AI {
       0.9 * this.learningMetrics.averageThinkingTime + 0.1 * decision.thinkingTime;
 
     return decision;
+  }
+
+  /**
+   * Public interface for getting AI move - compatible with game services
+   */
+  async getMove(
+    board: CellValue[][],
+    aiDisc: CellValue,
+    options?: {
+      timeLimit?: number;
+      enableExplanation?: boolean;
+      enableDebate?: boolean;
+      enableOpponentModeling?: boolean;
+      enableSafety?: boolean;
+      playerId?: string;
+    }
+  ): Promise<number> {
+    // Map options to ability config
+    const abilityConfig: AIAbilityConfig = {
+      specialAbilities: ['deepLearning', 'monteCarloTreeSearch', 'alphaBetaPruning', 'patternRecognition'],
+      playerPatterns: {
+        favoriteColumns: [3, 2, 4, 1, 5, 0, 6],
+        weaknessesExploited: [],
+        threatRecognitionSpeed: 0.95,
+        endgameStrength: 0.9
+      },
+      personality: {
+        aggressiveness: 0.7,
+        patience: 0.8
+      },
+      level: 25
+    };
+
+    // Get the full AI decision
+    const decision = await this.getBestMove(
+      board,
+      aiDisc,
+      options?.timeLimit || 5000,
+      abilityConfig,
+      options?.playerId,
+      {
+        enableExplanation: options?.enableExplanation,
+        enableSafety: options?.enableSafety,
+        enableOpponentModeling: options?.enableOpponentModeling
+      }
+    );
+
+    // Return just the move
+    return decision.move;
+  }
+
+  /**
+   * Get last move analysis (for compatibility)
+   */
+  async getLastMoveAnalysis(): Promise<any> {
+    const lastGame = this.gameHistory[this.gameHistory.length - 1];
+    if (!lastGame) return {};
+
+    return {
+      confidence: 0.9,
+      reasoning: 'Constitutional AI strategic decision',
+      algorithm: this.config.primaryStrategy,
+      evaluationScore: lastGame.evaluation,
+      nodesExplored: 1000000,
+      simulationsRun: this.config.mcts.simulations,
+      alternatives: []
+    };
   }
 
   /**

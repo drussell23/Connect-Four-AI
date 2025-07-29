@@ -23,6 +23,9 @@ import GameHistory from './components/game-history/GameHistory';
 import UserSettings from './components/settings/UserSettings';
 import apiSocket, { getConnectionStatus } from './api/socket';
 import { appConfig, enterprise, ai, game, ui, dev, analytics } from './config/environment';
+import { integrationLogger } from './utils/integrationLogger';
+import { serviceHealthMonitor } from './utils/serviceHealthMonitor';
+import { cleanupService } from './services/cleanupService';
 import type { CellValue, PlayerStats, AIPersonalityData } from './declarations';
 
 interface Move {
@@ -157,11 +160,15 @@ const App: React.FC = () => {
   // Load stats from localStorage
   useEffect(() => {
     const stored = localStorage.getItem('connect4EnhancedStats');
+    console.log('📊 Loading stats from localStorage:', stored);
     if (stored) {
       const stats = JSON.parse(stored);
+      console.log('📊 Parsed stats:', stats);
       setPlayerStats(stats);
       setSelectedDifficulty(stats.highestLevelReached || 1);
       setAILevel(stats.highestLevelReached || 1);
+    } else {
+      console.log('📊 No stats found in localStorage, using defaults');
     }
   }, []);
 
@@ -172,21 +179,100 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Initialize integration monitoring
+  useEffect(() => {
+    console.log('🚀 Initializing service integration monitoring...');
+    
+    // Show initial dashboard
+    integrationLogger.showDashboard();
+    
+    // Start service health monitoring
+    serviceHealthMonitor.startMonitoring();
+    
+    // Monitor service connections periodically
+    const monitoringInterval = setInterval(() => {
+      integrationLogger.getServiceSummary();
+    }, 30000); // Every 30 seconds
+    
+    // Add keyboard shortcuts for debugging
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Ctrl/Cmd + Shift + D for dashboard
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'D') {
+        integrationLogger.showDashboard();
+      }
+      // Ctrl/Cmd + Shift + T for test integration
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'T') {
+        serviceHealthMonitor.testIntegration();
+      }
+      // Ctrl/Cmd + Shift + L for toggle detailed logging
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'L') {
+        integrationLogger.toggleDetailedMode();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    
+    return () => {
+      clearInterval(monitoringInterval);
+      serviceHealthMonitor.stopMonitoring();
+      window.removeEventListener('keydown', handleKeyPress);
+      // Clear move analysis cache when component unmounts
+      clearMoveAnalysisCache();
+    };
+  }, []);
+
   // App initialization effect
   useEffect(() => {
+    // Setup automatic cleanup
+    cleanupService.setupAutoCleanup();
+    
     // Delay app initialization to prevent Suspense during render
     const timer = setTimeout(() => {
       setAppInitialized(true);
     }, 200);
-    return () => clearTimeout(timer);
+    
+    // Cleanup on unmount
+    return () => {
+      clearTimeout(timer);
+      // Don't disconnect socket on component unmount during development
+      // This prevents issues with hot reloading
+      if (process.env.NODE_ENV === 'production') {
+        cleanupService.cleanupForExit();
+      }
+    };
   }, []);
 
   // Save stats to localStorage
   const saveStats = (newStats: PlayerStats) => {
+    console.log('💾 Saving stats:', newStats);
     localStorage.setItem('connect4EnhancedStats', JSON.stringify(newStats));
     setPlayerStats(newStats);
     window.dispatchEvent(new CustomEvent('statsUpdate', { detail: newStats }));
   };
+  
+  // Register cleanup handler for stats
+  useEffect(() => {
+    const statsCleanupHandler = () => {
+      // Reset in-memory stats
+      setPlayerStats({
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        winStreak: 0,
+        currentLevelWins: 0,
+        totalGamesPlayed: 0,
+        highestLevelReached: 1,
+        averageMovesPerGame: 0
+      });
+      setHistory([]);
+    };
+    
+    cleanupService.registerCleanupHandler(statsCleanupHandler);
+    
+    return () => {
+      cleanupService.unregisterCleanupHandler(statsCleanupHandler);
+    };
+  }, []);
 
   // Get AI personality data based on level
   const getAIPersonality = (level: number): AIPersonalityData => {
@@ -340,13 +426,24 @@ const App: React.FC = () => {
     createGameWithStartingPlayer(firstPlayer, coinDifficulty);
   };
 
-  const createGameWithStartingPlayer = (firstPlayer: CellValue, difficulty?: number) => {
+  const createGameWithStartingPlayer = async (firstPlayer: CellValue, difficulty?: number) => {
     if (!socket) {
       console.error('No socket connection');
       return;
     }
 
     const gameDifficulty = difficulty || selectedDifficulty;
+    
+    // Clean up for new game
+    await cleanupService.cleanupForRestart();
+    
+    // Ensure socket is connected after cleanup
+    if (socket && !getConnectionStatus().connected) {
+      socket.connect();
+      // Wait for connection
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
     // Instead of showing "Creating game...", immediately set the game state
     setCurrentPlayer(firstPlayer);
     setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
@@ -481,9 +578,10 @@ const App: React.FC = () => {
   };
 
   // Victory modal handlers
-  const handleNextLevel = () => {
+  const handleNextLevel = async () => {
+    let nextLevel = aiLevel;
     if (aiLevel < 25) {
-      const nextLevel = aiLevel + 1;
+      nextLevel = aiLevel + 1;
       setAILevel(nextLevel);
       setSelectedDifficulty(nextLevel);
 
@@ -510,6 +608,7 @@ const App: React.FC = () => {
     setGameResult(null);
     setHistory([]);
     setSidebarOpen(false);
+    setStatus('Ready to play'); // Clear the previous game's status to prevent auto-victory
 
     // Determine starting player based on previous game result
     // If player won previous level, they go first in next level
@@ -527,11 +626,22 @@ const App: React.FC = () => {
 
     // Create new game directly with determined starting player
     if (socket) {
+      // Clean up for new game
+      await cleanupService.cleanupForRestart();
+      
+      // Ensure socket is connected after cleanup
+      if (!getConnectionStatus().connected) {
+        socket.connect();
+        // Wait for connection
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
       // Set game state immediately - no "Creating new game..." delay
       setCurrentPlayer(nextStartingPlayer);
       setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
       setWinningLine([]);
-      setHistory([]);
+      setHistory([]); // Clear history to prevent auto-victory trigger
+      setGameStartTime(Date.now()); // Reset game start time
       setStatus(
         nextStartingPlayer === 'Red'
           ? 'Your turn (Red)'
@@ -542,7 +652,7 @@ const App: React.FC = () => {
         'createGame',
         {
           playerId: 'Red',
-          difficulty: aiLevel + 1,
+          difficulty: nextLevel,
           startingPlayer: nextStartingPlayer
         },
         (res: {
@@ -571,7 +681,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleReplayLevel = () => {
+  const handleReplayLevel = async () => {
     setShowVictoryModal(false);
 
     // Store the game result before clearing it
@@ -603,10 +713,20 @@ const App: React.FC = () => {
     }
   };
 
-  const handleQuitToMenu = () => {
+  const handleQuitToMenu = async () => {
     setShowVictoryModal(false);
     setStarted(false);
     setGameResult(null);
+    
+    // Perform comprehensive cleanup
+    await cleanupService.cleanup({
+      clearLocalStorage: false, // Keep user preferences
+      clearSessionStorage: true,
+      resetStats: true,
+      resetHistory: true,
+      disconnectSocket: false, // Keep connection for potential new game
+      clearCache: true,
+    });
 
     // Reset game state
     setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
@@ -615,9 +735,8 @@ const App: React.FC = () => {
     setStatus('Ready to play');
     setSidebarOpen(false);
 
-    // Reset difficulty level back to 1 when quitting
-    setAILevel(1);
-    setSelectedDifficulty(1);
+    // Preserve the player's current difficulty level
+    // Only reset current streak for this session
     setCurrentStreak(0);
 
     // Reset RPS state
@@ -630,37 +749,23 @@ const App: React.FC = () => {
     setCoinDifficulty(1);
     setHasDoneCoinToss(false);
 
-    // Reset player statistics back to initial values
-    const initialStats: PlayerStats = {
-      wins: 0,
-      losses: 0,
-      draws: 0,
-      winStreak: 0,
-      currentLevelWins: 0,
-      totalGamesPlayed: 0,
-      highestLevelReached: 1,
-      averageMovesPerGame: 0
-    };
-    saveStats(initialStats);
+    // Don't reset stats here - this seems to be part of a larger function
+    // If we need to reset stats, it should be an explicit user action
 
-    // Clear localStorage difficulty selection
-    localStorage.removeItem('selectedDifficulty');
-
-    // Disconnect socket
-    if (socket) {
-      socket.disconnect();
-      setSocket(null);
-    }
+    // Socket disconnection is handled by cleanup service if needed
+    // No need to manually disconnect here since we set disconnectSocket: false above
   };
 
   // Effect for game-end events
   useEffect(() => {
-    if (status.endsWith('wins!') || status === 'Draw game') {
+    // Only trigger if we have a game in progress (history has moves)
+    if ((status.endsWith('wins!') || status === 'Draw game') && history.length > 0) {
       const winner = status.startsWith('Red') ? 'Red' :
         status.startsWith('Yellow') ? 'Yellow' : 'Draw';
+      console.log('🎯 Game ended with status:', status, 'Winner:', winner, 'Moves:', history.length);
       handleGameEnd(winner as CellValue | 'Draw', history.length);
     }
-  }, [status]);
+  }, [status, history.length]);
 
   // Handler for when loading progress completes
   const handleLoadingComplete = () => {
@@ -830,10 +935,79 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!socket) return;
 
-    // Enhanced AI thinking with capabilities
-    socket.on('aiThinking', (data?: { status: string; capabilities: string[] }) => {
+    // Enhanced AI thinking with detailed logging
+    socket.on('aiThinking', (data?: any) => {
+      // Log detailed AI thinking process to console
+      if (data?.type) {
+        const timestamp = new Date(data.timestamp).toLocaleTimeString();
+        
+        switch (data.type) {
+          case 'systemActivation':
+            console.log(`%c[${timestamp}] 🚀 ${data.message}`, 'color: #4CAF50; font-weight: bold');
+            console.log('%c   Details:', 'color: #666');
+            console.log(`   • System: ${data.details.system}`);
+            console.log(`   • Description: ${data.details.description}`);
+            if (data.details.capabilities) {
+              console.log(`   • Capabilities: ${data.details.capabilities.join(', ')}`);
+            }
+            if (data.details.difficulty !== undefined) {
+              console.log(`   • Difficulty: ${data.details.difficulty}`);
+            }
+            if (data.details.moveNumber) {
+              console.log(`   • Move Number: ${data.details.moveNumber}`);
+            }
+            break;
+            
+          case 'criticality':
+            console.log(`%c[${timestamp}] 📊 ${data.message}`, 'color: #FF9800; font-weight: bold');
+            console.log('%c   Analysis:', 'color: #666');
+            console.log(`   • Winning Threat: ${(data.details.factors.winningThreat * 100).toFixed(0)}%`);
+            console.log(`   • Losing Threat: ${(data.details.factors.losingThreat * 100).toFixed(0)}%`);
+            console.log(`   • Strategic Importance: ${(data.details.factors.strategicImportance * 100).toFixed(0)}%`);
+            console.log(`   • Game Phase: ${(data.details.factors.gamePhase * 100).toFixed(0)}%`);
+            console.log(`   • Recommended Depth: ${data.details.recommendedDepth}`);
+            console.log(`   • Time Allocation: ${data.details.timeAllocation}ms`);
+            break;
+            
+          case 'progress':
+            console.log(`%c[${timestamp}] 🔄 ${data.message}`, 'color: #2196F3');
+            if (data.details.servicesUsed) {
+              console.log(`   • Services: ${data.details.servicesUsed.join(', ')}`);
+            }
+            break;
+            
+          case 'variation':
+            console.log(`%c[${timestamp}] 🎯 ${data.message}`, 'color: #9C27B0');
+            break;
+            
+          case 'moveDecision':
+            console.log(`%c[${timestamp}] ✅ ${data.message}`, 'color: #4CAF50; font-weight: bold; font-size: 14px');
+            console.log('%c   Decision Details:', 'color: #666; font-weight: bold');
+            console.log(`   • Column: ${data.details.column}`);
+            console.log(`   • Confidence: ${(data.details.confidence * 100).toFixed(1)}%`);
+            console.log(`   • Computation Time: ${data.details.computationTime}ms`);
+            console.log(`   • Services Used: ${data.details.servicesUsed.join(', ')}`);
+            console.log(`   • Explanation: ${data.details.explanation}`);
+            if (data.details.alternativeMoves?.length > 0) {
+              console.log('%c   Alternative Moves:', 'color: #666');
+              data.details.alternativeMoves.forEach((alt: any) => {
+                console.log(`     - Column ${alt.column}: ${(alt.score * 100).toFixed(0)}% (${alt.reason})`);
+              });
+            }
+            break;
+            
+          case 'difficultyMapping':
+            console.log(`%c[${timestamp}] 🎮 ${data.message}`, 'color: #9C27B0; font-weight: bold');
+            console.log(`   • Frontend Level: ${data.details.frontendLevel}/25`);
+            console.log(`   • Backend Difficulty: ${data.details.backendDifficulty.toFixed(1)}/10`);
+            console.log(`   • Category: ${data.details.difficultyName}`);
+            break;
+        }
+      }
+      
+      // Update UI status
       const currentAI = getAIPersonality(aiLevel);
-      if (data?.capabilities) {
+      if (data?.capabilities || data?.details?.capabilities) {
         // More creative and simple AI thinking messages
         const thinkingMessages = [
           "AI is thinking...",
@@ -957,7 +1131,11 @@ const App: React.FC = () => {
         }
 
         if (data.winner) {
+          console.log('🏆 Winner detected:', data.winner, 'Winning line:', data.winningLine);
           setStatus(`${data.winner} wins!`);
+          if (data.winningLine) {
+            setWinningLine(data.winningLine);
+          }
           const currentAI = getAIPersonality(aiLevel);
           if (data.enhancedData?.explanation) {
             setAiExplanation(data.enhancedData.explanation);
@@ -1015,10 +1193,15 @@ const App: React.FC = () => {
         }
 
         if (data.winner) {
+          console.log('🏆 Winner detected (AI move):', data.winner, 'Winning line:', data.winningLine);
           setStatus(`${data.winner} wins!`);
+          if (data.winningLine) {
+            setWinningLine(data.winningLine);
+          }
           return;
         }
         if (data.draw) {
+          console.log('🤝 Draw detected');
           setStatus('Draw game');
           return;
         }
@@ -1056,10 +1239,17 @@ const App: React.FC = () => {
       setPlayerProgress(data);
     });
 
+    // Service status updates
+    socket.on('serviceStatusUpdate', (data: any) => {
+      console.log('📊 Service status update:', data);
+      integrationLogger.updateServiceStatuses(data);
+    });
+
     return () => {
       socket.off('playerMove');
       socket.off('aiThinking');
       socket.off('aiMove');
+      socket.off('serviceStatusUpdate');
     };
   }, [socket, aiLevel]);
 
@@ -1236,6 +1426,14 @@ const App: React.FC = () => {
 
       // Try to reconnect
       socket.connect();
+      
+      // Wait a bit and retry the move
+      setTimeout(() => {
+        const newStatus = getConnectionStatus();
+        if (newStatus.connected) {
+          onColumnClick(col);
+        }
+      }, 1000);
       return;
     }
 
@@ -1383,7 +1581,7 @@ const App: React.FC = () => {
         transition={{ duration: 0.8 }}
       >
         <h1 className="text-4xl font-extrabold title-gradient mb-2">
-          Connect Four vs. AI
+          Connect Four AI
         </h1>
         <div className="flex items-center justify-center gap-4">
           <div className="ai-info-display bg-white bg-opacity-10 rounded-lg px-4 py-2">

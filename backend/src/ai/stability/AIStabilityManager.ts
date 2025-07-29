@@ -943,7 +943,7 @@ export class AIStabilityManager extends EventEmitter {
         if (this.safetySystem.getSafetySnapshot) {
             const safetySnapshot = await this.safetySystem.getSafetySnapshot();
             this.metrics.safety.safetyScore = safetySnapshot.safetyScore;
-            this.metrics.safety.validationFailures = safetySnapshot.metrics.validationFailures;
+            this.metrics.safety.validationFailures = safetySnapshot.validationFailures;
         }
 
         // Emit metrics update event

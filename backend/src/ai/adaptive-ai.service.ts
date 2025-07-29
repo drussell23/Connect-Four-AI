@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
+import { AsyncAIOrchestrator, AIRequest } from './async/async-ai-orchestrator';
+import { PerformanceMonitor } from './async/performance-monitor';
+import { DynamicStrategySelector, AIStrategy } from './async/strategy-selector';
+import { CellValue } from './connect4AI';
 
 interface GamePhase {
     phase: 'opening' | 'midgame' | 'endgame';
@@ -34,12 +38,27 @@ export class AdaptiveAIService {
     private readonly logger = new Logger(AdaptiveAIService.name);
     private readonly ML_SERVICE_URL = 'http://localhost:8000';
     private readonly ML_INFERENCE_URL = 'http://localhost:8001';
+    
+    // Async orchestrator integration
+    private asyncOrchestrator?: AsyncAIOrchestrator;
+    private performanceMonitor?: PerformanceMonitor;
+    private strategySelector?: DynamicStrategySelector;
 
     // Intelligence memory
     private opponentProfiles = new Map<string, OpponentProfile>();
     private gameMemory = new Map<string, GameMemoryData>();
     private strategyEffectiveness = new Map<string, number>();
     private ensembleWeights = { fast: 0.5, deep: 0.5 };
+    
+    constructor(
+        asyncOrchestrator?: AsyncAIOrchestrator,
+        performanceMonitor?: PerformanceMonitor,
+        strategySelector?: DynamicStrategySelector
+    ) {
+        this.asyncOrchestrator = asyncOrchestrator;
+        this.performanceMonitor = performanceMonitor;
+        this.strategySelector = strategySelector;
+    }
 
     /**
      * 🧠 ADAPTIVE PREDICTION ENGINE
@@ -52,6 +71,30 @@ export class AdaptiveAIService {
         moveHistory: number[] = []
     ): Promise<PredictionResult> {
         try {
+            // Convert board to CellValue format
+            const cellBoard = this.convertBoard(board);
+            
+            // Use async orchestrator if available
+            if (this.asyncOrchestrator) {
+                const request: AIRequest = {
+                    gameId,
+                    board: cellBoard,
+                    player: this.determineAIPlayer(cellBoard, moveHistory),
+                    difficulty: this.calculateDifficulty(moveHistory),
+                    timeLimit: 5000,
+                    priority: 5
+                };
+                
+                const response = await this.asyncOrchestrator!.getAIMove(request);
+                
+                return {
+                    move: response.move,
+                    probs: this.generateProbsFromMove(response.move),
+                    confidence: response.confidence,
+                    source: 'ensemble',
+                    reasoning: response.explanation || `${response.strategy} strategy with ${response.confidence.toFixed(2)} confidence`
+                };
+            }
             // 1. Analyze current game state
             const gamePhase = this.analyzeGamePhase(board, moveHistory);
             const opponentProfile = await this.analyzeOpponent(opponentId, moveHistory);
@@ -299,24 +342,24 @@ export class AdaptiveAIService {
     }
 
     // Helper methods for game analysis
-    private hasWinningMove(board: string[][]): boolean {
+    private hasWinningMove(_board: string[][]): boolean {
         // Implementation for checking winning moves
         return false; // Placeholder
     }
 
-    private hasBlockingRequired(board: string[][]): boolean {
+    private hasBlockingRequired(_board: string[][]): boolean {
         // Implementation for checking blocking requirements
         return false; // Placeholder
     }
 
-    private countTwoInRowThreats(board: string[][]): number {
+    private countTwoInRowThreats(_board: string[][]): number {
         // Implementation for counting two-in-a-row threats
         return 0; // Placeholder
     }
 
     private extractMovePatterns(moveHistory: number[]): string[] {
         // Analyze patterns in opponent moves
-        const patterns = [];
+        const patterns: string[] = [];
 
         // Check for center preference
         const centerMoves = moveHistory.filter(move => move === 3).length;
@@ -333,13 +376,13 @@ export class AdaptiveAIService {
         return patterns;
     }
 
-    private calculateAggression(moveHistory: number[]): number {
+    private calculateAggression(_moveHistory: number[]): number {
         // Calculate aggression score based on move choices
         // Placeholder implementation
         return 0.5;
     }
 
-    private calculateConsistency(moveHistory: number[]): number {
+    private calculateConsistency(_moveHistory: number[]): number {
         // Calculate consistency in move patterns
         // Placeholder implementation
         return 0.5;
@@ -374,5 +417,87 @@ export class AdaptiveAIService {
         }
 
         this.logger.log(`Updated AI from game ${gameId}: ${result}`);
+    }
+    
+    /**
+     * Initialize async components if available
+     */
+    async initialize(): Promise<void> {
+        if (this.asyncOrchestrator) {
+            this.logger.log('Initializing with async orchestrator...');
+            
+            // Set up performance monitoring
+            if (this.performanceMonitor) {
+                this.performanceMonitor.setAlertThreshold(
+                    'adaptive.ai.prediction',
+                    3000,
+                    'above',
+                    (metric) => {
+                        this.logger.warn(`Slow adaptive prediction: ${metric.value}ms`);
+                    }
+                );
+            }
+            
+            // Configure strategy selector for adaptive AI
+            if (this.strategySelector) {
+                // Update strategy weights based on opponent profiles
+                for (const [, profile] of this.opponentProfiles) {
+                    if (profile.type === 'expert') {
+                        await this.strategySelector.updatePerformance(AIStrategy.ALPHAZERO, 'win', 100, 0.9);
+                        await this.strategySelector.updatePerformance(AIStrategy.DQN, 'win', 150, 0.85);
+                    } else if (profile.type === 'aggressive') {
+                        await this.strategySelector.updatePerformance(AIStrategy.ALPHA_BETA, 'win', 50, 0.8);
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Convert string board to CellValue format
+     */
+    private convertBoard(board: string[][]): CellValue[][] {
+        return board.map(row => row.map(cell => {
+            if (cell === 'Red') return 'Red' as CellValue;
+            if (cell === 'Yellow') return 'Yellow' as CellValue;
+            return 'Empty' as CellValue;
+        }));
+    }
+    
+    /**
+     * Determine AI player color based on board state
+     */
+    private determineAIPlayer(board: CellValue[][], moveHistory: number[]): CellValue {
+        const redCount = board.flat().filter(c => c === 'Red').length;
+        const yellowCount = board.flat().filter(c => c === 'Yellow').length;
+        
+        // AI plays as the color with fewer pieces (or Yellow if equal)
+        return redCount > yellowCount ? 'Yellow' : 'Red';
+    }
+    
+    /**
+     * Calculate difficulty based on game progression
+     */
+    private calculateDifficulty(_moveHistory: number[]): number {
+        const moveCount = _moveHistory.length;
+        if (moveCount < 8) return 10; // Opening
+        if (moveCount < 20) return 15; // Midgame
+        return 20; // Endgame
+    }
+    
+    /**
+     * Generate probability array from single move
+     */
+    private generateProbsFromMove(move: number): number[] {
+        const probs = new Array(7).fill(0);
+        probs[move] = 1.0;
+        
+        // Add some noise to neighboring columns
+        if (move > 0) probs[move - 1] = 0.1;
+        if (move < 6) probs[move + 1] = 0.1;
+        
+        // Normalize
+        const sum = probs.reduce((a, b) => a + b, 0);
+        return probs.map(p => p / sum);
     }
 } 

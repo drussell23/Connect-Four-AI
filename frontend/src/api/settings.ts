@@ -1,6 +1,6 @@
 // frontend/src/api/settings.ts
 import { appConfig } from '../config/environment';
-import { emit, on, off } from './socket';
+import { emit, on } from './socket';
 
 // Types for settings functionality
 export interface UserSettings {
@@ -244,7 +244,7 @@ class SettingsManager {
     }
   }
 
-  private async handleSyncComplete(data: any): Promise<void> {
+  private async handleSyncComplete(_data: any): Promise<void> {
     try {
       console.log('🔄 Settings sync completed');
       // Clear cache to ensure fresh data
@@ -254,7 +254,7 @@ class SettingsManager {
     }
   }
 
-  private async handleBackupComplete(data: any): Promise<void> {
+  private async handleBackupComplete(_data: any): Promise<void> {
     try {
       console.log('💾 Settings backup completed');
     } catch (error) {
@@ -307,7 +307,9 @@ class SettingsManager {
     // Implement LRU cache eviction
     if (this.cache.size >= this.config.maxCacheSize) {
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
     }
 
     this.cache.set(key, {
@@ -337,7 +339,7 @@ class SettingsManager {
     // Make new request
     const request = new Promise<T>(async (resolve, reject) => {
       try {
-        const url = `${appConfig.api.baseUrl}/api/games${endpoint}`;
+        const url = `http://localhost:3000/api/games${endpoint}`;
         const options: RequestInit = {
           method,
           headers: {

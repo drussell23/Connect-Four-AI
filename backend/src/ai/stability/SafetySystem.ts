@@ -214,6 +214,12 @@ export class SafetySystem extends EventEmitter {
     ) {
         super();
 
+        // Initialize metrics
+        this.metrics = {
+            totalValidations: 0,
+            timestamp: Date.now()
+        };
+
         this.config = {
             validation: {
                 enabled: true,

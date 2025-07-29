@@ -5,7 +5,7 @@ export const productionConfig = ConfigModule.forRoot({
   envFilePath: '.env.production',
   load: [
     () => ({
-      port: process.env.PORT || 3000,
+      port: process.env.PORT || 3001,
       environment: 'production',
       cors: {
         origin: process.env.CORS_ORIGIN || 'https://your-domain.vercel.app',
