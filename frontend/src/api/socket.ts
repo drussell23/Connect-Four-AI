@@ -427,9 +427,14 @@ class EnhancedSocketManager {
   public forceReconnect(): void {
     console.log('🔄 Forcing WebSocket reconnection...');
     if (this.socket) {
-      this.socket.disconnect();
+      // Only disconnect if connected
+      if (this.socket.connected) {
+        this.socket.disconnect();
+      }
       setTimeout(() => {
-        this.socket?.connect();
+        if (this.socket && !this.socket.connected) {
+          this.socket.connect();
+        }
       }, 1000);
     }
   }
@@ -488,7 +493,7 @@ class EnhancedSocketManager {
 
   public disconnect(): void {
     this.stopHeartbeat();
-    if (this.socket) {
+    if (this.socket && this.socket.connected) {
       this.socket.disconnect();
     }
   }
@@ -594,14 +599,14 @@ class EnhancedSocketManager {
     this.statusCallbacks.clear();
 
     if (this.socket) {
-      this.socket.disconnect();
+      if (this.socket.connected) {
+        this.socket.disconnect();
+      }
       this.socket = null;
     }
 
-    if (this.manager) {
-      this.manager.close();
-      this.manager = null;
-    }
+    // Clear the manager reference
+    this.manager = null;
   }
 }
 

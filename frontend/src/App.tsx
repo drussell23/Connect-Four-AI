@@ -25,6 +25,7 @@ import apiSocket, { getConnectionStatus } from './api/socket';
 import { appConfig, enterprise, ai, game, ui, dev, analytics } from './config/environment';
 import { integrationLogger } from './utils/integrationLogger';
 import { serviceHealthMonitor } from './utils/serviceHealthMonitor';
+import { cleanupService } from './services/cleanupService';
 import type { CellValue, PlayerStats, AIPersonalityData } from './declarations';
 
 interface Move {
@@ -159,11 +160,15 @@ const App: React.FC = () => {
   // Load stats from localStorage
   useEffect(() => {
     const stored = localStorage.getItem('connect4EnhancedStats');
+    console.log('📊 Loading stats from localStorage:', stored);
     if (stored) {
       const stats = JSON.parse(stored);
+      console.log('📊 Parsed stats:', stats);
       setPlayerStats(stats);
       setSelectedDifficulty(stats.highestLevelReached || 1);
       setAILevel(stats.highestLevelReached || 1);
+    } else {
+      console.log('📊 No stats found in localStorage, using defaults');
     }
   }, []);
 
@@ -211,24 +216,63 @@ const App: React.FC = () => {
       clearInterval(monitoringInterval);
       serviceHealthMonitor.stopMonitoring();
       window.removeEventListener('keydown', handleKeyPress);
+      // Clear move analysis cache when component unmounts
+      clearMoveAnalysisCache();
     };
   }, []);
 
   // App initialization effect
   useEffect(() => {
+    // Setup automatic cleanup
+    cleanupService.setupAutoCleanup();
+    
     // Delay app initialization to prevent Suspense during render
     const timer = setTimeout(() => {
       setAppInitialized(true);
     }, 200);
-    return () => clearTimeout(timer);
+    
+    // Cleanup on unmount
+    return () => {
+      clearTimeout(timer);
+      // Don't disconnect socket on component unmount during development
+      // This prevents issues with hot reloading
+      if (process.env.NODE_ENV === 'production') {
+        cleanupService.cleanupForExit();
+      }
+    };
   }, []);
 
   // Save stats to localStorage
   const saveStats = (newStats: PlayerStats) => {
+    console.log('💾 Saving stats:', newStats);
     localStorage.setItem('connect4EnhancedStats', JSON.stringify(newStats));
     setPlayerStats(newStats);
     window.dispatchEvent(new CustomEvent('statsUpdate', { detail: newStats }));
   };
+  
+  // Register cleanup handler for stats
+  useEffect(() => {
+    const statsCleanupHandler = () => {
+      // Reset in-memory stats
+      setPlayerStats({
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        winStreak: 0,
+        currentLevelWins: 0,
+        totalGamesPlayed: 0,
+        highestLevelReached: 1,
+        averageMovesPerGame: 0
+      });
+      setHistory([]);
+    };
+    
+    cleanupService.registerCleanupHandler(statsCleanupHandler);
+    
+    return () => {
+      cleanupService.unregisterCleanupHandler(statsCleanupHandler);
+    };
+  }, []);
 
   // Get AI personality data based on level
   const getAIPersonality = (level: number): AIPersonalityData => {
@@ -382,13 +426,24 @@ const App: React.FC = () => {
     createGameWithStartingPlayer(firstPlayer, coinDifficulty);
   };
 
-  const createGameWithStartingPlayer = (firstPlayer: CellValue, difficulty?: number) => {
+  const createGameWithStartingPlayer = async (firstPlayer: CellValue, difficulty?: number) => {
     if (!socket) {
       console.error('No socket connection');
       return;
     }
 
     const gameDifficulty = difficulty || selectedDifficulty;
+    
+    // Clean up for new game
+    await cleanupService.cleanupForRestart();
+    
+    // Ensure socket is connected after cleanup
+    if (socket && !getConnectionStatus().connected) {
+      socket.connect();
+      // Wait for connection
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
     // Instead of showing "Creating game...", immediately set the game state
     setCurrentPlayer(firstPlayer);
     setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
@@ -523,9 +578,10 @@ const App: React.FC = () => {
   };
 
   // Victory modal handlers
-  const handleNextLevel = () => {
+  const handleNextLevel = async () => {
+    let nextLevel = aiLevel;
     if (aiLevel < 25) {
-      const nextLevel = aiLevel + 1;
+      nextLevel = aiLevel + 1;
       setAILevel(nextLevel);
       setSelectedDifficulty(nextLevel);
 
@@ -552,6 +608,7 @@ const App: React.FC = () => {
     setGameResult(null);
     setHistory([]);
     setSidebarOpen(false);
+    setStatus('Ready to play'); // Clear the previous game's status to prevent auto-victory
 
     // Determine starting player based on previous game result
     // If player won previous level, they go first in next level
@@ -569,11 +626,22 @@ const App: React.FC = () => {
 
     // Create new game directly with determined starting player
     if (socket) {
+      // Clean up for new game
+      await cleanupService.cleanupForRestart();
+      
+      // Ensure socket is connected after cleanup
+      if (!getConnectionStatus().connected) {
+        socket.connect();
+        // Wait for connection
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
       // Set game state immediately - no "Creating new game..." delay
       setCurrentPlayer(nextStartingPlayer);
       setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
       setWinningLine([]);
-      setHistory([]);
+      setHistory([]); // Clear history to prevent auto-victory trigger
+      setGameStartTime(Date.now()); // Reset game start time
       setStatus(
         nextStartingPlayer === 'Red'
           ? 'Your turn (Red)'
@@ -584,7 +652,7 @@ const App: React.FC = () => {
         'createGame',
         {
           playerId: 'Red',
-          difficulty: aiLevel + 1,
+          difficulty: nextLevel,
           startingPlayer: nextStartingPlayer
         },
         (res: {
@@ -613,7 +681,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleReplayLevel = () => {
+  const handleReplayLevel = async () => {
     setShowVictoryModal(false);
 
     // Store the game result before clearing it
@@ -645,10 +713,20 @@ const App: React.FC = () => {
     }
   };
 
-  const handleQuitToMenu = () => {
+  const handleQuitToMenu = async () => {
     setShowVictoryModal(false);
     setStarted(false);
     setGameResult(null);
+    
+    // Perform comprehensive cleanup
+    await cleanupService.cleanup({
+      clearLocalStorage: false, // Keep user preferences
+      clearSessionStorage: true,
+      resetStats: true,
+      resetHistory: true,
+      disconnectSocket: false, // Keep connection for potential new game
+      clearCache: true,
+    });
 
     // Reset game state
     setBoard(Array.from({ length: 6 }, () => Array(7).fill('Empty')));
@@ -657,9 +735,8 @@ const App: React.FC = () => {
     setStatus('Ready to play');
     setSidebarOpen(false);
 
-    // Reset difficulty level back to 1 when quitting
-    setAILevel(1);
-    setSelectedDifficulty(1);
+    // Preserve the player's current difficulty level
+    // Only reset current streak for this session
     setCurrentStreak(0);
 
     // Reset RPS state
@@ -672,37 +749,23 @@ const App: React.FC = () => {
     setCoinDifficulty(1);
     setHasDoneCoinToss(false);
 
-    // Reset player statistics back to initial values
-    const initialStats: PlayerStats = {
-      wins: 0,
-      losses: 0,
-      draws: 0,
-      winStreak: 0,
-      currentLevelWins: 0,
-      totalGamesPlayed: 0,
-      highestLevelReached: 1,
-      averageMovesPerGame: 0
-    };
-    saveStats(initialStats);
+    // Don't reset stats here - this seems to be part of a larger function
+    // If we need to reset stats, it should be an explicit user action
 
-    // Clear localStorage difficulty selection
-    localStorage.removeItem('selectedDifficulty');
-
-    // Disconnect socket
-    if (socket) {
-      socket.disconnect();
-      setSocket(null);
-    }
+    // Socket disconnection is handled by cleanup service if needed
+    // No need to manually disconnect here since we set disconnectSocket: false above
   };
 
   // Effect for game-end events
   useEffect(() => {
-    if (status.endsWith('wins!') || status === 'Draw game') {
+    // Only trigger if we have a game in progress (history has moves)
+    if ((status.endsWith('wins!') || status === 'Draw game') && history.length > 0) {
       const winner = status.startsWith('Red') ? 'Red' :
         status.startsWith('Yellow') ? 'Yellow' : 'Draw';
+      console.log('🎯 Game ended with status:', status, 'Winner:', winner, 'Moves:', history.length);
       handleGameEnd(winner as CellValue | 'Draw', history.length);
     }
-  }, [status]);
+  }, [status, history.length]);
 
   // Handler for when loading progress completes
   const handleLoadingComplete = () => {
@@ -1068,7 +1131,11 @@ const App: React.FC = () => {
         }
 
         if (data.winner) {
+          console.log('🏆 Winner detected:', data.winner, 'Winning line:', data.winningLine);
           setStatus(`${data.winner} wins!`);
+          if (data.winningLine) {
+            setWinningLine(data.winningLine);
+          }
           const currentAI = getAIPersonality(aiLevel);
           if (data.enhancedData?.explanation) {
             setAiExplanation(data.enhancedData.explanation);
@@ -1126,10 +1193,15 @@ const App: React.FC = () => {
         }
 
         if (data.winner) {
+          console.log('🏆 Winner detected (AI move):', data.winner, 'Winning line:', data.winningLine);
           setStatus(`${data.winner} wins!`);
+          if (data.winningLine) {
+            setWinningLine(data.winningLine);
+          }
           return;
         }
         if (data.draw) {
+          console.log('🤝 Draw detected');
           setStatus('Draw game');
           return;
         }
@@ -1354,6 +1426,14 @@ const App: React.FC = () => {
 
       // Try to reconnect
       socket.connect();
+      
+      // Wait a bit and retry the move
+      setTimeout(() => {
+        const newStatus = getConnectionStatus();
+        if (newStatus.connected) {
+          onColumnClick(col);
+        }
+      }, 1000);
       return;
     }
 
