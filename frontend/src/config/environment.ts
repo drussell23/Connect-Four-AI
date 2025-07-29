@@ -4,6 +4,8 @@
  * Centralized configuration loader for all React environment variables
  */
 
+import { environmentDetector } from '../utils/environmentDetector';
+
 export interface AppConfig {
     // API Endpoints & Integration
     api: {
@@ -98,12 +100,15 @@ const needsApiPrefix = (): boolean => {
     return apiUrl.includes('onrender.com') || getEnvVar('REACT_APP_USE_API_PREFIX', 'false') === 'true';
 };
 
+// Get dynamic service configuration
+const serviceConfig = environmentDetector.getServiceConfiguration();
+
 // Load and export enterprise configuration
 export const appConfig: AppConfig = {
     api: {
-        baseUrl: getEnvVar('REACT_APP_API_URL', 'http://localhost:3001'),
-        wsUrl: getEnvVar('REACT_APP_WS_URL', 'http://localhost:3001'),
-        mlServiceUrl: getEnvVar('REACT_APP_ML_SERVICE_URL', 'https://connect-four-ai-roge.onrender.com'),
+        baseUrl: serviceConfig.backend,
+        wsUrl: serviceConfig.backend,
+        mlServiceUrl: serviceConfig.mlService,
         orchestrationDashboardUrl: getEnvVar('REACT_APP_ORCHESTRATION_DASHBOARD_URL', 'http://localhost:3011'),
         performanceAnalyticsUrl: getEnvVar('REACT_APP_PERFORMANCE_ANALYTICS_URL', 'http://localhost:3014'),
         aiDiagnosticsUrl: getEnvVar('REACT_APP_AI_DIAGNOSTICS_URL', 'http://localhost:3012'),
@@ -161,8 +166,12 @@ export const appConfig: AppConfig = {
 };
 
 // Debug logging for development
-if (appConfig.dev.debugMode) {
-    console.log('🏢 Enterprise Frontend Configuration:', appConfig);
+if (appConfig.dev.debugMode || environmentDetector.shouldEnableDevelopmentFeatures()) {
+    console.log('🏢 Enterprise Frontend Configuration:', {
+        appConfig,
+        environment: environmentDetector.getEnvironmentInfo(),
+        services: environmentDetector.getServiceConfiguration()
+    });
 }
 
 // Export individual sections for convenience

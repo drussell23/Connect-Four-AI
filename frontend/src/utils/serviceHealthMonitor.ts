@@ -2,6 +2,7 @@
 // Periodically checks health of all integrated services
 
 import { integrationLogger } from './integrationLogger';
+import { environmentDetector, getHealthCheckEndpoints } from './environmentDetector';
 
 interface ServiceEndpoint {
   name: string;
@@ -14,50 +15,27 @@ interface ServiceEndpoint {
 
 class ServiceHealthMonitor {
   private services: ServiceEndpoint[] = [];
+  private environmentInfo = environmentDetector.getEnvironmentInfo();
 
   constructor() {
-    // Only monitor localhost services in development
-    if (this.isLocalDevelopment()) {
-      this.services = [
-        {
-          name: 'ML Service',
-          url: 'http://localhost:8000/health',
-          checkInterval: 30000,
-          consecutiveFailures: 0
-        },
-        {
-          name: 'ML Inference',
-          url: 'http://localhost:8001/health',
-          checkInterval: 30000,
-          consecutiveFailures: 0
-        },
-        {
-          name: 'Continuous Learning',
-          url: 'http://localhost:8002/health',
-          checkInterval: 30000,
-          consecutiveFailures: 0
-        },
-        {
-          name: 'AI Coordination',
-          url: 'http://localhost:8003/health',
-          checkInterval: 30000,
-          consecutiveFailures: 0
-        },
-        {
-          name: 'Python Trainer',
-          url: 'http://localhost:8004/health',
-          checkInterval: 30000,
-          consecutiveFailures: 0
-        }
-      ];
-    }
+    this.initializeServices();
   }
 
-  private isLocalDevelopment(): boolean {
-    // Check if we're running locally (not on Vercel or other production hosts)
-    return window.location.hostname === 'localhost' || 
-           window.location.hostname === '127.0.0.1' ||
-           window.location.hostname.includes('localhost');
+  private initializeServices(): void {
+    // Get health check endpoints based on environment
+    const endpoints = getHealthCheckEndpoints();
+    
+    this.services = endpoints.map(endpoint => ({
+      name: endpoint.name,
+      url: endpoint.url,
+      checkInterval: 30000,
+      consecutiveFailures: 0
+    }));
+
+    console.log(`🔧 Service Health Monitor initialized for ${this.environmentInfo.type} environment:`, {
+      environment: this.environmentInfo,
+      monitoringServices: this.services.map(s => ({ name: s.name, url: s.url }))
+    });
   }
 
   private intervalId: NodeJS.Timeout | null = null;
@@ -71,6 +49,10 @@ class ServiceHealthMonitor {
       const startTime = Date.now();
       const response = await fetch(service.url, {
         method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Accept': 'application/json',
+        },
         signal: controller.signal
       });
       
@@ -139,9 +121,8 @@ class ServiceHealthMonitor {
   }
 
   public startMonitoring(): void {
-    // Skip monitoring in production
     if (this.services.length === 0) {
-      console.log('📦 Service monitoring disabled in production');
+      console.log(`📦 No services to monitor in ${this.environmentInfo.type} environment`);
       return;
     }
     
@@ -150,7 +131,7 @@ class ServiceHealthMonitor {
       return;
     }
 
-    console.log('🚀 Starting service health monitoring...');
+    console.log(`🚀 Starting service health monitoring in ${this.environmentInfo.type} environment...`);
     this.isMonitoring = true;
 
     // Initial check
