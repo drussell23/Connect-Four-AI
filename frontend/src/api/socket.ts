@@ -1,6 +1,6 @@
 // frontend/src/api/socket.ts
 import io, { Socket, Manager } from 'socket.io-client';
-import { appConfig } from '../config/environment';
+import { appConfig, buildApiEndpoint } from '../config/environment';
 import { socketLogger } from './socketLogger';
 import { integrationLogger } from '../utils/integrationLogger';
 
@@ -466,7 +466,7 @@ class EnhancedSocketManager {
 
   private async validateServerConnection(): Promise<boolean> {
     try {
-      const response = await fetch(`${appConfig.api.baseUrl}/health`, {
+      const response = await fetch(buildApiEndpoint('/health'), {
         method: 'GET',
         signal: AbortSignal.timeout(3000)
       });
