@@ -3,14 +3,16 @@
   "exclude": [
     "node_modules",
     "dist",
-    "src/ai/**/*.ts",
-    "test/**/*.ts"
+    "test/**/*.ts",
+    "**/*.spec.ts",
+    "**/*.test.ts"
   ],
   "compilerOptions": {
+    "types": ["node"],
     "skipLibCheck": true,
     "noEmit": false,
     "declaration": false,
     "declarationMap": false,
-    "sourceMap": false
+    "sourceMap": true
   }
 }
