@@ -9,11 +9,22 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import axios, { AxiosInstance } from 'axios';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { InferenceSession, Tensor } from 'onnxruntime-node';
 import { CellValue } from '../connect4AI';
 import { v4 as uuidv4 } from 'uuid';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import * as crypto from 'crypto';
+
+// Try to load onnxruntime-node, but make it optional
+let ort: any;
+let InferenceSession: any;
+let Tensor: any;
+try {
+  ort = require('onnxruntime-node');
+  InferenceSession = ort.InferenceSession;
+  Tensor = ort.Tensor;
+} catch (error) {
+  console.warn('⚠️ ONNX Runtime not available - ONNX model support disabled');
+}
 
 export enum ModelType {
   ALPHAZERO = 'alphazero',
@@ -86,7 +97,7 @@ export interface HybridPrediction {
 export class HybridAIService implements OnModuleInit {
   private readonly logger = new Logger(HybridAIService.name);
   private pythonClient: AxiosInstance;
-  private inferenceSession: InferenceSession | null = null;
+  private inferenceSession: any | null = null;
   private modelVersions: Map<string, ModelVersion> = new Map();
   private activeModelId: string | null = null;
   private trainingQueue: TrainingExample[] = [];
@@ -609,6 +620,9 @@ export class HybridAIService implements OnModuleInit {
     }
 
     // Load new session
+    if (!InferenceSession) {
+      throw new Error('ONNX Runtime not available');
+    }
     this.inferenceSession = await InferenceSession.create(model.onnxPath);
     this.logger.log(`Loaded model ${modelId} for inference`);
   }
@@ -675,7 +689,7 @@ export class HybridAIService implements OnModuleInit {
     }, 5000); // Check every 5 seconds
   }
 
-  private boardToTensor(board: CellValue[][]): Tensor {
+  private boardToTensor(board: CellValue[][]): any {
     const data = new Float32Array(1 * 3 * 6 * 7);
     let idx = 0;
 
@@ -694,7 +708,7 @@ export class HybridAIService implements OnModuleInit {
       }
     }
 
-    return new Tensor('float32', data, [1, 3, 6, 7]);
+    return Tensor ? new Tensor('float32', data, [1, 3, 6, 7]) : null;
   }
 
   private async extractPolicy(policyTensor: any): Promise<number[]> {

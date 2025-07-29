@@ -8,9 +8,18 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { InferenceSession } from 'onnxruntime-node';
 import { CellValue } from '../connect4AI';
 import * as semver from 'semver';
+
+// Try to load onnxruntime-node, but make it optional
+let ort: any;
+let InferenceSession: any;
+try {
+  ort = require('onnxruntime-node');
+  InferenceSession = ort.InferenceSession;
+} catch (error) {
+  console.warn('⚠️ ONNX Runtime not available - ONNX model support disabled');
+}
 
 export interface ModelVersion {
   id: string;
@@ -267,7 +276,7 @@ export class ModelDeploymentService {
       region?: string;
       deviceType?: string;
     } = {}
-  ): Promise<{ modelId: string; session: InferenceSession }> {
+  ): Promise<{ modelId: string; session: any }> {
     const group = context.group || 'default';
     
     // Check A/B tests first
@@ -559,6 +568,9 @@ export class ModelDeploymentService {
   private async validateModel(model: ModelVersion): Promise<void> {
     try {
       // Load model to validate
+      if (!InferenceSession) {
+        throw new Error('ONNX Runtime not available');
+      }
       const session = await InferenceSession.create(model.files.onnx);
       
       // Run test inference
@@ -753,12 +765,15 @@ export class ModelDeploymentService {
     });
   }
 
-  private async loadModel(modelId: string): Promise<InferenceSession> {
+  private async loadModel(modelId: string): Promise<any> {
     const model = this.modelRegistry.get(modelId);
     if (!model) {
       throw new Error(`Model ${modelId} not found`);
     }
     
+    if (!InferenceSession) {
+      throw new Error('ONNX Runtime not available');
+    }
     return await InferenceSession.create(model.files.onnx);
   }
 
