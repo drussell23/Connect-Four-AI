@@ -3,12 +3,19 @@
  * Provides high-performance model inference using ONNX Runtime
  */
 
-import * as ort from 'onnxruntime-node';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { CellValue } from '../connect4AI';
+
+// Try to load onnxruntime-node, but make it optional
+let ort: any;
+try {
+  ort = require('onnxruntime-node');
+} catch (error) {
+  console.warn('⚠️ ONNX Runtime not available - ONNX model support disabled');
+}
 
 export interface ONNXModelConfig {
   modelPath: string;
@@ -55,6 +62,11 @@ export class ONNXModelEngine {
    * Load an ONNX model with advanced configuration
    */
   async loadModel(config: ONNXModelConfig): Promise<void> {
+    if (!ort) {
+      this.logger.warn('ONNX Runtime not available - skipping model load');
+      return;
+    }
+    
     this.logger.log(`Loading ONNX model: ${config.modelName}`);
     
     try {
@@ -115,6 +127,10 @@ export class ONNXModelEngine {
     modelName: string,
     board: CellValue[][]
   ): Promise<ModelPrediction> {
+    if (!ort) {
+      throw new Error('ONNX Runtime not available');
+    }
+    
     const session = this.sessions.get(modelName);
     const config = this.modelConfigs.get(modelName);
     
