@@ -1,0 +1,262 @@
+name: "🏥 Service Health Monitoring"
+
+on:
+  schedule:
+    # Run every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      check_all:
+        description: 'Check all services'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  SERVICES: |
+    backend,https://connect-four-ai-roge.onrender.com/api/health
+    ml-service,https://connect-four-ml.onrender.com/health
+    continuous-learning,https://connect-four-learning.onrender.com/health
+    ai-coordination,https://connect-four-coordination.onrender.com/health
+    python-trainer,https://connect-four-trainer.onrender.com/health
+    frontend,https://connect-four-ai-derek.vercel.app
+
+jobs:
+  health-check:
+    name: "🏥 Health Check"
+    runs-on: ubuntu-latest
+    outputs:
+      any-unhealthy: ${{ steps.check.outputs.any-unhealthy }}
+      status-summary: ${{ steps.check.outputs.summary }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check service health
+        id: check
+        run: |
+          echo "## 🏥 Service Health Check Results" >> health-report.md
+          echo "" >> health-report.md
+          echo "| Service | URL | Status | Response Time | Details |" >> health-report.md
+          echo "|---------|-----|--------|---------------|---------|" >> health-report.md
+          
+          any_unhealthy=false
+          
+          while IFS=',' read -r service url; do
+            if [ -z "$service" ]; then continue; fi
+            
+            echo "Checking $service at $url..."
+            
+            start_time=$(date +%s%N)
+            
+            # Perform health check with timeout
+            if response=$(curl -s -o response.txt -w "%{http_code}" --max-time 30 "$url"); then
+              end_time=$(date +%s%N)
+              response_time=$(( (end_time - start_time) / 1000000 ))
+              
+              if [ "$response" == "200" ]; then
+                status="✅ Healthy"
+                emoji="🟢"
+              else
+                status="⚠️ Unhealthy"
+                emoji="🟡"
+                any_unhealthy=true
+              fi
+              
+              # Try to extract additional info from response
+              details=""
+              if [ -f response.txt ]; then
+                # Check if response contains version info
+                if grep -q "version" response.txt; then
+                  version=$(grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' response.txt | cut -d'"' -f4)
+                  details="v$version"
+                fi
+              fi
+              
+              echo "| $service | $url | $emoji $status | ${response_time}ms | $details |" >> health-report.md
+            else
+              echo "| $service | $url | 🔴 Down | - | Connection failed |" >> health-report.md
+              any_unhealthy=true
+            fi
+            
+            rm -f response.txt
+          done <<< "$SERVICES"
+          
+          echo "" >> health-report.md
+          echo "_Last checked: $(date -u '+%Y-%m-%d %H:%M:%S UTC')_" >> health-report.md
+          
+          # Set outputs
+          echo "any-unhealthy=$any_unhealthy" >> $GITHUB_OUTPUT
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          cat health-report.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Also output to step summary
+          cat health-report.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload health report
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-report-${{ github.run_id }}
+          path: health-report.md
+          retention-days: 7
+
+  alert-unhealthy:
+    name: "🚨 Alert on Unhealthy Services"
+    runs-on: ubuntu-latest
+    needs: health-check
+    if: needs.health-check.outputs.any-unhealthy == 'true'
+    steps:
+      - name: Create issue for unhealthy services
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueTitle = '🚨 Service Health Alert: One or more services are unhealthy';
+            const issueBody = `## Service Health Alert
+            
+            One or more services are not responding correctly.
+            
+            ${{ needs.health-check.outputs.status-summary }}
+            
+            ### Actions Required:
+            1. Check Render dashboard for service status
+            2. Review service logs for errors
+            3. Verify deployment status
+            4. Check for any ongoing incidents
+            
+            ---
+            _This issue was automatically created by the health monitoring workflow._
+            `;
+            
+            // Check if similar issue already exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['service-health', 'automated']
+            });
+            
+            const existingIssue = issues.data.find(issue => 
+              issue.title.includes('Service Health Alert')
+            );
+            
+            if (!existingIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: issueTitle,
+                body: issueBody,
+                labels: ['service-health', 'automated', 'high-priority']
+              });
+            } else {
+              // Update existing issue with new status
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: `## Updated Health Status
+                
+                ${{ needs.health-check.outputs.status-summary }}`
+              });
+            }
+
+      - name: Send Slack notification
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: env.SLACK_WEBHOOK_URL != ''
+        run: |
+          curl -X POST $SLACK_WEBHOOK_URL \
+            -H 'Content-type: application/json' \
+            -d '{
+              "text": "🚨 Connect Four AI Service Health Alert",
+              "attachments": [{
+                "color": "danger",
+                "text": "One or more services are unhealthy. Check the GitHub issue for details.",
+                "fields": [
+                  {"title": "Repository", "value": "${{ github.repository }}", "short": true},
+                  {"title": "Workflow Run", "value": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}", "short": true}
+                ]
+              }]
+            }'
+
+  update-status-badge:
+    name: "📊 Update Status Badge"
+    runs-on: ubuntu-latest
+    needs: health-check
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update README with status
+        run: |
+          # Create or update status badge in README
+          if [ "${{ needs.health-check.outputs.any-unhealthy }}" == "true" ]; then
+            badge_url="https://img.shields.io/badge/Service%20Health-Degraded-yellow"
+          else
+            badge_url="https://img.shields.io/badge/Service%20Health-Operational-green"
+          fi
+          
+          # Update README if it exists
+          if [ -f README.md ]; then
+            # Remove old badge if exists
+            sed -i '/\[!\[Service Health\]/d' README.md
+            
+            # Add new badge at the top
+            sed -i "1s/^/[![Service Health]($badge_url)](https://github.com/${{ github.repository }}/actions/workflows/health-monitoring.yml)\n\n/" README.md
+          fi
+
+      - name: Commit status update
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          if git diff --quiet; then
+            echo "No changes to commit"
+          else
+            git add README.md
+            git commit -m "Update service health status badge"
+            git push
+          fi
+
+  performance-metrics:
+    name: "📈 Collect Performance Metrics"
+    runs-on: ubuntu-latest
+    needs: health-check
+    if: needs.health-check.outputs.any-unhealthy == 'false'
+    steps:
+      - name: Collect response time metrics
+        run: |
+          echo "## 📈 Performance Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Collect detailed metrics for healthy services
+          while IFS=',' read -r service url; do
+            if [ -z "$service" ]; then continue; fi
+            
+            echo "### $service" >> $GITHUB_STEP_SUMMARY
+            
+            # Perform multiple requests to get average response time
+            total_time=0
+            count=0
+            
+            for i in {1..5}; do
+              if time=$(curl -o /dev/null -s -w '%{time_total}\n' --max-time 10 "$url" 2>/dev/null); then
+                time_ms=$(echo "$time * 1000" | bc)
+                total_time=$(echo "$total_time + $time_ms" | bc)
+                count=$((count + 1))
+              fi
+            done
+            
+            if [ $count -gt 0 ]; then
+              avg_time=$(echo "scale=2; $total_time / $count" | bc)
+              echo "- Average response time: ${avg_time}ms" >> $GITHUB_STEP_SUMMARY
+              echo "- Samples taken: $count" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- Unable to collect metrics" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            echo "" >> $GITHUB_STEP_SUMMARY
+          done <<< "$SERVICES"

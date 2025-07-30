@@ -1,0 +1,139 @@
+version: 2
+updates:
+  # Frontend dependencies
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "derekjrussell"
+    labels:
+      - "dependencies"
+      - "frontend"
+    groups:
+      react:
+        patterns:
+          - "react*"
+          - "@types/react*"
+      testing:
+        patterns:
+          - "*test*"
+          - "*jest*"
+          - "@testing-library/*"
+    ignore:
+      # Add any dependencies you want to manage manually
+      - dependency-name: "react"
+        versions: ["19.x"]
+
+  # Backend dependencies
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "derekjrussell"
+    labels:
+      - "dependencies"
+      - "backend"
+    groups:
+      nestjs:
+        patterns:
+          - "@nestjs/*"
+      typescript:
+        patterns:
+          - "typescript"
+          - "@types/*"
+
+  # Root dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "derekjrussell"
+    labels:
+      - "dependencies"
+      - "tooling"
+
+  # Python dependencies for ML service
+  - package-ecosystem: "pip"
+    directory: "/ml_service"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "03:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "derekjrussell"
+    labels:
+      - "dependencies"
+      - "ml-service"
+      - "python"
+    ignore:
+      # PyTorch updates often have breaking changes
+      - dependency-name: "torch"
+        versions: [">2.1.0"]
+      - dependency-name: "torchvision"
+        versions: [">0.16.0"]
+
+  # Python trainer dependencies
+  - package-ecosystem: "pip"
+    directory: "/backend/src/ai/hybrid-architecture/python-trainer"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "03:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "derekjrussell"
+    labels:
+      - "dependencies"
+      - "python-trainer"
+      - "python"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "03:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "derekjrussell"
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 2
+    reviewers:
+      - "derekjrussell"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  - package-ecosystem: "docker"
+    directory: "/backend/src/ai/hybrid-architecture/python-trainer"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 2
+    reviewers:
+      - "derekjrussell"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "python-trainer"

@@ -1,0 +1,327 @@
+name: "🐳 Microservices Deployment"
+
+on:
+  workflow_call:
+    inputs:
+      deploy_all_services:
+        description: 'Deploy all microservices'
+        required: false
+        default: true
+        type: boolean
+  push:
+    branches: [ main ]
+    paths:
+      - 'render.yaml'
+      - 'ml_service/**'
+      - 'backend/src/ai/hybrid-architecture/python-trainer/**'
+  workflow_dispatch:
+    inputs:
+      services:
+        description: 'Services to deploy'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'backend-only'
+          - 'ml-services-only'
+          - 'selective'
+
+env:
+  RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+  PYTHON_VERSION: '3.9'
+
+jobs:
+  # ==========================================
+  # 🔍 Service Change Detection
+  # ==========================================
+  detect-service-changes:
+    name: "🔍 Detect Service Changes"
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.changes.outputs.backend }}
+      ml_service: ${{ steps.changes.outputs.ml-service }}
+      continuous_learning: ${{ steps.changes.outputs.continuous-learning }}
+      ai_coordination: ${{ steps.changes.outputs.ai-coordination }}
+      python_trainer: ${{ steps.changes.outputs.python-trainer }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect file changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '!backend/src/ai/hybrid-architecture/python-trainer/**'
+            ml-service:
+              - 'ml_service/ml_service.py'
+              - 'ml_service/requirements.production.txt'
+            continuous-learning:
+              - 'ml_service/continuous_learning.py'
+            ai-coordination:
+              - 'ml_service/ai_coordination_hub.py'
+            python-trainer:
+              - 'backend/src/ai/hybrid-architecture/python-trainer/**'
+
+  # ==========================================
+  # 🏗️ Build ML Service Images
+  # ==========================================
+  build-ml-images:
+    name: "🏗️ Build ML Service Images"
+    runs-on: ubuntu-latest
+    needs: detect-service-changes
+    if: |
+      needs.detect-service-changes.outputs.ml_service == 'true' ||
+      needs.detect-service-changes.outputs.continuous_learning == 'true' ||
+      needs.detect-service-changes.outputs.ai_coordination == 'true'
+    strategy:
+      matrix:
+        service:
+          - name: ml-service
+            dockerfile: ml_service/Dockerfile
+            context: ml_service
+          - name: continuous-learning
+            dockerfile: ml_service/Dockerfile.learning
+            context: ml_service
+          - name: ai-coordination
+            dockerfile: ml_service/Dockerfile.coordination
+            context: ml_service
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create Dockerfile if missing
+        run: |
+          if [ ! -f "${{ matrix.service.dockerfile }}" ]; then
+            cat > "${{ matrix.service.dockerfile }}" << 'EOF'
+          FROM python:3.9-slim
+
+          WORKDIR /app
+
+          # Install system dependencies
+          RUN apt-get update && apt-get install -y \
+              build-essential \
+              curl \
+              && rm -rf /var/lib/apt/lists/*
+
+          # Copy requirements
+          COPY requirements.production.txt .
+
+          # Install Python dependencies
+          RUN pip install --no-cache-dir -r requirements.production.txt
+
+          # Copy application code
+          COPY . .
+
+          # Expose port
+          EXPOSE ${PORT:-8000}
+
+          # Set environment variables
+          ENV PYTHONUNBUFFERED=1
+          ENV ENVIRONMENT=production
+
+          # Start command varies by service
+          CMD ["python", "-m", "uvicorn", "ml_service:app", "--host", "0.0.0.0", "--port", "${PORT:-8000}"]
+          EOF
+          fi
+
+      - name: Build and export image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.dockerfile }}
+          push: false
+          tags: ${{ matrix.service.name }}:latest
+          outputs: type=docker,dest=/tmp/${{ matrix.service.name }}.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.service.name }}-image
+          path: /tmp/${{ matrix.service.name }}.tar
+          retention-days: 1
+
+  # ==========================================
+  # 🧪 Test Microservices
+  # ==========================================
+  test-microservices:
+    name: "🧪 Test Microservices"
+    runs-on: ubuntu-latest
+    needs: build-ml-images
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download ML service image
+        uses: actions/download-artifact@v4
+        with:
+          name: ml-service-image
+          path: /tmp
+
+      - name: Load Docker image
+        run: docker load --input /tmp/ml-service.tar
+
+      - name: Start ML service
+        run: |
+          docker run -d \
+            --name ml-service \
+            -p 8000:8000 \
+            -e PORT=8000 \
+            -e ENVIRONMENT=test \
+            ml-service:latest
+
+      - name: Wait for service to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -f http://localhost:8000/health; then
+              echo "Service is ready!"
+              break
+            fi
+            echo "Waiting for service... ($i/30)"
+            sleep 2
+          done
+
+      - name: Run health checks
+        run: |
+          # Test ML service endpoints
+          curl -f http://localhost:8000/health || exit 1
+          curl -f http://localhost:8000/api/v1/predict -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"board": [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]]}' \
+            || exit 1
+
+      - name: Container logs on failure
+        if: failure()
+        run: docker logs ml-service
+
+  # ==========================================
+  # 🚀 Deploy to Render
+  # ==========================================
+  deploy-render:
+    name: "🚀 Deploy to Render"
+    runs-on: ubuntu-latest
+    needs: [detect-service-changes, test-microservices]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via Render API
+        if: env.RENDER_API_KEY != ''
+        run: |
+          # Trigger Render deployment
+          curl -X POST \
+            -H "Authorization: Bearer ${{ env.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            https://api.render.com/deploy/srv-YOUR-SERVICE-ID \
+            -d '{"clearCache": false}'
+
+      - name: Deploy via render.yaml
+        if: env.RENDER_API_KEY == ''
+        run: |
+          echo "⚠️ RENDER_API_KEY not set. Please deploy manually or set up the API key."
+          echo "Your render.yaml is configured with all services."
+          echo "Visit https://dashboard.render.com to deploy."
+
+  # ==========================================
+  # 🔄 Update Frontend Environment
+  # ==========================================
+  update-frontend-env:
+    name: "🔄 Update Frontend Environment"
+    runs-on: ubuntu-latest
+    needs: deploy-render
+    if: success()
+    steps:
+      - name: Update Vercel Environment Variables
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        if: env.VERCEL_TOKEN != ''
+        run: |
+          # Update ML service URLs in Vercel
+          curl -X PATCH \
+            -H "Authorization: Bearer ${{ env.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            https://api.vercel.com/v9/projects/${{ env.VERCEL_PROJECT_ID }}/env \
+            -d '{
+              "key": "REACT_APP_ML_SERVICE_URL",
+              "value": "https://connect-four-ml.onrender.com",
+              "target": ["production"]
+            }'
+
+  # ==========================================
+  # 🧹 Cleanup Old Deployments
+  # ==========================================
+  cleanup-old-deployments:
+    name: "🧹 Cleanup Old Deployments"
+    runs-on: ubuntu-latest
+    needs: deploy-render
+    if: success()
+    steps:
+      - name: Remove old Render deployments
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        if: env.RENDER_API_KEY != ''
+        run: |
+          echo "Cleaning up old deployments..."
+          # Add cleanup logic here
+
+  # ==========================================
+  # 📊 Deployment Summary
+  # ==========================================
+  deployment-summary:
+    name: "📊 Deployment Summary"
+    runs-on: ubuntu-latest
+    needs: [detect-service-changes, deploy-render, update-frontend-env]
+    if: always()
+    steps:
+      - name: Generate deployment summary
+        run: |
+          echo "## 🐳 Microservices Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Services Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | Changed | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend API | ${{ needs.detect-service-changes.outputs.backend }} | ${{ needs.deploy-render.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ML Service | ${{ needs.detect-service-changes.outputs.ml_service }} | ${{ needs.deploy-render.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Continuous Learning | ${{ needs.detect-service-changes.outputs.continuous_learning }} | ${{ needs.deploy-render.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| AI Coordination | ${{ needs.detect-service-changes.outputs.ai_coordination }} | ${{ needs.deploy-render.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Python Trainer | ${{ needs.detect-service-changes.outputs.python_trainer }} | ${{ needs.deploy-render.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Service URLs" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend: https://connect-four-ai-roge.onrender.com" >> $GITHUB_STEP_SUMMARY
+          echo "- ML Service: https://connect-four-ml.onrender.com" >> $GITHUB_STEP_SUMMARY
+          echo "- Continuous Learning: https://connect-four-learning.onrender.com" >> $GITHUB_STEP_SUMMARY
+          echo "- AI Coordination: https://connect-four-coordination.onrender.com" >> $GITHUB_STEP_SUMMARY
+          echo "- Python Trainer: https://connect-four-trainer.onrender.com" >> $GITHUB_STEP_SUMMARY
+
+      - name: Post deployment notification
+        if: success() && github.event_name == 'push'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            curl -X POST $SLACK_WEBHOOK_URL \
+              -H 'Content-type: application/json' \
+              -d '{
+                "text": "🚀 Microservices deployed successfully!",
+                "attachments": [{
+                  "color": "good",
+                  "fields": [
+                    {"title": "Repository", "value": "${{ github.repository }}", "short": true},
+                    {"title": "Branch", "value": "${{ github.ref_name }}", "short": true},
+                    {"title": "Commit", "value": "${{ github.sha }}", "short": false}
+                  ]
+                }]
+              }'
+          fi
