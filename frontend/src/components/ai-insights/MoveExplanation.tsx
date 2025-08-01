@@ -11,6 +11,7 @@ interface MoveExplanationProps {
     boardState?: string[][];
     isVisible: boolean;
     onClose: () => void;
+    aiLevel?: number;
 }
 
 const MoveExplanationPanel: React.FC<MoveExplanationProps> = ({
@@ -19,7 +20,8 @@ const MoveExplanationPanel: React.FC<MoveExplanationProps> = ({
     player,
     boardState,
     isVisible,
-    onClose
+    onClose,
+    aiLevel = 1
 }) => {
     const [explanation, setExplanation] = useState<MoveExplanation | null>(null);
     const [loading, setLoading] = useState(false);
@@ -29,50 +31,21 @@ const MoveExplanationPanel: React.FC<MoveExplanationProps> = ({
         if (isVisible && gameId) {
             loadMoveExplanation();
         }
-    }, [isVisible, gameId, move, player]);
+    }, [isVisible, gameId, move, player, boardState]);
 
     const loadMoveExplanation = async () => {
         setLoading(true);
         setError(null);
 
         try {
-            // If no specific move is provided or it's invalid, don't analyze
+            // If no specific move is provided or it's invalid, show help message
             if (move < 0 || move > 6) {
-                console.log('No valid move selected, skipping analysis');
-                setExplanation({
-                    gameId: gameId,
-                    move: -1,
-                    player: player,
-                    column: -1,
-                    explanation: {
-                        primary: 'Select a column on the board to analyze a specific move',
-                        secondary: ['Click on any column to see AI analysis'],
-                        strategic: 'No move selected',
-                        tactical: 'N/A'
-                    },
-                    analysis: {
-                        quality: 'average',
-                        score: 0,
-                        confidence: 0,
-                        alternatives: []
-                    },
-                    boardState: {
-                        before: boardState || [],
-                        after: boardState || [],
-                        highlights: []
-                    },
-                    metadata: {
-                        moveNumber: 0,
-                        gamePhase: 'opening',
-                        timeSpent: 0,
-                        aiLevel: '1'
-                    }
-                });
+                console.log('No valid move selected, showing help message');
                 setLoading(false);
-                return;
+                return; // Don't set a fake explanation, just return
             }
 
-            const data = await getMoveExplanation(gameId, move, player, boardState);
+            const data = await getMoveExplanation(gameId, move, player, boardState, aiLevel);
             setExplanation(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load move explanation');
@@ -152,20 +125,29 @@ const MoveExplanationPanel: React.FC<MoveExplanationProps> = ({
                     </div>
                 )}
 
-                {explanation && !loading && (
+                {!loading && !error && (move < 0 || move > 6) && (
                     <div className="move-explanation-content">
-                        {/* Special message for no move selected */}
-                        {move < 0 || move > 6 ? (
-                            <div className="no-move-selected">
-                                <h2>📍 No Move Selected</h2>
-                                <p>{explanation.explanation.primary}</p>
-                                <div className="instructions">
-                                    <p>👆 Click on any column number (0-6) on the game board to analyze that move</p>
-                                    <p>💡 The AI will explain why that move is good or bad</p>
-                                </div>
+                        <div className="no-move-selected">
+                            <h2>💡 Move Explanation</h2>
+                            <p>This tool helps you understand potential moves</p>
+                            <div className="instructions">
+                                <h3>How to use:</h3>
+                                <p>1️⃣ Click any <strong>empty column</strong> on the board to see what would happen if you play there</p>
+                                <p>2️⃣ The AI will explain if it's a good or bad move and why</p>
+                                <p>3️⃣ See alternative moves and strategic insights</p>
                             </div>
-                        ) : (
-                            <>
+                            {boardState && (
+                                <div className="current-board-hint">
+                                    <h3>💭 For analyzing completed moves:</h3>
+                                    <p>Use the <strong>"Move Analysis"</strong> button instead - it analyzes the current board position and past moves</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {explanation && !loading && (move >= 0 && move <= 6) && (
+                    <div className="move-explanation-content">
                                 {/* Move Overview */}
                                 <div className="move-overview">
                                     <div className="move-info">
@@ -273,8 +255,6 @@ const MoveExplanationPanel: React.FC<MoveExplanationProps> = ({
                                         </div>
                                     </div>
                                 </div>
-                            </>
-                        )}
                     </div>
                 )}
             </div>

@@ -8,16 +8,18 @@ interface MoveAnalysisProps {
     boardState: string[][];
     currentPlayer: 'player' | 'ai';
     aiLevel: number;
+    gameId?: string;
     isVisible: boolean;
     onClose: () => void;
 }
 
 const MoveAnalysis: React.FC<MoveAnalysisProps> = ({
-    boardState,
-    currentPlayer,
-    aiLevel,
-    isVisible,
-    onClose
+    boardState, // Board state
+    currentPlayer, // Current player
+    aiLevel, // AI level
+    gameId, // Game ID
+    isVisible, // Show move analysis
+    onClose // Close move analysis
 }) => {
     const [analysis, setAnalysis] = useState<{
         explanation: MoveExplanation;
@@ -31,14 +33,14 @@ const MoveAnalysis: React.FC<MoveAnalysisProps> = ({
         if (isVisible && boardState) {
             loadAnalysis();
         }
-    }, [isVisible, boardState, currentPlayer, aiLevel]);
+    }, [isVisible, boardState, currentPlayer, aiLevel, gameId]); // Dependencies
 
     const loadAnalysis = async () => {
         setLoading(true);
         setError(null);
 
         try {
-            const data = await analyzeCurrentPosition(boardState, currentPlayer, aiLevel);
+            const data = await analyzeCurrentPosition(boardState, currentPlayer, aiLevel, gameId); // Analyze current position
             setAnalysis(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load move analysis');

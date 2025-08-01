@@ -1,9 +1,7 @@
 // frontend/src/services/moveAnalysisService.ts
 // Real AI-based move analysis service
 import { MoveExplanation, StrategicInsights } from '../api/ai-insights';
-
-// API base URL - adjust based on your backend configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+import { buildApiEndpoint } from '../config/environment';
 
 interface RealMoveAnalysis {
     move: number;
@@ -94,6 +92,14 @@ class RealMoveAnalysisService {
                 return this.getFallbackMoveExplanation(gameId, move, player, boardState, aiLevel);
             }
 
+            // Check if the column is full
+            if (boardState && boardState.length > 0 && move >= 0 && move < 7) {
+                if (boardState[0][move] !== 'Empty') {
+                    console.log(`Column ${move} is full, providing strategic analysis`);
+                    return this.getColumnFullExplanation(gameId, move, player, boardState, aiLevel);
+                }
+            }
+
             // If we have a valid board state from the frontend, use it directly
             if (boardState && boardState.length > 0) {
                 console.log(`🎯 Using frontend board state for analysis of game ${gameId}`);
@@ -109,7 +115,7 @@ class RealMoveAnalysisService {
             while (!gameExists && retryCount < maxRetries) {
                 try {
                     console.log(`🔍 Checking if game ${gameId} exists... (attempt ${retryCount + 1}/${maxRetries})`);
-                    const gameCheckResponse = await fetch(`${API_BASE_URL}/games/${gameId}/board`);
+                    const gameCheckResponse = await fetch(buildApiEndpoint(`/games/${gameId}/board`));
                     gameExists = gameCheckResponse.ok;
                     console.log(`✅ Game ${gameId} check result: ${gameCheckResponse.status} ${gameCheckResponse.statusText}`);
 
@@ -137,7 +143,7 @@ class RealMoveAnalysisService {
             let response;
             try {
                 console.log(`🧠 Calling analyze-move API for game ${gameId}...`);
-                response = await fetch(`${API_BASE_URL}/games/${gameId}/analyze-move`, {
+                response = await fetch(buildApiEndpoint(`/games/${gameId}/analyze-move`), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -254,7 +260,7 @@ class RealMoveAnalysisService {
                 };
             }
 
-            const response = await fetch(`${API_BASE_URL}/games/${gameId}/analyze-position`, {
+            const response = await fetch(buildApiEndpoint(`/games/${gameId}/analyze-position`), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -266,6 +272,18 @@ class RealMoveAnalysisService {
             });
 
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`Position analysis failed: ${response.status} ${response.statusText}`, errorText);
+                
+                // If game not found, provide better error message
+                if (response.status === 400 && errorText.includes('Game not found')) {
+                    console.log('Game not found on backend, using fallback analysis');
+                    return {
+                        explanation: this.getFallbackMoveExplanation(gameId, 1, currentPlayer, boardState, aiLevel),
+                        insights: this.getFallbackStrategicInsights(boardState, currentPlayer)
+                    };
+                }
+                
                 throw new Error(`Position analysis failed: ${response.statusText}`);
             }
 
@@ -364,7 +382,7 @@ class RealMoveAnalysisService {
             console.log(`🧠 Analyzing move ${move} for ${player} using frontend board state`);
 
             // Call the analyze-move API with the current board state
-            const response = await fetch(`${API_BASE_URL}/games/${gameId}/analyze-move`, {
+            const response = await fetch(buildApiEndpoint(`/games/${gameId}/analyze-move`), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -384,6 +402,12 @@ class RealMoveAnalysisService {
                 if (response.status === 400 && errorText.includes('Game not found')) {
                     console.log('Game not found on backend, using fallback analysis');
                     return this.getFallbackMoveExplanation(gameId, move, player, boardState || [], aiLevel);
+                }
+
+                // If column is full, provide helpful fallback
+                if (response.status === 400 && errorText.includes('is full')) {
+                    console.log(`Column ${move} is full, providing analysis of why it's full`);
+                    return this.getColumnFullExplanation(gameId, move, player, boardState || [], aiLevel);
                 }
 
                 throw new Error(`AI analysis failed: ${response.statusText}`);
@@ -635,6 +659,65 @@ class RealMoveAnalysisService {
         }
 
         return alternatives;
+    }
+
+    /**
+     * Get explanation for when a column is full
+     */
+    private getColumnFullExplanation(
+        gameId: string,
+        move: number,
+        player: 'player' | 'ai',
+        boardState: string[][],
+        aiLevel: number = 1
+    ): MoveExplanation {
+        // Find available columns
+        const availableColumns: number[] = [];
+        if (boardState && boardState.length > 0) {
+            for (let col = 0; col < 7; col++) {
+                if (boardState[0][col] === 'Empty') {
+                    availableColumns.push(col);
+                }
+            }
+        }
+
+        return {
+            gameId,
+            move,
+            player,
+            column: move,
+            explanation: {
+                primary: `Column ${move} is completely full and cannot accept any more pieces`,
+                secondary: [
+                    'This column has reached its maximum capacity of 6 pieces',
+                    `Available columns are: ${availableColumns.length > 0 ? availableColumns.join(', ') : 'None - board might be full'}`,
+                    'Consider playing in an open column instead'
+                ],
+                strategic: 'Full columns can create interesting tactical situations by limiting options',
+                tactical: 'Use full columns to your advantage by forcing plays in specific areas'
+            },
+            analysis: {
+                quality: 'invalid' as any,
+                score: 0,
+                confidence: 100,
+                alternatives: availableColumns.slice(0, 3).map(col => ({
+                    column: col,
+                    score: 0.5,
+                    reasoning: `Column ${col} is available for play`
+                }))
+            },
+            boardState: {
+                before: boardState,
+                after: boardState,
+                highlights: [move]
+            },
+            metadata: {
+                moveNumber: 0,
+                gamePhase: 'analysis' as any,
+                timeSpent: 0,
+                aiLevel: aiLevel.toString()
+            }
+        };
     }
 }
 

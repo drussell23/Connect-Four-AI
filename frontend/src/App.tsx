@@ -146,6 +146,7 @@ const App: React.FC = () => {
   const [showGameHistory, setShowGameHistory] = useState<boolean>(false);
   const [showUserSettings, setShowUserSettings] = useState<boolean>(false);
   const [selectedMoveIndex, setSelectedMoveIndex] = useState<number>(-1);
+  const [lastAnalyzedMove, setLastAnalyzedMove] = useState<{ column: number; player: 'player' | 'ai' } | null>(null);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [aiInsightsData, setAiInsightsData] = useState<any>(null);
   const [gameHistoryData, setGameHistoryData] = useState<any>(null);
@@ -1086,6 +1087,7 @@ const App: React.FC = () => {
         setBoardAfterMove(data.board);
         setLastMoveColumn(data.lastMove.column);
         setLastMovePlayer('ai');
+        setLastAnalyzedMove({ column: data.lastMove.column, player: 'ai' });
         console.log('📸 Board state captured after AI move');
 
         playDrop();
@@ -1173,6 +1175,7 @@ const App: React.FC = () => {
         setBoardAfterMove(data.board);
         setLastMoveColumn(data.lastMove.column);
         setLastMovePlayer('player');
+        setLastAnalyzedMove({ column: data.lastMove.column, player: 'player' });
         console.log('📸 Board state captured after player move');
 
         playDrop();
@@ -1400,8 +1403,11 @@ const App: React.FC = () => {
   function onColumnClick(col: number) {
     console.log(`🎯 Column ${col} clicked`);
 
-    // Set the selected move for analysis
-    setSelectedMoveIndex(col);
+    // If Move Explanation panel is open, use the click to select a column for analysis
+    if (showMoveExplanation) {
+      setSelectedMoveIndex(col);
+      return; // Don't make a move, just analyze
+    }
 
     const connStatus = getConnectionStatus();
     console.log('🔍 Current state:', {
@@ -1669,6 +1675,29 @@ const App: React.FC = () => {
         </motion.button>
       )}
 
+      {/* Floating Analyze Last Move Button */}
+      {lastAnalyzedMove && !showVictoryModal && !showMoveExplanation && history.length > 0 && (
+        <motion.button
+          onClick={() => {
+            // Instead of analyzing the column where the piece was placed,
+            // analyze the board position after the move
+            setShowMoveAnalysis(true);
+          }}
+          className="fixed bottom-6 left-6 bg-gradient-to-r from-yellow-600 to-orange-600 text-white p-4 rounded-full shadow-2xl hover:shadow-yellow-500/50 transition-all duration-300 hover:scale-110 z-[9999]"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 50 }}
+          title={`Analyze ${lastAnalyzedMove.player === 'ai' ? 'AI' : 'Your'} Move (Column ${lastAnalyzedMove.column})`}
+        >
+          <div className="flex flex-col items-center">
+            <span className="text-2xl">🔍</span>
+            <span className="text-xs font-semibold mt-1">Analyze</span>
+          </div>
+        </motion.button>
+      )}
+
       {/* Game Board */}
       <Board
         board={board}
@@ -1762,7 +1791,10 @@ const App: React.FC = () => {
           🧑‍💼 Player Stats
         </button>
         <button
-          onClick={() => setShowMoveExplanation(true)}
+          onClick={() => {
+            // Show move explanation panel - it will handle empty columns intelligently
+            setShowMoveExplanation(true);
+          }}
           className="bg-yellow-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
           title="AI Move Explanation"
         >
@@ -1835,9 +1867,10 @@ const App: React.FC = () => {
               </button>
               <MoveExplanationPanel
                 gameId={gameId || 'demo-game'}
-                move={selectedMoveIndex}
-                player={'player'}
+                move={selectedMoveIndex >= 0 ? selectedMoveIndex : (lastAnalyzedMove?.column ?? -1)}
+                player={selectedMoveIndex >= 0 ? 'player' : (lastAnalyzedMove?.player ?? 'player')}
                 boardState={board}
+                aiLevel={aiLevel}
                 isVisible={showMoveExplanation}
                 onClose={() => {
                   setShowMoveExplanation(false);
@@ -1901,11 +1934,12 @@ const App: React.FC = () => {
       <AnimatePresence>
         {showMoveAnalysis && (
           <MoveAnalysis
-            boardState={board}
-            currentPlayer={currentPlayer === 'Red' ? 'player' : 'ai'}
-            aiLevel={aiLevel}
-            isVisible={showMoveAnalysis}
-            onClose={() => setShowMoveAnalysis(false)}
+            boardState={board} // Board state
+            currentPlayer={currentPlayer === 'Red' ? 'player' : 'ai'} // Current player
+            aiLevel={aiLevel} // AI level
+            gameId={gameId} // Game ID 
+            isVisible={showMoveAnalysis} // Show move analysis
+            onClose={() => setShowMoveAnalysis(false)} // Close move analysis
           />
         )}
       </AnimatePresence>
@@ -1915,7 +1949,7 @@ const App: React.FC = () => {
         {showAIInsightsPanel && aiExplanation && (
           <motion.div
             className="fixed top-0 right-0 h-full w-80 bg-gradient-to-b from-blue-900 to-purple-900 shadow-2xl border-l border-blue-400 z-[9999] overflow-y-auto"
-            initial={{ x: 320 }}
+            initial={{ x: 320 }} 
             animate={{ x: 0 }}
             exit={{ x: 320 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
