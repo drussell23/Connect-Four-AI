@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # =====================================================
-# 🛑 CONNECT FOUR - STOP ALL SERVICES
+# 🛑 CONNECT FOUR - STOP ALL SERVICES WITH CLEANUP
 # =====================================================
-# This script stops all services for the Connect Four game
+# This script stops all services and performs cleanup
 # Usage: ./stop-all.sh or npm run stop:all
 
 # Colors for output
@@ -11,66 +11,136 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🛑 Stopping Connect Four Game Services...${NC}"
+echo -e "${RED}🛑 Stopping Connect Four Game Services...${NC}"
 
-# Function to stop a service
-stop_service() {
+# Function to stop service by PID file
+stop_service_by_pid() {
     local name=$1
     local pid_file="logs/${name}.pid"
     
     if [ -f "$pid_file" ]; then
-        local pid=$(cat "$pid_file")
-        if kill -0 "$pid" 2>/dev/null; then
-            echo -e "${YELLOW}⏹️  Stopping $name (PID: $pid)...${NC}"
-            kill "$pid"
-            rm -f "$pid_file"
-            echo -e "${GREEN}✅ $name stopped${NC}"
+        PID=$(cat "$pid_file")
+        if kill -0 $PID 2>/dev/null; then
+            echo -e "${YELLOW}   Stopping $name (PID: $PID)...${NC}"
+            kill $PID 2>/dev/null
+            
+            # Wait for graceful shutdown
+            local count=0
+            while kill -0 $PID 2>/dev/null && [ $count -lt 10 ]; do
+                sleep 0.5
+                count=$((count + 1))
+            done
+            
+            # Force kill if still running
+            if kill -0 $PID 2>/dev/null; then
+                echo -e "${YELLOW}   Force stopping $name...${NC}"
+                kill -9 $PID 2>/dev/null
+            fi
+            
+            echo -e "${GREEN}   ✅ $name stopped${NC}"
         else
-            echo -e "${YELLOW}⚠️  $name was not running (stale PID file)${NC}"
-            rm -f "$pid_file"
+            echo -e "${YELLOW}   ⚠️  $name was not running (stale PID file)${NC}"
         fi
-    else
-        echo -e "${YELLOW}⚠️  No PID file found for $name${NC}"
+        rm -f "$pid_file"
     fi
 }
 
-# Stop services using PID files
-echo -e "${BLUE}📋 Stopping services gracefully...${NC}"
-stop_service "python_trainer"
-stop_service "ai_coordination"
-stop_service "continuous_learning"
-stop_service "ml_inference"
-stop_service "ml_service"
-stop_service "frontend"
-stop_service "backend"
+# Function to stop service by port
+stop_service_by_port() {
+    local port=$1
+    local name=$2
+    
+    # Find process using the port
+    PID=$(lsof -ti :$port 2>/dev/null)
+    
+    if [ ! -z "$PID" ]; then
+        echo -e "${YELLOW}   Stopping $name on port $port (PID: $PID)...${NC}"
+        kill $PID 2>/dev/null
+        
+        # Wait for graceful shutdown
+        local count=0
+        while lsof -i :$port >/dev/null 2>&1 && [ $count -lt 10 ]; do
+            sleep 0.5
+            count=$((count + 1))
+        done
+        
+        # Force kill if still running
+        if lsof -i :$port >/dev/null 2>&1; then
+            echo -e "${YELLOW}   Force stopping $name...${NC}"
+            kill -9 $PID 2>/dev/null
+        fi
+        
+        echo -e "${GREEN}   ✅ Port $port cleared${NC}"
+    fi
+}
 
-# Additional cleanup for any orphaned processes
-echo -e "${YELLOW}🔧 Cleaning up any remaining processes...${NC}"
+# Stop services gracefully using PID files first
+echo -e "${CYAN}📋 Stopping services gracefully...${NC}"
+stop_service_by_pid "python_trainer"
+stop_service_by_pid "ai_coordination"
+stop_service_by_pid "continuous_learning"
+stop_service_by_pid "ml_inference"
+stop_service_by_pid "ml_service"
+stop_service_by_pid "frontend"
+stop_service_by_pid "backend"
 
-# Kill processes by pattern (as fallback)
-pkill -f "node.*backend.*3001" 2>/dev/null || true
-pkill -f "react-scripts.*3000" 2>/dev/null || true
-pkill -f "python.*ml_service" 2>/dev/null || true
-pkill -f "python.*enhanced_inference" 2>/dev/null || true
-pkill -f "python.*ai_coordination_hub" 2>/dev/null || true
-pkill -f "uvicorn.*training_service" 2>/dev/null || true
-pkill -f "python.*start_with_continuous_learning" 2>/dev/null || true
-pkill -f "python.*continuous_learning" 2>/dev/null || true
+# Clean up any remaining processes by port
+echo -e "${CYAN}🔧 Cleaning up any remaining processes...${NC}"
+stop_service_by_port 3000 "Backend"
+stop_service_by_port 3001 "Frontend"
+stop_service_by_port 8000 "ML Service"
+stop_service_by_port 8001 "ML Inference"
+stop_service_by_port 8002 "Continuous Learning WS"
+stop_service_by_port 8003 "AI Coordination"
+stop_service_by_port 8004 "Python Trainer"
+stop_service_by_port 8005 "Continuous Learning"
+stop_service_by_port 8888 "Integration WebSocket"
 
-# Clean up port usage if needed
+# Kill any remaining Node.js and Python processes
+echo -e "${CYAN}🧹 Final cleanup...${NC}"
+
+# Kill Node.js processes
+pkill -f 'node.*backend' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining backend processes${NC}"
+pkill -f 'react-scripts' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining frontend processes${NC}"
+pkill -f 'nest start' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining NestJS processes${NC}"
+
+# Kill Python processes
+pkill -f 'python.*ml_service' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining ML service processes${NC}"
+pkill -f 'python.*enhanced_inference' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining inference processes${NC}"
+pkill -f 'python.*ai_coordination' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining coordination processes${NC}"
+pkill -f 'python.*continuous_learning' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining learning processes${NC}"
+pkill -f 'python.*training_service' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining training processes${NC}"
+
+# Clean up PID files
+echo -e "${CYAN}🗑️  Cleaning up PID files...${NC}"
+rm -f logs/*.pid
+
+# Optional: Clean up log files (commented out by default)
+# echo -e "${CYAN}📄 Cleaning up log files...${NC}"
+# rm -f logs/*.log
+
+# Check if all services are stopped
+echo ""
+echo -e "${CYAN}🔍 Verifying all services are stopped...${NC}"
+SERVICES_RUNNING=false
+
 for port in 3000 3001 8000 8001 8002 8003 8004 8005 8888; do
-    if lsof -i :$port | grep -q LISTEN; then
-        echo -e "${YELLOW}🔓 Releasing port $port...${NC}"
-        lsof -ti :$port | xargs kill -9 2>/dev/null || true
+    if lsof -i :$port | grep -q LISTEN 2>/dev/null; then
+        echo -e "${RED}   ❌ Port $port is still in use${NC}"
+        SERVICES_RUNNING=true
     fi
 done
 
-# Clean up PID files
-rm -f logs/*.pid
+if [ "$SERVICES_RUNNING" = false ]; then
+    echo -e "${GREEN}✅ All services stopped successfully!${NC}"
+else
+    echo -e "${YELLOW}⚠️  Some services may still be running${NC}"
+    echo -e "${YELLOW}💡 Try running this script again or use 'npm run emergency'${NC}"
+fi
 
 echo ""
-echo -e "${GREEN}✅ All services stopped!${NC}"
-echo ""
-echo -e "${BLUE}💡 To start services again, run:${NC} npm run start:all" 
+echo -e "${BLUE}💡 To start services again, run:${NC} npm run start:all"
+echo -e "${BLUE}💡 To check system health, run:${NC} npm run health:check"

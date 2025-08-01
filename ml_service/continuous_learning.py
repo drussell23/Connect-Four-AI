@@ -14,11 +14,15 @@ import asyncio
 import json
 import logging
 import time
+import os
+import gzip
+import pickle
 from collections import deque, defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple, Deque
+from typing import List, Dict, Any, Optional, Tuple, Deque, Set
 import numpy as np
+from scipy import stats
 
 import torch
 import torch.nn as nn
@@ -26,6 +30,7 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 import websockets
 from websockets.server import WebSocketServerProtocol
+import aiofiles
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -142,7 +147,9 @@ class ContinuousLearningPipeline:
             'model_updates': 0,
             'current_win_rate': 0.5,
             'pattern_defense_rates': defaultdict(float),
-            'last_update': None
+            'last_update': None,
+            'learning_rate_adjustments': 0,
+            'convergence_score': 0.0
         }
         
         # Model versioning
@@ -152,6 +159,12 @@ class ContinuousLearningPipeline:
         # WebSocket clients for real-time updates
         self.ws_clients = set()
         
+        # Advanced learning features
+        self.stability_monitor = LearningStabilityMonitor()
+        self.learning_scheduler = AdaptiveLearningScheduler()
+        self.pattern_analyzer = PatternAnalyzer()
+        self.meta_learner = MetaLearner()
+        
         logger.info("Continuous Learning Pipeline initialized")
         
     async def process_game_outcome(self, game_data: Dict[str, Any]):
@@ -160,7 +173,10 @@ class ContinuousLearningPipeline:
             # Extract training examples
             examples = self._extract_training_examples(game_data)
             
-            # Determine priority based on outcome
+            # Analyze game patterns
+            patterns = self.pattern_analyzer.analyze_game_patterns(game_data)
+            
+            # Determine priority based on outcome and patterns
             if game_data['outcome'] == 'loss':
                 priority = 2.0  # High priority for losses
                 self.metrics['losses_analyzed'] += 1
@@ -168,26 +184,38 @@ class ContinuousLearningPipeline:
                 # Analyze loss pattern
                 if loss_pattern := game_data.get('lossPattern'):
                     await self._analyze_loss_pattern(loss_pattern, examples)
+                    # Boost priority for critical patterns
+                    if loss_pattern['type'] in ['diagonal', 'anti-diagonal']:
+                        priority = 3.0
             else:
                 priority = 1.0
                 
-            # Add to experience buffer
+            # Add to experience buffer with pattern info
             for example in examples:
+                example['patterns'] = patterns
                 self.experience_buffer.add(example, priority)
                 
             self.metrics['games_processed'] += 1
             
+            # Update win rate
+            self._update_win_rate(game_data['outcome'])
+            
             # Check if we should update model
             if self._should_update_model():
-                await self.update_model()
+                # Determine pattern focus based on recent losses
+                pattern_focus = self._determine_pattern_focus()
+                await self.update_model(pattern_focus=pattern_focus)
                 
-            # Broadcast metrics update
+            # Broadcast comprehensive update
             await self._broadcast_update({
                 'type': 'learning_progress',
                 'data': {
                     'gamesProcessed': self.metrics['games_processed'],
                     'lossesAnalyzed': self.metrics['losses_analyzed'],
-                    'bufferSize': len(self.experience_buffer.buffer)
+                    'bufferSize': len(self.experience_buffer.buffer),
+                    'winRate': self.metrics['current_win_rate'],
+                    'patterns': patterns,
+                    'convergenceScore': self.metrics['convergence_score']
                 }
             })
             
@@ -318,7 +346,7 @@ class ContinuousLearningPipeline:
             train_loader = self._prepare_training_data(batch)
             
             # Save current model as backup
-            self._backup_current_model()
+            await self._backup_current_model()
             
             # Fine-tune model
             improvements = await self._fine_tune_model(train_loader, pattern_focus)
@@ -418,16 +446,22 @@ class ContinuousLearningPipeline:
         
     async def _fine_tune_model(self, train_loader: DataLoader, 
                               pattern_focus: Optional[str]) -> Dict[str, float]:
-        """Fine-tune the model"""
+        """Fine-tune the model with adaptive learning"""
         model = self.model_manager.models['standard']
         model.train()
         
-        optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
-        improvements = defaultdict(float)
+        # Get adaptive learning rate
+        current_lr = self.learning_scheduler.get_optimal_lr()
+        optimizer = torch.optim.Adam(model.parameters(), lr=current_lr)
         
-        # Training loop
-        for epoch in range(5):  # Small number of epochs
+        improvements = defaultdict(float)
+        best_loss = float('inf')
+        
+        # Training loop with early stopping
+        for epoch in range(10):  # More epochs with early stopping
             total_loss = 0
+            correct_predictions = 0
+            total_predictions = 0
             
             for batch_boards, batch_actions, batch_rewards in train_loader:
                 optimizer.zero_grad()
@@ -438,15 +472,41 @@ class ContinuousLearningPipeline:
                 # Calculate loss
                 loss = self._calculate_loss(outputs, batch_actions, batch_rewards)
                 
+                # Track accuracy
+                predictions = outputs.argmax(dim=1)
+                correct_predictions += (predictions == batch_actions).sum().item()
+                total_predictions += batch_actions.size(0)
+                
                 # Backward pass
                 loss.backward()
+                
+                # Gradient clipping
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                
                 optimizer.step()
                 
                 total_loss += loss.item()
                 
             avg_loss = total_loss / len(train_loader)
+            accuracy = correct_predictions / total_predictions
             improvements[f'epoch_{epoch}_loss'] = avg_loss
+            improvements[f'epoch_{epoch}_accuracy'] = accuracy
             
+            # Update learning rate
+            new_lr = self.learning_scheduler.update(accuracy, avg_loss)
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = new_lr
+                
+            # Early stopping
+            if avg_loss < best_loss:
+                best_loss = avg_loss
+                patience_counter = 0
+            else:
+                patience_counter += 1
+                if patience_counter >= 3:
+                    logger.info(f"Early stopping at epoch {epoch}")
+                    break
+                    
         # Calculate pattern-specific improvements
         if pattern_focus:
             pattern_improvement = await self._test_pattern_defense(pattern_focus)
@@ -454,13 +514,22 @@ class ContinuousLearningPipeline:
             self.pattern_improvements[pattern_focus] = pattern_improvement
         else:
             # Test all patterns
-            for pattern in ['horizontal', 'vertical', 'diagonal']:
+            for pattern in ['horizontal', 'vertical', 'diagonal', 'anti-diagonal']:
                 improvement = await self._test_pattern_defense(pattern)
                 improvements[f'{pattern}_defense'] = improvement
                 self.pattern_improvements[pattern] = improvement
                 
+        # Test stability
+        stability_score = await self._test_model_stability()
+        improvements['stability'] = stability_score
+        
+        # Update convergence score
+        self.metrics['convergence_score'] = self._calculate_convergence(improvements)
+        
         # Overall improvement
-        improvements['overall_accuracy'] = sum(improvements.values()) / len(improvements)
+        improvements['overall_accuracy'] = sum(v for k, v in improvements.items() 
+                                              if 'accuracy' in k) / sum(1 for k in improvements 
+                                                                       if 'accuracy' in k)
         
         return dict(improvements)
         
@@ -584,14 +653,47 @@ class ContinuousLearningPipeline:
                     
         return correct / len(basic_tests)
         
-    def _backup_current_model(self):
-        """Backup current model before update"""
-        current_state = self.model_manager.models['standard'].state_dict()
-        self.model_history.append({
-            'version': self.model_version,
-            'state_dict': current_state.copy(),
-            'timestamp': datetime.now()
-        })
+    async def _backup_current_model(self):
+        """Enhanced backup with compression and metadata"""
+        try:
+            model = self.model_manager.models['standard']
+            backup_data = {
+                'version': self.model_version,
+                'state_dict': model.state_dict().copy(),
+                'timestamp': datetime.now(),
+                'metrics': dict(self.metrics),
+                'pattern_improvements': dict(self.pattern_improvements),
+                'architecture': {
+                    'type': model.__class__.__name__,
+                    'layers': str(model) if hasattr(model, '__str__') else 'Unknown'
+                },
+                'training_stats': {
+                    'total_games': self.metrics['games_processed'],
+                    'losses_analyzed': self.metrics['losses_analyzed'],
+                    'win_rate': self.metrics['current_win_rate']
+                }
+            }
+            
+            # Add to in-memory history
+            self.model_history.append(backup_data)
+            
+            # Save to disk with compression
+            backup_dir = Path('model_backups')
+            backup_dir.mkdir(exist_ok=True)
+            
+            filename = backup_dir / f"model_v{self.model_version}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl.gz"
+            
+            async with aiofiles.open(filename, 'wb') as f:
+                compressed = gzip.compress(pickle.dumps(backup_data))
+                await f.write(compressed)
+                
+            logger.info(f"Model backup saved to {filename} (size: {len(compressed) / 1024:.1f}KB)")
+            
+            # Clean old backups (keep last 20)
+            await self._cleanup_old_backups(backup_dir)
+            
+        except Exception as e:
+            logger.error(f"Error backing up model: {e}")
         
     async def _deploy_updated_model(self):
         """Deploy the updated model"""
@@ -680,6 +782,40 @@ class ContinuousLearningPipeline:
                 'type': 'metrics_update',
                 'data': dict(self.metrics)
             }))
+            
+        elif msg_type == 'opponent_adaptation':
+            # Handle opponent adaptation request
+            opponent_profile = message.get('opponent_profile', {})
+            game_history = message.get('game_history', [])
+            
+            strategy = self.meta_learner.adapt_strategy(opponent_profile, game_history)
+            
+            await websocket.send(json.dumps({
+                'type': 'strategy_update',
+                'requestId': message.get('requestId'),
+                'strategy': strategy
+            }))
+            
+        elif msg_type == 'pattern_analysis':
+            # Detailed pattern analysis request
+            patterns = self.pattern_analyzer.pattern_database
+            
+            await websocket.send(json.dumps({
+                'type': 'pattern_analysis_response',
+                'requestId': message.get('requestId'),
+                'patterns': dict(patterns),
+                'insights': self._generate_pattern_insights()
+            }))
+            
+        elif msg_type == 'request_model_rollback':
+            # Handle model rollback request
+            if self.model_history:
+                await self._rollback_model()
+                await websocket.send(json.dumps({
+                    'type': 'rollback_complete',
+                    'requestId': message.get('requestId'),
+                    'version': self.model_version
+                }))
             
     def _generate_pattern_defense(self, pattern: str, board: List[List[str]]) -> Dict[str, Any]:
         """Generate pattern-specific defense strategy"""
@@ -785,6 +921,393 @@ class LearningStabilityMonitor:
         """Test model on a single position"""
         # Placeholder - implement based on test format
         return True
+    
+    async def _cleanup_old_backups(self, backup_dir: Path, keep_last: int = 20):
+        """Clean up old model backups"""
+        try:
+            backups = sorted(backup_dir.glob("model_v*.pkl.gz"), key=lambda x: x.stat().st_mtime, reverse=True)
+            
+            for backup in backups[keep_last:]:
+                backup.unlink()
+                logger.info(f"Deleted old backup: {backup.name}")
+                
+        except Exception as e:
+            logger.error(f"Error cleaning up backups: {e}")
+
+
+class AdaptiveLearningScheduler:
+    """Adaptive learning rate scheduler based on performance"""
+    
+    def __init__(self):
+        self.initial_lr = 0.001
+        self.current_lr = self.initial_lr
+        self.performance_history = deque(maxlen=50)
+        self.lr_history = deque(maxlen=50)
+        self.patience = 5
+        self.min_lr = 1e-6
+        self.max_lr = 0.01
+        
+    def update(self, performance: float, loss: float) -> float:
+        """Update learning rate based on performance"""
+        self.performance_history.append(performance)
+        
+        if len(self.performance_history) >= self.patience:
+            # Check for plateau
+            recent_perf = list(self.performance_history)[-self.patience:]
+            if np.std(recent_perf) < 0.01:  # Performance plateau
+                # Reduce learning rate
+                self.current_lr = max(self.min_lr, self.current_lr * 0.5)
+                logger.info(f"Learning rate reduced to {self.current_lr:.6f} due to plateau")
+            elif all(recent_perf[i] < recent_perf[i+1] for i in range(len(recent_perf)-1)):
+                # Consistent improvement - increase learning rate slightly
+                self.current_lr = min(self.max_lr, self.current_lr * 1.1)
+                logger.info(f"Learning rate increased to {self.current_lr:.6f} due to improvement")
+                
+        self.lr_history.append(self.current_lr)
+        return self.current_lr
+        
+    def get_optimal_lr(self) -> float:
+        """Get optimal learning rate based on history"""
+        if len(self.performance_history) < 10:
+            return self.current_lr
+            
+        # Find learning rate that led to best performance
+        best_idx = np.argmax(list(self.performance_history))
+        if best_idx < len(self.lr_history):
+            return self.lr_history[best_idx]
+        return self.current_lr
+
+
+class PatternAnalyzer:
+    """Advanced pattern analysis for strategic learning"""
+    
+    def __init__(self):
+        self.pattern_database = defaultdict(lambda: {
+            'occurrences': 0,
+            'win_rate': 0.0,
+            'critical_moves': [],
+            'counter_strategies': []
+        })
+        self.pattern_correlations = defaultdict(float)
+        
+    def analyze_game_patterns(self, game_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze patterns in completed game"""
+        patterns = {
+            'opening_patterns': self._analyze_opening(game_data),
+            'tactical_patterns': self._analyze_tactics(game_data),
+            'endgame_patterns': self._analyze_endgame(game_data),
+            'mistake_patterns': self._analyze_mistakes(game_data)
+        }
+        
+        # Update pattern database
+        for category, pattern_list in patterns.items():
+            for pattern in pattern_list:
+                self._update_pattern_database(pattern, game_data['outcome'])
+                
+        return patterns
+        
+    def _analyze_opening(self, game_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Analyze opening patterns"""
+        moves = game_data.get('moves', [])[:8]  # First 8 moves
+        patterns = []
+        
+        # Center control pattern
+        center_moves = sum(1 for m in moves if m['column'] in [2, 3, 4])
+        if center_moves >= 4:
+            patterns.append({
+                'type': 'center_control',
+                'strength': center_moves / len(moves),
+                'moves': [m['column'] for m in moves if m['column'] in [2, 3, 4]]
+            })
+            
+        # Edge play pattern
+        edge_moves = sum(1 for m in moves if m['column'] in [0, 6])
+        if edge_moves >= 2:
+            patterns.append({
+                'type': 'edge_play',
+                'strength': edge_moves / len(moves),
+                'moves': [m['column'] for m in moves if m['column'] in [0, 6]]
+            })
+            
+        return patterns
+        
+    def _analyze_tactics(self, game_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Analyze tactical patterns"""
+        patterns = []
+        moves = game_data.get('moves', [])
+        
+        # Fork creation pattern
+        for i in range(len(moves) - 2):
+            if self._is_fork_setup(moves[i:i+3]):
+                patterns.append({
+                    'type': 'fork_creation',
+                    'move_index': i,
+                    'columns': [moves[i]['column'], moves[i+1]['column'], moves[i+2]['column']]
+                })
+                
+        # Forced move pattern
+        for i, move in enumerate(moves):
+            if move.get('forced'):
+                patterns.append({
+                    'type': 'forced_move',
+                    'move_index': i,
+                    'column': move['column']
+                })
+                
+        return patterns
+        
+    def _analyze_endgame(self, game_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Analyze endgame patterns"""
+        moves = game_data.get('moves', [])
+        if len(moves) < 20:
+            return []
+            
+        patterns = []
+        endgame_moves = moves[-10:]  # Last 10 moves
+        
+        # Column filling pattern
+        column_counts = defaultdict(int)
+        for move in endgame_moves:
+            column_counts[move['column']] += 1
+            
+        for col, count in column_counts.items():
+            if count >= 3:
+                patterns.append({
+                    'type': 'column_focus',
+                    'column': col,
+                    'intensity': count / len(endgame_moves)
+                })
+                
+        return patterns
+        
+    def _analyze_mistakes(self, game_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Analyze mistake patterns"""
+        if game_data['outcome'] != 'loss':
+            return []
+            
+        patterns = []
+        if loss_pattern := game_data.get('lossPattern'):
+            mistakes = loss_pattern.get('aiMistakes', [])
+            
+            for mistake in mistakes:
+                patterns.append({
+                    'type': 'missed_threat',
+                    'threat_type': loss_pattern['type'],
+                    'move_index': mistake['moveIndex'],
+                    'column': mistake['column'],
+                    'better_move': mistake.get('betterMove')
+                })
+                
+        return patterns
+        
+    def _is_fork_setup(self, moves: List[Dict[str, Any]]) -> bool:
+        """Check if moves create a fork setup"""
+        if len(moves) < 3:
+            return False
+            
+        # Simple heuristic - moves in different columns creating multiple threats
+        columns = [m['column'] for m in moves]
+        return len(set(columns)) >= 2 and abs(max(columns) - min(columns)) >= 2
+        
+    def _update_pattern_database(self, pattern: Dict[str, Any], outcome: str):
+        """Update pattern database with occurrence"""
+        pattern_key = f"{pattern['type']}_{pattern.get('subtype', 'default')}"
+        
+        db_entry = self.pattern_database[pattern_key]
+        db_entry['occurrences'] += 1
+        
+        # Update win rate
+        if outcome == 'win':
+            current_wins = db_entry['win_rate'] * (db_entry['occurrences'] - 1)
+            db_entry['win_rate'] = (current_wins + 1) / db_entry['occurrences']
+        else:
+            current_wins = db_entry['win_rate'] * (db_entry['occurrences'] - 1)
+            db_entry['win_rate'] = current_wins / db_entry['occurrences']
+
+
+class MetaLearner:
+    """Meta-learning system for strategy adaptation"""
+    
+    def __init__(self):
+        self.strategy_performance = defaultdict(lambda: {
+            'games': 0,
+            'wins': 0,
+            'avg_game_length': 0,
+            'pattern_success': defaultdict(float)
+        })
+        self.opponent_models = {}
+        self.adaptation_history = deque(maxlen=100)
+        
+    def adapt_strategy(self, opponent_profile: Dict[str, Any], 
+                      game_history: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Adapt strategy based on opponent profile and game history"""
+        # Analyze opponent tendencies
+        opponent_patterns = self._analyze_opponent(opponent_profile, game_history)
+        
+        # Select counter-strategy
+        strategy = self._select_counter_strategy(opponent_patterns)
+        
+        # Record adaptation
+        self.adaptation_history.append({
+            'timestamp': datetime.now(),
+            'opponent_profile': opponent_profile,
+            'selected_strategy': strategy,
+            'confidence': self._calculate_confidence(opponent_patterns)
+        })
+        
+        return strategy
+        
+    def _analyze_opponent(self, profile: Dict[str, Any], 
+                         history: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze opponent playing patterns"""
+        patterns = {
+            'aggression_level': self._calculate_aggression(history),
+            'preferred_columns': self._find_column_preference(history),
+            'reaction_patterns': self._analyze_reactions(history),
+            'weakness_areas': self._identify_weaknesses(history)
+        }
+        
+        return patterns
+        
+    def _calculate_aggression(self, history: List[Dict[str, Any]]) -> float:
+        """Calculate opponent's aggression level"""
+        if not history:
+            return 0.5
+            
+        offensive_moves = 0
+        total_moves = 0
+        
+        for game in history:
+            for move in game.get('moves', []):
+                if move['playerId'] != 'AI':
+                    total_moves += 1
+                    if self._is_offensive_move(move, game):
+                        offensive_moves += 1
+                        
+        return offensive_moves / total_moves if total_moves > 0 else 0.5
+        
+    def _is_offensive_move(self, move: Dict[str, Any], game: Dict[str, Any]) -> bool:
+        """Determine if a move is offensive"""
+        # Simple heuristic - center columns and building sequences
+        return move['column'] in [2, 3, 4] or move.get('creates_threat', False)
+        
+    def _find_column_preference(self, history: List[Dict[str, Any]]) -> List[int]:
+        """Find opponent's preferred columns"""
+        column_counts = defaultdict(int)
+        
+        for game in history:
+            for move in game.get('moves', []):
+                if move['playerId'] != 'AI':
+                    column_counts[move['column']] += 1
+                    
+        # Sort by frequency
+        sorted_cols = sorted(column_counts.items(), key=lambda x: x[1], reverse=True)
+        return [col for col, _ in sorted_cols[:3]]
+        
+    def _analyze_reactions(self, history: List[Dict[str, Any]]) -> Dict[str, float]:
+        """Analyze how opponent reacts to threats"""
+        reactions = {
+            'blocks_immediate': 0,
+            'creates_counter': 0,
+            'ignores_threat': 0
+        }
+        
+        total_threats = 0
+        
+        for game in history:
+            moves = game.get('moves', [])
+            for i in range(len(moves) - 1):
+                if moves[i]['playerId'] == 'AI' and moves[i].get('creates_threat'):
+                    total_threats += 1
+                    next_move = moves[i + 1]
+                    
+                    if next_move.get('blocks_threat'):
+                        reactions['blocks_immediate'] += 1
+                    elif next_move.get('creates_threat'):
+                        reactions['creates_counter'] += 1
+                    else:
+                        reactions['ignores_threat'] += 1
+                        
+        # Normalize
+        if total_threats > 0:
+            for key in reactions:
+                reactions[key] /= total_threats
+                
+        return reactions
+        
+    def _identify_weaknesses(self, history: List[Dict[str, Any]]) -> List[str]:
+        """Identify opponent's weaknesses"""
+        weaknesses = []
+        
+        # Analyze losses
+        losses = [g for g in history if g.get('outcome') == 'win']  # AI wins
+        
+        if not losses:
+            return []
+            
+        # Common weakness patterns
+        pattern_counts = defaultdict(int)
+        
+        for game in losses:
+            if loss_pattern := game.get('opponentLossPattern'):
+                pattern_counts[loss_pattern['type']] += 1
+                
+        # Most common weakness
+        if pattern_counts:
+            sorted_patterns = sorted(pattern_counts.items(), key=lambda x: x[1], reverse=True)
+            weaknesses = [pattern for pattern, _ in sorted_patterns[:3]]
+            
+        return weaknesses
+        
+    def _select_counter_strategy(self, opponent_patterns: Dict[str, Any]) -> Dict[str, Any]:
+        """Select optimal counter-strategy"""
+        strategy = {
+            'name': 'adaptive_counter',
+            'parameters': {},
+            'focus_areas': []
+        }
+        
+        # High aggression -> defensive play
+        if opponent_patterns['aggression_level'] > 0.7:
+            strategy['name'] = 'defensive_counter'
+            strategy['parameters']['block_priority'] = 0.8
+            strategy['focus_areas'].append('threat_prevention')
+            
+        # Low aggression -> aggressive play
+        elif opponent_patterns['aggression_level'] < 0.3:
+            strategy['name'] = 'aggressive_push'
+            strategy['parameters']['attack_priority'] = 0.8
+            strategy['focus_areas'].append('create_threats')
+            
+        # Column preferences -> block preferred columns
+        if preferred := opponent_patterns['preferred_columns']:
+            strategy['parameters']['column_weights'] = {
+                col: 0.3 if col in preferred else 1.0 for col in range(7)
+            }
+            
+        # Reaction patterns
+        reactions = opponent_patterns['reaction_patterns']
+        if reactions.get('ignores_threat', 0) > 0.3:
+            strategy['focus_areas'].append('exploit_ignored_threats')
+            
+        return strategy
+        
+    def _calculate_confidence(self, patterns: Dict[str, Any]) -> float:
+        """Calculate confidence in strategy selection"""
+        # Base confidence on data quality and pattern clarity
+        confidence = 0.5
+        
+        # Clear patterns increase confidence
+        if patterns['aggression_level'] > 0.8 or patterns['aggression_level'] < 0.2:
+            confidence += 0.2
+            
+        if patterns['preferred_columns']:
+            confidence += 0.1
+            
+        if patterns['weakness_areas']:
+            confidence += 0.2
+            
+        return min(1.0, confidence)
 
 
 # Initialize and run the continuous learning system
@@ -801,6 +1324,16 @@ async def run_continuous_learning(model_manager, config: Dict[str, Any]):
     )
     
     logger.info(f"Continuous Learning WebSocket server started on ws://localhost:{ws_port}")
+    logger.info("Advanced features enabled:")
+    logger.info("  - Adaptive learning rate scheduling")
+    logger.info("  - Pattern analysis and database")
+    logger.info("  - Meta-learning for opponent adaptation")
+    logger.info("  - Model stability monitoring")
+    logger.info("  - Compressed model backups")
+    
+    # Start background tasks
+    asyncio.create_task(pipeline._periodic_model_evaluation())
+    asyncio.create_task(pipeline._periodic_pattern_analysis())
     
     # Keep the server running
     await asyncio.Future()  # Run forever

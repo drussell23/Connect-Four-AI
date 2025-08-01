@@ -6,6 +6,7 @@ import { GameModule } from './game/game.module';
 import { MlModule } from './ml/ml.module';
 import { ServiceIntegrationModule } from './integration/service-integration.module';
 import { HealthController } from './health.controller';
+import { TensorFlowStatusController } from './controllers/tensorflow-status.controller';
 
 // Enterprise Environment Configuration
 const envConfiguration = () => ({
@@ -70,7 +71,7 @@ const envConfiguration = () => ({
     GameModule,
     MlModule
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, TensorFlowStatusController],
   providers: [],
 })
 export class AppModule { }

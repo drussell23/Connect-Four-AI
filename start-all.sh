@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # =====================================================
-# 🚀 CONNECT FOUR - START ALL SERVICES
+# 🚀 CONNECT FOUR - START ALL SERVICES WITH SELF-HEALING
 # =====================================================
-# This script starts all services for the Connect Four game
+# This script starts all services with dependency checks and self-healing
 # Usage: ./start-all.sh or npm run start:all
 
 set -e  # Exit on error
@@ -13,14 +13,67 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🚀 Starting Connect Four Game Services...${NC}"
+echo -e "${BLUE}🚀 Starting Connect Four Game Services with Self-Healing...${NC}"
+echo -e "${BLUE}=======================================================${NC}"
 
 # Check if we're in the right directory
 if [ ! -f "package.json" ]; then
     echo -e "${RED}❌ Error: Must run from project root directory${NC}"
     exit 1
+fi
+
+# Function to check dependencies
+check_dependencies() {
+    echo -e "${CYAN}🏥 Running dependency health check...${NC}"
+    
+    # Check if backend node_modules exists
+    if [ ! -d "backend/node_modules" ]; then
+        echo -e "${YELLOW}⚠️  Backend dependencies missing${NC}"
+        return 1
+    fi
+    
+    # Check if frontend node_modules exists
+    if [ ! -d "frontend/node_modules" ]; then
+        echo -e "${YELLOW}⚠️  Frontend dependencies missing${NC}"
+        return 1
+    fi
+    
+    # Run health check
+    if command -v node >/dev/null 2>&1; then
+        node scripts/check-dependencies.js 2>/dev/null || return 1
+    fi
+    
+    return 0
+}
+
+# Function to fix dependencies
+fix_dependencies() {
+    echo -e "${YELLOW}🔧 Attempting to fix dependencies...${NC}"
+    
+    if [ -f "scripts/self-healing-installer.sh" ]; then
+        ./scripts/self-healing-installer.sh
+    else
+        # Fallback to basic install
+        echo -e "${YELLOW}📦 Installing backend dependencies...${NC}"
+        (cd backend && npm install --legacy-peer-deps) || true
+        
+        echo -e "${YELLOW}📦 Installing frontend dependencies...${NC}"
+        (cd frontend && npm install --legacy-peer-deps) || true
+    fi
+}
+
+# Check and fix dependencies before starting
+if ! check_dependencies; then
+    echo -e "${YELLOW}⚠️  Dependency issues detected${NC}"
+    fix_dependencies
+    
+    # Re-check after fixing
+    if ! check_dependencies; then
+        echo -e "${YELLOW}⚠️  Some dependencies could not be fixed, but continuing...${NC}"
+    fi
 fi
 
 # Clean up existing services
@@ -44,15 +97,53 @@ start_service() {
     echo "$pid" > "logs/${name}.pid"
 }
 
+# Function to wait for service with retry
+wait_for_service() {
+    local port=$1
+    local name=$2
+    local max_retries=${3:-20}
+    local retry_delay=${4:-3}
+    
+    for i in $(seq 1 $max_retries); do
+        if lsof -i :$port | grep -q LISTEN 2>/dev/null; then
+            echo -e "${GREEN}✅ $name is running on port $port${NC}"
+            return 0
+        elif [ $i -lt $max_retries ]; then
+            echo -e "${YELLOW}   Waiting for $name (attempt $i/$max_retries)...${NC}"
+            # Show service status from logs
+            if [ -f "logs/${name}.log" ]; then
+                LAST_LOG=$(tail -1 "logs/${name}.log" 2>/dev/null | head -c 100)
+                if [ ! -z "$LAST_LOG" ]; then
+                    echo -e "${CYAN}   Status: ${LAST_LOG}...${NC}"
+                fi
+            fi
+            sleep $retry_delay
+        fi
+    done
+    
+    echo -e "${RED}❌ $name failed to start on port $port${NC}"
+    return 1
+}
+
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
 # Clear old PID files
 rm -f logs/*.pid
 
+# Build backend if dist doesn't exist
+if [ ! -d "backend/dist" ]; then
+    echo -e "${YELLOW}📦 Building backend...${NC}"
+    (cd backend && npm run build) || {
+        echo -e "${RED}❌ Backend build failed${NC}"
+        echo -e "${YELLOW}💡 Try running: npm run fix:dependencies${NC}"
+        exit 1
+    }
+fi
+
 # Start all services with proper environment variables
 echo -e "${BLUE}📦 Starting Backend Service...${NC}"
-start_service "backend" "backend" "PORT=3000 BACKEND_PORT=3000 ENABLE_CONTINUOUS_LEARNING=true ENABLE_PATTERN_DEFENSE=true ENABLE_DIFFICULTY_AWARE_LEARNING=true ENABLE_SERVICE_INTEGRATION=true SIMULATION_WORKERS=2 INTEGRATION_PORT=8888 npm run start:dev"
+start_service "backend" "backend" "PORT=3000 BACKEND_PORT=3000 ENABLE_CONTINUOUS_LEARNING=true ENABLE_PATTERN_DEFENSE=true ENABLE_DIFFICULTY_AWARE_LEARNING=true ENABLE_SERVICE_INTEGRATION=true SIMULATION_WORKERS=2 INTEGRATION_PORT=8888 npm run start:prod"
 
 echo -e "${BLUE}⚛️  Starting Frontend Service...${NC}"
 start_service "frontend" "frontend" "PORT=3001 REACT_APP_API_URL=http://localhost:3000/api npm start"
@@ -73,114 +164,74 @@ echo -e "${BLUE}📚 Starting Continuous Learning Service...${NC}"
 start_service "continuous_learning" "ml_service" "CONTINUOUS_LEARNING_PORT=8005 python3 continuous_learning.py"
 
 echo -e "${BLUE}🌐 Starting Integration WebSocket Gateway...${NC}"
-# Integration WebSocket is part of backend service, no separate process needed
 echo "   Integration WebSocket will start on port 8888 with backend service"
 
 # Wait and check services
 echo -e "${YELLOW}⏳ Waiting for services to start...${NC}"
-sleep 5
-
-# Check if services are running
-check_service() {
-    local port=$1
-    local name=$2
-    if lsof -i :$port | grep -q LISTEN; then
-        echo -e "${GREEN}✅ $name is running on port $port${NC}"
-        return 0
-    else
-        echo -e "${RED}❌ $name failed to start on port $port${NC}"
-        return 1
-    fi
-}
+sleep 3
 
 echo ""
 echo -e "${BLUE}🔍 Checking service status...${NC}"
-echo -e "${YELLOW}   Backend needs extra time to initialize...${NC}"
-sleep 10
 
-# Check each service
-BACKEND_OK=false
-FRONTEND_OK=false
-ML_OK=false
+# Check each service with appropriate timeouts
+ALL_OK=true
 
 # Backend needs more time due to ML model initialization
-BACKEND_RETRIES=10
-BACKEND_RETRY_DELAY=5
-for i in $(seq 1 $BACKEND_RETRIES); do
-    if check_service 3000 "Backend"; then
-        BACKEND_OK=true
-        break
-    elif [ $i -lt $BACKEND_RETRIES ]; then
-        echo -e "${YELLOW}   Backend initialization in progress (attempt $i/$BACKEND_RETRIES)...${NC}"
-        # Show what the backend is doing
-        if [ -f "logs/backend.log" ]; then
-            LAST_LOG=$(tail -1 logs/backend.log | head -c 100)
-            if [ ! -z "$LAST_LOG" ]; then
-                echo -e "${YELLOW}   Status: ${LAST_LOG}...${NC}"
-            fi
-        fi
-        sleep $BACKEND_RETRY_DELAY
-    fi
-done
+if ! wait_for_service 3000 "backend" 30 5; then
+    ALL_OK=false
+    echo -e "${YELLOW}💡 Backend startup issue. Check logs/backend.log${NC}"
+fi
 
-check_service 3001 "Frontend" && FRONTEND_OK=true
-check_service 8000 "ML Service" && ML_OK=true
+if ! wait_for_service 3001 "frontend" 20 3; then
+    ALL_OK=false
+    echo -e "${YELLOW}💡 Frontend startup issue. Check logs/frontend.log${NC}"
+fi
 
-# Check additional AI services
-ML_INFERENCE_OK=false
-CL_WS_OK=false
-AI_COORD_OK=false
-PYTHON_TRAINER_OK=false
-CL_SERVICE_OK=false
-INTEGRATION_WS_OK=false
-check_service 8001 "ML Inference" && ML_INFERENCE_OK=true
-check_service 8002 "Continuous Learning WebSocket" && CL_WS_OK=true
-check_service 8003 "AI Coordination" && AI_COORD_OK=true
-check_service 8004 "Python Trainer" && PYTHON_TRAINER_OK=true
-check_service 8005 "Continuous Learning Service" && CL_SERVICE_OK=true
-check_service 8888 "Integration WebSocket" && INTEGRATION_WS_OK=true
+if ! wait_for_service 8000 "ml_service" 15 3; then
+    ALL_OK=false
+    echo -e "${YELLOW}💡 ML Service startup issue. Check logs/ml_service.log${NC}"
+fi
+
+# Check additional services
+wait_for_service 8001 "ml_inference" 10 2
+wait_for_service 8002 "continuous_learning_ws" 10 2
+wait_for_service 8003 "ai_coordination" 10 2
+wait_for_service 8004 "python_trainer" 10 2
+wait_for_service 8005 "continuous_learning" 10 2
+wait_for_service 8888 "integration_ws" 15 3
 
 echo ""
-if [ "$BACKEND_OK" = true ] && [ "$FRONTEND_OK" = true ] && [ "$ML_OK" = true ] && [ "$ML_INFERENCE_OK" = true ] && [ "$CL_WS_OK" = true ] && [ "$AI_COORD_OK" = true ] && [ "$PYTHON_TRAINER_OK" = true ] && [ "$CL_SERVICE_OK" = true ] && [ "$INTEGRATION_WS_OK" = true ]; then
-    echo -e "${GREEN}✅ All services are running successfully!${NC}"
-    echo ""
-    echo -e "${BLUE}📋 Service URLs:${NC}"
-    echo "   - Frontend: http://localhost:3001"
-    echo "   - Backend API: http://localhost:3000/api"
-    echo "   - Backend Health: http://localhost:3000/api/health"
-    echo "   - AI Resources: http://localhost:3000/api/games/ai/resources"
-    echo "   - ML Service: http://localhost:8000"
-    echo "   - ML Inference: http://localhost:8001"
-    echo "   - Continuous Learning: ws://localhost:8002/ws"
-    echo "   - AI Coordination: http://localhost:8003"
-    echo "   - Python Trainer: http://localhost:8004"
-    echo "   - Continuous Learning: http://localhost:8005"
-    echo "   - Integration WebSocket: ws://localhost:8888"
-    echo ""
-    echo -e "${GREEN}🎯 Advanced Features:${NC}"
-    echo "   - 10 difficulty levels with separate models"
-    echo "   - Pattern learning segmented by difficulty"
-    echo "   - Cross-level pattern transfer enabled"
-    echo "   - Multi-model ensemble predictions"
-    echo "   - Real-time service integration"
-    echo "   - Background AI vs AI simulations"
-    echo "   - Seamless data flow between services"
-    echo "   - Automatic model synchronization"
-    echo ""
-    echo -e "${YELLOW}📁 Logs available in:${NC}"
-    echo "   - Backend: logs/backend.log"
-    echo "   - Frontend: logs/frontend.log"
-    echo "   - ML Service: logs/ml_service.log"
-    echo "   - ML Inference: logs/ml_inference.log"
-    echo "   - Continuous Learning: logs/continuous_learning.log"
-    echo "   - AI Coordination: logs/ai_coordination.log"
-    echo "   - Python Trainer: logs/python_trainer.log"
-    echo ""
-    echo -e "${BLUE}🛑 To stop all services, run:${NC} npm run stop:all"
-    echo -e "${BLUE}🔄 To restart with integration checks:${NC} npm run restart:integrated"
-    echo -e "${BLUE}🧪 To test integration:${NC} npm run test:integration"
+if [ "$ALL_OK" = true ]; then
+    echo -e "${GREEN}✅ Core services are running successfully!${NC}"
 else
-    echo -e "${RED}⚠️  Some services failed to start!${NC}"
-    echo "Check the logs in the logs/ directory for details"
-    exit 1
-fi 
+    echo -e "${YELLOW}⚠️  Some services had issues starting${NC}"
+    echo -e "${YELLOW}💡 Run 'npm run health:check' for diagnostics${NC}"
+fi
+
+echo ""
+echo -e "${BLUE}📋 Service URLs:${NC}"
+echo "   - Frontend: http://localhost:3001"
+echo "   - Backend API: http://localhost:3000/api"
+echo "   - Backend Health: http://localhost:3000/api/health"
+echo "   - ML Service: http://localhost:8000"
+echo "   - ML Inference: http://localhost:8001"
+echo "   - AI Coordination: http://localhost:8003"
+
+echo ""
+echo -e "${GREEN}🎯 Available Commands:${NC}"
+echo "   - ${CYAN}npm run stop:all${NC} - Stop all services"
+echo "   - ${CYAN}npm run restart:all${NC} - Restart all services"
+echo "   - ${CYAN}npm run health:check${NC} - Check system health"
+echo "   - ${CYAN}npm run fix:dependencies${NC} - Fix dependency issues"
+
+echo ""
+echo -e "${YELLOW}📁 Logs available in:${NC}"
+echo "   - logs/*.log files"
+
+# Run post-startup health check
+echo ""
+echo -e "${CYAN}🏥 Running post-startup health check...${NC}"
+sleep 2
+node scripts/check-dependencies.js 2>/dev/null || {
+    echo -e "${YELLOW}💡 Some services may not be fully initialized yet${NC}"
+}

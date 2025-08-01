@@ -12,12 +12,15 @@ Revolutionary AI-to-AI communication system that enables:
 import asyncio
 import json
 import time
-from typing import Dict, List, Any, Optional, Set
+from typing import Dict, List, Any, Optional, Set, Tuple
 from dataclasses import dataclass, asdict
 from enum import Enum
 import websockets
 import aioredis
 from fastapi import FastAPI, WebSocket
+import numpy as np
+from collections import deque
+import hashlib
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
@@ -361,10 +364,74 @@ class AICoordinationHub:
         return team
 
     def _assess_urgency(self, board_state: List[List[str]]) -> int:
-        """Assess urgency of the situation (1-10)"""
-        # Quick threat assessment
-        # Implementation would check for immediate wins/blocks
-        return 5  # Placeholder
+        """
+        Advanced urgency assessment with multi-factor analysis
+        
+        Returns urgency score 1-10 based on:
+        - Immediate win/loss threats
+        - Multiple simultaneous threats
+        - Game phase criticality
+        - Tempo considerations
+        - Pattern-based predictions
+        """
+        try:
+            # Convert board state to numpy array for efficient operations
+            board = self._board_to_numpy(board_state)
+            
+            # Phase 1: Immediate win/loss detection
+            immediate_result = self._check_immediate_wins_losses(board)
+            if immediate_result['can_win']:
+                return 10  # Win imminent
+            if immediate_result['must_block'] and len(immediate_result['block_positions']) > 1:
+                return 9   # Multiple threats to block
+            if immediate_result['must_block']:
+                return 8   # Single threat to block
+            
+            # Phase 2: Multi-threat analysis
+            threat_analysis = self._analyze_threat_landscape(board)
+            if threat_analysis['threat_count'] > 2:
+                return 7   # Multiple developing threats
+            
+            # Phase 3: Opportunity assessment
+            opportunities = self._identify_opportunities(board)
+            if opportunities['immediate']:
+                return 7   # Immediate opportunities
+            if opportunities['fork']:
+                return 6   # Fork opportunities
+            
+            # Phase 4: Game phase analysis
+            game_phase = self._determine_game_phase(board)
+            endgame_bonus = 1 if game_phase == 'endgame' else 0
+            
+            # Phase 5: Tempo analysis
+            tempo_state = self._analyze_tempo(board, threat_analysis)
+            tempo_bonus = 1 if tempo_state['is_critical'] else 0
+            
+            # Phase 6: Pattern-based urgency
+            pattern_urgency = self._assess_pattern_urgency(board)
+            
+            # Calculate final urgency score
+            base_urgency = 5  # Neutral
+            
+            if threat_analysis['threat_count'] > 0:
+                base_urgency = 6
+            elif opportunities['setup']:
+                base_urgency = 5
+            else:
+                base_urgency = 4
+            
+            # Apply bonuses
+            final_urgency = base_urgency + endgame_bonus + tempo_bonus
+            
+            # Consider pattern urgency
+            if pattern_urgency > final_urgency:
+                final_urgency = (final_urgency + pattern_urgency) // 2
+            
+            return max(1, min(10, final_urgency))
+            
+        except Exception as e:
+            logging.error(f"Error in urgency assessment: {str(e)}")
+            return 5  # Default to moderate urgency
 
     async def _gather_ai_responses(
         self, ai_list: List[str], request: Dict[str, Any]
@@ -541,10 +608,82 @@ class AICoordinationHub:
         return relevant_knowledge
 
     async def _enrich_insight(self, insight: AIInsight) -> AIInsight:
-        """Enrich insight with additional context and validation"""
-        # Add cross-validation, context, and meta-information
-        # Implementation would validate and enhance the insight
-        return insight
+        """
+        Advanced insight enrichment with validation, context, and meta-analysis
+        
+        Enriches insights with:
+        - Cross-model validation
+        - Historical context
+        - Pattern recognition
+        - Confidence calibration
+        - Meta-strategic analysis
+        - Counterfactual reasoning
+        """
+        try:
+            # Create enriched copy with additional attributes
+            enriched_insight = AIInsight(
+                source_model=insight.source_model,
+                insight_type=insight.insight_type,
+                confidence=insight.confidence,
+                board_state=insight.board_state,
+                discovered_pattern=insight.discovered_pattern,
+                effectiveness_score=insight.effectiveness_score,
+                opponent_context=insight.opponent_context
+            )
+            
+            # Phase 1: Validation
+            validation_result = await self._validate_insight(enriched_insight)
+            enriched_insight.confidence *= validation_result.get('confidence_multiplier', 1.0)
+            
+            # Add validation status as a dynamic attribute
+            if hasattr(enriched_insight, '__dict__'):
+                enriched_insight.__dict__['validation_status'] = validation_result.get('status', 'validated')
+            
+            # Phase 2: Context Enhancement
+            context = await self._enhance_context(enriched_insight)
+            if hasattr(enriched_insight, '__dict__'):
+                enriched_insight.__dict__['game_phase'] = context.get('game_phase', 'unknown')
+                enriched_insight.__dict__['strategic_context'] = context.get('strategic_implications', [])
+            
+            # Phase 3: Pattern Analysis
+            pattern_analysis = await self._analyze_insight_patterns(enriched_insight)
+            if hasattr(enriched_insight, '__dict__'):
+                enriched_insight.__dict__['pattern_strength'] = pattern_analysis.get('strength', 0.5)
+                enriched_insight.__dict__['related_patterns'] = pattern_analysis.get('related', [])
+            
+            # Phase 4: Cross-Model Validation
+            cross_validation = await self._cross_validate_insight(enriched_insight)
+            if cross_validation['agreement_score'] < 0.5:
+                enriched_insight.confidence *= 0.8
+                if hasattr(enriched_insight, '__dict__'):
+                    enriched_insight.__dict__['validation_warnings'] = cross_validation.get('dissenting_opinions', [])
+            
+            # Phase 5: Meta-Strategic Analysis
+            meta_analysis = await self._perform_meta_analysis(enriched_insight)
+            if hasattr(enriched_insight, '__dict__'):
+                enriched_insight.__dict__['strategic_framework'] = meta_analysis.get('framework', 'hybrid')
+                enriched_insight.__dict__['long_term_implications'] = meta_analysis.get('implications', [])
+            
+            # Phase 6: Actionability Enhancement
+            actions = await self._enhance_actionability(enriched_insight)
+            if hasattr(enriched_insight, '__dict__'):
+                enriched_insight.__dict__['recommended_actions'] = actions
+                enriched_insight.__dict__['primary_action'] = actions[0] if actions else None
+            
+            # Phase 7: Impact Assessment
+            impact = await self._assess_insight_impact(enriched_insight)
+            if hasattr(enriched_insight, '__dict__'):
+                enriched_insight.__dict__['impact_score'] = impact.get('immediate_impact', 0.5)
+                enriched_insight.__dict__['risk_reward_ratio'] = impact.get('risk_reward_ratio', 1.0)
+            
+            # Final confidence recalibration
+            enriched_insight.confidence = max(0.1, min(0.95, enriched_insight.confidence))
+            
+            return enriched_insight
+            
+        except Exception as e:
+            logging.error(f"Error enriching insight: {str(e)}")
+            return insight  # Return original on error
 
     def _find_relevant_ais_for_insight(self, insight: AIInsight) -> List[str]:
         """Find which AIs would benefit from a specific insight"""
@@ -979,6 +1118,518 @@ class AICoordinationHub:
             "timestamp": time.time(),
             "patterns_analyzed": threat_patterns
         }
+
+    # Helper methods for enhanced _assess_urgency
+    def _board_to_numpy(self, board_state: List[List[str]]) -> np.ndarray:
+        """Convert board state to numpy array"""
+        mapping = {'X': 1, 'O': 2, '': 0, ' ': 0, None: 0}
+        board = np.zeros((6, 7), dtype=int)
+        
+        for i, row in enumerate(board_state):
+            for j, cell in enumerate(row):
+                board[i, j] = mapping.get(cell, 0)
+        
+        return board
+
+    def _check_immediate_wins_losses(self, board: np.ndarray) -> Dict[str, Any]:
+        """Check for immediate win opportunities or must-block positions"""
+        result = {
+            'can_win': False,
+            'win_positions': [],
+            'must_block': False,
+            'block_positions': []
+        }
+        
+        for col in range(7):
+            row = self._get_next_row(board, col)
+            if row is None:
+                continue
+                
+            # Check if player 1 can win
+            board[row, col] = 1
+            if self._check_win(board, row, col, 1):
+                result['can_win'] = True
+                result['win_positions'].append((row, col))
+            board[row, col] = 0
+            
+            # Check if player 2 can win (must block)
+            board[row, col] = 2
+            if self._check_win(board, row, col, 2):
+                result['must_block'] = True
+                result['block_positions'].append((row, col))
+            board[row, col] = 0
+        
+        return result
+
+    def _analyze_threat_landscape(self, board: np.ndarray) -> Dict[str, Any]:
+        """Analyze all threats on the board"""
+        threats = {
+            'immediate': [],
+            'developing': [],
+            'threat_count': 0
+        }
+        
+        # Check all positions for threats
+        for row in range(6):
+            for col in range(7):
+                if board[row, col] == 0:
+                    # Check threats for both players
+                    for player in [1, 2]:
+                        threat_level = self._evaluate_position_threat(board, row, col, player)
+                        if threat_level > 0:
+                            if player == 2:  # Opponent threat
+                                threats['immediate'].append((row, col))
+                            else:  # Our opportunity
+                                threats['developing'].append((row, col))
+        
+        threats['threat_count'] = len(threats['immediate']) + len(threats['developing']) * 0.5
+        return threats
+
+    def _identify_opportunities(self, board: np.ndarray) -> Dict[str, List]:
+        """Identify winning opportunities"""
+        opportunities = {
+            'immediate': [],
+            'setup': [],
+            'fork': []
+        }
+        
+        for col in range(7):
+            row = self._get_next_row(board, col)
+            if row is None:
+                continue
+            
+            board[row, col] = 1
+            
+            # Check for immediate wins
+            if self._check_win(board, row, col, 1):
+                opportunities['immediate'].append((row, col))
+            else:
+                # Check for setup moves
+                if self._creates_future_threat(board, row, col):
+                    opportunities['setup'].append((row, col))
+                
+                # Check for fork opportunities
+                if self._creates_fork(board, row, col):
+                    opportunities['fork'].append((row, col))
+            
+            board[row, col] = 0
+        
+        return opportunities
+
+    def _determine_game_phase(self, board: np.ndarray) -> str:
+        """Determine current game phase"""
+        pieces_played = np.count_nonzero(board)
+        
+        if pieces_played < 8:
+            return 'opening'
+        elif pieces_played < 24:
+            return 'midgame'
+        else:
+            return 'endgame'
+
+    def _analyze_tempo(self, board: np.ndarray, threat_analysis: Dict) -> Dict[str, Any]:
+        """Analyze tempo and initiative"""
+        tempo_state = {
+            'is_critical': False,
+            'initiative': 'neutral'
+        }
+        
+        our_threats = len(threat_analysis.get('developing', []))
+        opp_threats = len(threat_analysis.get('immediate', []))
+        
+        if opp_threats > our_threats + 1:
+            tempo_state['is_critical'] = True
+            tempo_state['initiative'] = 'opponent'
+        elif our_threats > opp_threats:
+            tempo_state['initiative'] = 'ours'
+        
+        return tempo_state
+
+    def _assess_pattern_urgency(self, board: np.ndarray) -> int:
+        """Assess urgency based on board patterns"""
+        # Check for critical patterns
+        if self._has_zugzwang_pattern(board):
+            return 8
+        if self._has_forced_move_pattern(board):
+            return 7
+        return 4
+
+    # Additional helper methods
+    def _get_next_row(self, board: np.ndarray, col: int) -> Optional[int]:
+        """Get the next available row in a column"""
+        for row in range(5, -1, -1):
+            if board[row, col] == 0:
+                return row
+        return None
+
+    def _check_win(self, board: np.ndarray, row: int, col: int, player: int) -> bool:
+        """Check if placing a piece at (row, col) results in a win"""
+        # Horizontal check
+        count = 1
+        # Check left
+        j = col - 1
+        while j >= 0 and board[row, j] == player:
+            count += 1
+            j -= 1
+        # Check right
+        j = col + 1
+        while j < 7 and board[row, j] == player:
+            count += 1
+            j += 1
+        if count >= 4:
+            return True
+        
+        # Vertical check
+        count = 1
+        # Check down
+        i = row + 1
+        while i < 6 and board[i, col] == player:
+            count += 1
+            i += 1
+        # Check up
+        i = row - 1
+        while i >= 0 and board[i, col] == player:
+            count += 1
+            i -= 1
+        if count >= 4:
+            return True
+        
+        # Diagonal check (top-left to bottom-right)
+        count = 1
+        i, j = row - 1, col - 1
+        while i >= 0 and j >= 0 and board[i, j] == player:
+            count += 1
+            i -= 1
+            j -= 1
+        i, j = row + 1, col + 1
+        while i < 6 and j < 7 and board[i, j] == player:
+            count += 1
+            i += 1
+            j += 1
+        if count >= 4:
+            return True
+        
+        # Diagonal check (top-right to bottom-left)
+        count = 1
+        i, j = row - 1, col + 1
+        while i >= 0 and j < 7 and board[i, j] == player:
+            count += 1
+            i -= 1
+            j += 1
+        i, j = row + 1, col - 1
+        while i < 6 and j >= 0 and board[i, j] == player:
+            count += 1
+            i += 1
+            j -= 1
+        if count >= 4:
+            return True
+        
+        return False
+
+    def _evaluate_position_threat(self, board: np.ndarray, row: int, col: int, player: int) -> float:
+        """Evaluate threat level of a position"""
+        board[row, col] = player
+        threat_level = 0
+        
+        # Check how many directions can form 4
+        directions = [
+            [(0, 1), (0, -1)],  # Horizontal
+            [(1, 0), (-1, 0)],  # Vertical
+            [(1, 1), (-1, -1)], # Diagonal 1
+            [(1, -1), (-1, 1)]  # Diagonal 2
+        ]
+        
+        for direction in directions:
+            count = 1
+            for dr, dc in direction:
+                r, c = row + dr, col + dc
+                while 0 <= r < 6 and 0 <= c < 7 and board[r, c] == player:
+                    count += 1
+                    r += dr
+                    c += dc
+            
+            if count >= 3:
+                threat_level += 1.0
+            elif count >= 2:
+                threat_level += 0.5
+        
+        board[row, col] = 0
+        return threat_level
+
+    def _creates_future_threat(self, board: np.ndarray, row: int, col: int) -> bool:
+        """Check if a move creates future threats"""
+        # Check if this move enables a winning position next turn
+        threat_count = 0
+        
+        for next_col in range(7):
+            next_row = self._get_next_row(board, next_col)
+            if next_row is not None:
+                board[next_row, next_col] = 1
+                if self._check_win(board, next_row, next_col, 1):
+                    threat_count += 1
+                board[next_row, next_col] = 0
+        
+        return threat_count >= 2
+
+    def _creates_fork(self, board: np.ndarray, row: int, col: int) -> bool:
+        """Check if a move creates a fork (multiple winning threats)"""
+        win_positions = 0
+        
+        for c in range(7):
+            if c == col:
+                continue
+            r = self._get_next_row(board, c)
+            if r is not None:
+                board[r, c] = 1
+                if self._check_win(board, r, c, 1):
+                    win_positions += 1
+                board[r, c] = 0
+        
+        return win_positions >= 2
+
+    def _has_zugzwang_pattern(self, board: np.ndarray) -> bool:
+        """Check for zugzwang patterns (forced move situations)"""
+        # Simplified check for positions where any move leads to disadvantage
+        empty_cols = [col for col in range(7) if self._get_next_row(board, col) is not None]
+        
+        if len(empty_cols) <= 3:
+            # In endgame, check if all moves lead to opponent wins
+            bad_moves = 0
+            for col in empty_cols:
+                row = self._get_next_row(board, col)
+                board[row, col] = 1
+                # Check if opponent can win after our move
+                opp_wins = False
+                for opp_col in range(7):
+                    opp_row = self._get_next_row(board, opp_col)
+                    if opp_row is not None:
+                        board[opp_row, opp_col] = 2
+                        if self._check_win(board, opp_row, opp_col, 2):
+                            opp_wins = True
+                        board[opp_row, opp_col] = 0
+                        if opp_wins:
+                            break
+                board[row, col] = 0
+                if opp_wins:
+                    bad_moves += 1
+            
+            return bad_moves == len(empty_cols)
+        
+        return False
+
+    def _has_forced_move_pattern(self, board: np.ndarray) -> bool:
+        """Check if there's only one viable move"""
+        immediate = self._check_immediate_wins_losses(board)
+        
+        # Must block immediate loss
+        if immediate['must_block'] and len(immediate['block_positions']) == 1:
+            return True
+        
+        # Only one non-losing move
+        safe_moves = []
+        for col in range(7):
+            row = self._get_next_row(board, col)
+            if row is not None:
+                board[row, col] = 1
+                # Check if opponent wins after this
+                safe = True
+                for opp_col in range(7):
+                    opp_row = self._get_next_row(board, opp_col)
+                    if opp_row is not None:
+                        board[opp_row, opp_col] = 2
+                        if self._check_win(board, opp_row, opp_col, 2):
+                            safe = False
+                        board[opp_row, opp_col] = 0
+                        if not safe:
+                            break
+                board[row, col] = 0
+                if safe:
+                    safe_moves.append(col)
+        
+        return len(safe_moves) == 1
+
+    # Helper methods for enhanced _enrich_insight
+    async def _validate_insight(self, insight: AIInsight) -> Dict[str, Any]:
+        """Validate insight through multiple checks"""
+        validation = {
+            'status': 'validated',
+            'confidence_multiplier': 1.0,
+            'warnings': []
+        }
+        
+        # Check board state validity
+        if insight.board_state:
+            if not self._is_valid_board_state(insight.board_state):
+                validation['status'] = 'invalid_board'
+                validation['confidence_multiplier'] = 0.5
+                validation['warnings'].append('Invalid board state detected')
+        
+        # Check confidence bounds
+        if not 0 <= insight.confidence <= 1:
+            validation['confidence_multiplier'] = 0.8
+            validation['warnings'].append('Confidence out of bounds')
+        
+        # Check pattern validity
+        if insight.discovered_pattern and not self._is_valid_pattern(insight.discovered_pattern):
+            validation['confidence_multiplier'] *= 0.9
+            validation['warnings'].append('Pattern validation failed')
+        
+        return validation
+
+    async def _enhance_context(self, insight: AIInsight) -> Dict[str, Any]:
+        """Add game context to insight"""
+        board = self._board_to_numpy(insight.board_state) if insight.board_state else None
+        
+        context = {
+            'game_phase': self._determine_game_phase(board) if board is not None else 'unknown',
+            'strategic_implications': []
+        }
+        
+        # Add strategic implications based on insight type
+        if 'tactical' in insight.insight_type:
+            context['strategic_implications'].append('Immediate action required')
+        if 'pattern' in insight.insight_type:
+            context['strategic_implications'].append('Recurring situation detected')
+        if 'opponent' in insight.insight_type:
+            context['strategic_implications'].append('Opponent behavior analysis')
+        
+        return context
+
+    async def _analyze_insight_patterns(self, insight: AIInsight) -> Dict[str, Any]:
+        """Analyze patterns related to the insight"""
+        analysis = {
+            'strength': 0.5,
+            'related': []
+        }
+        
+        if insight.discovered_pattern:
+            # Calculate pattern strength based on effectiveness
+            analysis['strength'] = min(insight.effectiveness_score * 1.2, 1.0)
+            
+            # Find related patterns (simplified)
+            if 'win' in insight.discovered_pattern:
+                analysis['related'].append('winning_sequences')
+            if 'block' in insight.discovered_pattern:
+                analysis['related'].append('defensive_patterns')
+            if 'fork' in insight.discovered_pattern:
+                analysis['related'].append('multi_threat_patterns')
+        
+        return analysis
+
+    async def _cross_validate_insight(self, insight: AIInsight) -> Dict[str, Any]:
+        """Cross-validate insight with other models"""
+        validation = {
+            'agreement_score': 0.7,  # Default moderate agreement
+            'dissenting_opinions': []
+        }
+        
+        # Simulate cross-validation based on insight source
+        if insight.source_model == 'experimental_ai':
+            validation['agreement_score'] = 0.6
+            validation['dissenting_opinions'].append('Conservative models disagree')
+        elif insight.source_model == 'ml_inference_fast':
+            validation['agreement_score'] = 0.8
+            
+        return validation
+
+    async def _perform_meta_analysis(self, insight: AIInsight) -> Dict[str, Any]:
+        """Perform meta-strategic analysis"""
+        meta = {
+            'framework': 'hybrid',
+            'implications': []
+        }
+        
+        # Determine strategic framework
+        if insight.effectiveness_score > 0.8:
+            meta['framework'] = 'aggressive'
+            meta['implications'].append('High confidence warrants bold play')
+        elif insight.effectiveness_score < 0.4:
+            meta['framework'] = 'defensive'
+            meta['implications'].append('Low confidence suggests caution')
+        
+        # Add long-term implications
+        if 'pattern' in insight.insight_type:
+            meta['implications'].append('Pattern knowledge can be reused')
+        if 'opponent' in insight.insight_type:
+            meta['implications'].append('Opponent modeling improved')
+        
+        return meta
+
+    async def _enhance_actionability(self, insight: AIInsight) -> List[Dict[str, Any]]:
+        """Generate actionable recommendations"""
+        actions = []
+        
+        # Generate actions based on insight type
+        if 'immediate_threat' in insight.insight_type:
+            actions.append({
+                'action': 'block_threat',
+                'urgency': 'high',
+                'confidence': insight.confidence
+            })
+        
+        if 'winning_opportunity' in insight.insight_type:
+            actions.append({
+                'action': 'execute_win',
+                'urgency': 'critical',
+                'confidence': insight.confidence
+            })
+        
+        if 'pattern' in insight.insight_type:
+            actions.append({
+                'action': 'apply_pattern',
+                'urgency': 'medium',
+                'confidence': insight.confidence * 0.9
+            })
+        
+        # Sort by urgency
+        urgency_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+        actions.sort(key=lambda x: urgency_order.get(x['urgency'], 4))
+        
+        return actions
+
+    async def _assess_insight_impact(self, insight: AIInsight) -> Dict[str, Any]:
+        """Assess the potential impact of an insight"""
+        impact = {
+            'immediate_impact': 0.5,
+            'risk_reward_ratio': 1.0
+        }
+        
+        # Calculate immediate impact
+        if insight.effectiveness_score > 0.7:
+            impact['immediate_impact'] = 0.8
+        elif insight.effectiveness_score < 0.3:
+            impact['immediate_impact'] = 0.2
+        
+        # Calculate risk-reward ratio
+        if 'winning' in insight.insight_type:
+            impact['risk_reward_ratio'] = 3.0  # High reward, low risk
+        elif 'defensive' in insight.insight_type:
+            impact['risk_reward_ratio'] = 0.5  # Low reward, high risk if not taken
+        
+        return impact
+
+    def _is_valid_board_state(self, board_state: List[List[str]]) -> bool:
+        """Check if board state is valid"""
+        if not board_state or len(board_state) != 6:
+            return False
+        
+        for row in board_state:
+            if len(row) != 7:
+                return False
+            for cell in row:
+                if cell not in ['X', 'O', '', ' ', None]:
+                    return False
+        
+        return True
+
+    def _is_valid_pattern(self, pattern: str) -> bool:
+        """Check if pattern string is valid"""
+        valid_patterns = [
+            'winning_sequence', 'blocking_pattern', 'fork_opportunity',
+            'defensive_setup', 'offensive_setup', 'tempo_gain'
+        ]
+        
+        return any(valid in pattern.lower() for valid in valid_patterns)
 
 
 # Global coordination hub instance

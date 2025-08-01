@@ -60,6 +60,34 @@ npm run ml:status
 npm run ml:train
 ```
 
+## Self-Healing Dependencies
+
+The project includes an intelligent self-healing system for dependency issues:
+
+### Commands
+```bash
+# Fix dependency issues automatically
+npm run fix:dependencies
+
+# Check dependency health
+npm run health:check
+
+# Migrate TensorFlow imports to use fallback
+npm run migrate:tensorflow
+```
+
+### How It Works
+1. **Auto-Detection**: Detects system architecture and known issues
+2. **Multi-Strategy Installation**: Tries multiple installation approaches
+3. **TensorFlow Fallback**: Automatically falls back to pure JS version if native fails
+4. **Health Monitoring**: Built-in health checks for all dependencies
+
+### TensorFlow Handling
+On Apple Silicon Macs, TensorFlow native bindings often fail. The system:
+- Attempts native installation first (faster)
+- Falls back to pure JavaScript version (slower but works everywhere)
+- Provides mock implementation for development if both fail
+
 ## Important Architecture Details
 
 ### API Configuration

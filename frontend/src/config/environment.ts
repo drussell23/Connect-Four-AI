@@ -195,13 +195,15 @@ export const buildApiEndpoint = (path: string): string => {
         });
     }
 
-    // Add /api prefix for production (Render) URLs
-    if (shouldUsePrefix) {
+    // ALWAYS add /api prefix for backend endpoints
+    // The backend serves everything under /api
+    if (cleanPath.startsWith('/api')) {
+        // Already has /api prefix
+        return `${baseUrl}${cleanPath}`;
+    } else {
+        // Add /api prefix
         return `${baseUrl}/api${cleanPath}`;
     }
-
-    // For local development, use the path as-is
-    return `${baseUrl}${cleanPath}`;
 };
 
 export default appConfig; 
