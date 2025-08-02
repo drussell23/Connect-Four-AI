@@ -45,6 +45,14 @@ class IntegrationLogger {
     // Create custom console styling
     this.initializeConsoleStyles();
     this.logServiceHeader();
+    
+    // In production, services may appear disconnected due to network isolation
+    if (process.env.NODE_ENV === 'production' || window.location.hostname !== 'localhost') {
+      console.log(
+        '%c📌 Note: In production, microservices communicate internally through the backend',
+        'color: #FFC107; font-style: italic;'
+      );
+    }
   }
 
   private initializeConsoleStyles(): void {
@@ -290,6 +298,17 @@ class IntegrationLogger {
     const key = serviceMap[service];
     if (key) {
       this.serviceStatus[key] = connected;
+    }
+    
+    // In production, show a note if all services appear disconnected
+    if (process.env.NODE_ENV === 'production' || window.location.hostname !== 'localhost') {
+      const allDisconnected = Object.values(this.serviceStatus).every(status => !status);
+      if (allDisconnected && Object.keys(this.serviceStatus).some(k => this.serviceStatus[k as keyof ServiceStatus] === false)) {
+        console.log(
+          '%c💡 Service isolation is normal in production - the backend handles all inter-service communication',
+          'color: #03A9F4; font-size: 12px;'
+        );
+      }
     }
   }
 
