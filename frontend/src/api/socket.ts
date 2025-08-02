@@ -185,7 +185,7 @@ class EnhancedSocketManager {
 
     this.socket.on('disconnect', (reason: string) => {
       socketLogger.logWarning('WebSocket disconnected', reason);
-      
+
       // Log to integration logger
       integrationLogger.logServiceConnection('Backend API', false, { reason });
 
@@ -204,7 +204,7 @@ class EnhancedSocketManager {
       this.metrics.errorCount++;
       this.updateMetrics();
       this.notifyStatusChange();
-      
+
       // Implement smart retry logic
       if (this.connectionAttemptCount < 3) {
         this.connectionAttemptCount++;
@@ -276,7 +276,7 @@ class EnhancedSocketManager {
 
         // Log to integration logger
         integrationLogger.logWebSocketEvent(event, data, 'in');
-        
+
         // Special handling for AI events
         if (event === 'aiMove' && data.aiMetrics) {
           integrationLogger.logAIDecision({
@@ -483,9 +483,9 @@ class EnhancedSocketManager {
 
     const delay = Math.min(1000 * Math.pow(1.5, this.connectionAttemptCount), 10000);
     const jitter = Math.random() * 1000;
-    
+
     console.log(`⏰ Scheduling connection retry in ${Math.round((delay + jitter) / 1000)}s...`);
-    
+
     this.connectionRetryTimer = setTimeout(() => {
       this.connect();
     }, delay + jitter);
@@ -588,12 +588,12 @@ class EnhancedSocketManager {
   // Cleanup
   public destroy(): void {
     this.stopHeartbeat();
-    
+
     if (this.connectionRetryTimer) {
       clearTimeout(this.connectionRetryTimer);
       this.connectionRetryTimer = null;
     }
-    
+
     this.eventQueue = [];
     this.eventListeners.clear();
     this.statusCallbacks.clear();
