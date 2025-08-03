@@ -91,14 +91,46 @@ class EnhancedSocketManager {
     };
   }
 
+  // Validate server connection health
+  private async validateConnection(): Promise<boolean> {
+    try {
+      const response = await fetch(`${appConfig.api.baseUrl}/api/health`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(5000),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        socketLogger.logInfo('Health check successful:', data.status);
+        return true;
+      }
+      
+      socketLogger.logWarning('Health check returned non-OK status:', response.status);
+      return false;
+    } catch (error) {
+      socketLogger.logError('Health check failed:', error);
+      return false;
+    }
+  }
+
   // Initialize socket connection
-  public initialize(): Socket {
+  public async initialize(): Promise<Socket> {
     const { api } = appConfig;
 
     socketLogger.logInfo('🔌 Initializing Enhanced WebSocket Manager');
     socketLogger.logInfo('🏢 Enterprise Mode:', appConfig.enterprise.mode);
     socketLogger.logInfo('🔗 Connecting to:', `${api.baseUrl}`);
     socketLogger.logInfo('📍 Will connect to namespace: /game');
+
+    // Validate server availability before attempting connection
+    const isServerAvailable = await this.validateConnection();
+    if (!isServerAvailable) {
+      socketLogger.logWarning('⚠️ Server not available, will attempt connection anyway...');
+    }
 
     // Create manager for connection pooling - DO NOT include namespace in URL!
     this.manager = new Manager(api.baseUrl, {
@@ -114,6 +146,9 @@ class EnhancedSocketManager {
       upgrade: true,
       rememberUpgrade: true
     });
+
+    // Setup manager-level error handling
+    this.setupManagerErrorHandling();
 
     // Create socket instance on the /game namespace
     // Use the full path to ensure proper namespace connection
@@ -362,6 +397,7 @@ class EnhancedSocketManager {
 
       // Start services
       this.startHeartbeat();
+      this.startHealthCheck();
       this.flushEventQueue();
       this.updateMetrics();
       this.notifyStatusChange();
@@ -406,6 +442,7 @@ class EnhancedSocketManager {
 
       // Stop services
       this.stopHeartbeat();
+      this.stopHealthCheck();
       this.stopQualityMonitoring();
       this.updateMetrics();
       this.notifyStatusChange();
@@ -1596,6 +1633,7 @@ class EnhancedSocketManager {
     
     // Stop all operations
     this.stopHeartbeat();
+    this.stopHealthCheck();
     this.stopQualityMonitoring();
     
     // Clear queues to prevent cascading failures
@@ -2019,6 +2057,39 @@ class EnhancedSocketManager {
     }
   }
 
+  // Setup manager-level error handling
+  private setupManagerErrorHandling(): void {
+    if (!this.manager) return;
+
+    // Handle manager-level errors
+    this.manager.on('error', (error: Error) => {
+      socketLogger.logError('Manager error:', error);
+      this.metrics.errorCount++;
+    });
+
+    // Handle manager reconnection events
+    this.manager.on('reconnect_attempt', (attemptNumber: number) => {
+      socketLogger.logInfo(`Manager reconnection attempt ${attemptNumber}`);
+      this.reconnectAttempts = attemptNumber;
+    });
+
+    this.manager.on('reconnect', () => {
+      socketLogger.logInfo('Manager reconnected successfully');
+      this.reconnectAttempts = 0;
+      this.isReconnecting = false;
+    });
+
+    this.manager.on('reconnect_error', (error: Error) => {
+      socketLogger.logError('Manager reconnection error:', error);
+      this.metrics.errorCount++;
+    });
+
+    this.manager.on('reconnect_failed', () => {
+      socketLogger.logError('Manager reconnection failed after all attempts');
+      // Could trigger additional recovery logic here
+    });
+  }
+
   // Setup general event handlers with filtering and monitoring
   private setupEventHandlers(): void {
     if (!this.socket) return;
@@ -2158,6 +2229,29 @@ class EnhancedSocketManager {
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
+    }
+  }
+
+  // Server health monitoring
+  private healthCheckTimer: NodeJS.Timeout | null = null;
+
+  public startHealthCheck(): void {
+    // Regular health checks to detect connection issues early
+    this.healthCheckTimer = setInterval(async () => {
+      if (this.manager && !this.isReconnecting) {
+        const isHealthy = await this.validateConnection();
+        if (!isHealthy && this.socket?.connected) {
+          socketLogger.logWarning('Server health check failed, connection may be degraded');
+          // Could trigger proactive reconnection here if needed
+        }
+      }
+    }, 30000); // Check every 30 seconds
+  }
+
+  public stopHealthCheck(): void {
+    if (this.healthCheckTimer) {
+      clearInterval(this.healthCheckTimer);
+      this.healthCheckTimer = null;
     }
   }
 
@@ -2312,6 +2406,7 @@ class EnhancedSocketManager {
 
   public disconnect(): void {
     this.stopHeartbeat();
+    this.stopHealthCheck();
     if (this.socket && this.socket.connected) {
       this.socket.disconnect();
     }
@@ -2573,6 +2668,7 @@ class EnhancedSocketManager {
     try {
       // Stop all timers first
       this.stopHeartbeat();
+      this.stopHealthCheck();
 
       if (this.connectionRetryTimer) {
         clearTimeout(this.connectionRetryTimer);
@@ -2728,8 +2824,25 @@ const socketManager = new EnhancedSocketManager({
   timeout: 45000, // Increased timeout to prevent disconnections
 });
 
-// Initialize the socket
-const socket = socketManager.initialize();
+// Initialize the socket (now async)
+let socket: Socket | null = null;
+let socketInitPromise: Promise<Socket>;
+
+// Create initialization promise
+socketInitPromise = socketManager.initialize().then(s => {
+  socket = s;
+  socketLogger.logInfo('Socket initialized successfully');
+  return s;
+}).catch(error => {
+  socketLogger.logError('Failed to initialize socket:', error);
+  throw error;
+});
+
+// Helper to get socket when ready
+export const getInitializedSocket = async (): Promise<Socket> => {
+  if (socket) return socket;
+  return socketInitPromise;
+};
 
 // Export enhanced functions
 export const getConnectionStatus = (): ConnectionStatus => socketManager.getConnectionStatus();
@@ -2750,5 +2863,35 @@ export const restart = (options?: { reason?: string }): Promise<Socket> => socke
 export const connect = (): Promise<void> => socketManager.connect();
 export const disconnect = (): void => socketManager.disconnect();
 
-// Export the socket instance for backward compatibility
-export default socket;
+// Create a proxy object that handles async initialization for backward compatibility
+const socketProxy = new Proxy({} as Socket, {
+  get(target, prop) {
+    if (!socket) {
+      // Return a function that queues the operation for methods
+      if (prop === 'on' || prop === 'off' || prop === 'emit' || prop === 'once') {
+        return (...args: any[]) => {
+          socketInitPromise.then(s => {
+            (s as any)[prop](...args);
+          }).catch(error => {
+            console.error(`Failed to execute ${String(prop)} on socket:`, error);
+          });
+        };
+      }
+      // For property access like 'id', 'connected', etc., return appropriate defaults
+      if (prop === 'id') return null;
+      if (prop === 'connected') return false;
+      if (prop === 'disconnected') return true;
+      
+      // Log warning for other properties
+      console.warn(`⚠️ Socket accessed before initialization. Property: ${String(prop)}`);
+      return undefined;
+    }
+    return (socket as any)[prop];
+  },
+  has(target, prop) {
+    return socket ? prop in socket : false;
+  }
+});
+
+// Export the socket proxy for backward compatibility
+export default socketProxy;

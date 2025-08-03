@@ -186,6 +186,54 @@ export class GameGateway
       }
 
       const startTime = Date.now();
+      
+      // CRITICAL DEFENSIVE CHECK: Must block opponent wins immediately
+      const validMoves = [];
+      for (let col = 0; col < 7; col++) {
+        if (game.board[0][col] === 'Empty') {
+          validMoves.push(col);
+        }
+      }
+      
+      for (const col of validMoves) {
+        // Find the row for this column
+        let row = 5;
+        while (row >= 0 && game.board[row][col] !== 'Empty') row--;
+        
+        if (row >= 0) {
+          // Check if opponent (Red) wins with this move
+          game.board[row][col] = 'Red';
+          const opponentWins = this.checkWin(game.board, row, col, 'Red');
+          game.board[row][col] = 'Empty'; // Restore
+          
+          if (opponentWins) {
+            this.logger.warn(`[${gameId}] 🚨 CRITICAL: Blocking opponent win at column ${col}`);
+            
+            // Execute the blocking move immediately
+            const aiRes = await this.gameService.dropDisc(gameId, 'AI', col);
+            if (aiRes.success) {
+              this.server.to(gameId).emit('aiMove', {
+                column: col,
+                board: aiRes.board,
+                lastMove: { column: col, playerId: 'Yellow' },
+                winner: aiRes.winner,
+                draw: aiRes.draw,
+                nextPlayer: aiRes.nextPlayer,
+                confidence: 1.0,
+                thinkingTime: Date.now() - startTime,
+                explanation: 'Blocking critical threat',
+                safetyScore: 1.0,
+                strategy: 'defensive_critical',
+                gameMetrics: aiRes.gameMetrics
+              });
+              
+              this.logger.log(`[${gameId}] ✅ Blocked opponent win in ${Date.now() - startTime}ms`);
+              return;
+            }
+          }
+        }
+      }
+      
       // Enforce minimum difficulty of 20
       const requestedDifficulty = game.aiLevel || 5;
       const difficulty = Math.max(20, requestedDifficulty);
@@ -222,12 +270,15 @@ export class GameGateway
         });
 
         try {
-          // Get coordinated AI decision
+          // Get coordinated AI decision with aggressive timeout
+          const boardComplexity = game.board.flat().filter(cell => cell !== 'Empty').length / 42;
+          const maxTimeout = boardComplexity < 0.2 ? 200 : boardComplexity < 0.4 ? 400 : 800; // Much faster timeouts
+          
           const coordResult = await this.coordinationIntegration.requestCoordinatedMove(
             game.board,
             'Yellow' as CellValue,
             difficulty,
-            5000, // 5 second timeout
+            maxTimeout, // Aggressive timeout based on board complexity
             {
               moveHistory: [], // TODO: Add move history tracking
               gamePhase: this.determineGamePhase(game.board)

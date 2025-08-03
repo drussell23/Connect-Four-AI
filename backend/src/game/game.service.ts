@@ -129,43 +129,71 @@ export class GameService {
   }
 
   /**
-   * Fallback AI implementation for basic gameplay
+   * Fallback AI implementation for basic gameplay - OPTIMIZED FOR SPEED
    */
   private getFallbackAIMove(board: CellValue[][]): number {
-    // Simple random move selection for fallback
+    // Quick valid moves check
     const validMoves = [];
-    for (let col = 0; col < GameService.COLS; col++) {
+    const centerCol = 3;
+    
+    // Prefer center column first
+    if (board[0][centerCol] === 'Empty') {
+      validMoves.push(centerCol);
+    }
+    
+    // Then adjacent columns
+    for (const col of [2, 4, 1, 5, 0, 6]) {
       if (board[0][col] === 'Empty') {
         validMoves.push(col);
       }
     }
 
     if (validMoves.length === 0) {
-      return 0; // Fallback to column 0
+      return 0; // No moves available
     }
 
-    // Try to make a slightly better move than random
-    // Check for immediate win or block
+    // CRITICAL: Check ALL moves for must-block situations first
     for (const col of validMoves) {
-      const tempBoard = board.map(row => [...row]);
       // Find the row for this column
-      for (let row = GameService.ROWS - 1; row >= 0; row--) {
-        if (tempBoard[row][col] === 'Empty') {
-          tempBoard[row][col] = 'Yellow'; // AI color
-          if (this.checkWin(tempBoard, row, col, 'Yellow')) {
-            return col; // Winning move
-          }
-          tempBoard[row][col] = 'Red'; // Player color
-          if (this.checkWin(tempBoard, row, col, 'Red')) {
-            return col; // Blocking move
-          }
-          break;
+      let row = GameService.ROWS - 1;
+      while (row >= 0 && board[row][col] !== 'Empty') row--;
+      
+      if (row >= 0) {
+        // PRIORITY 1: Check if opponent wins with this move
+        if (this.quickWinCheck(board, row, col, 'Red')) {
+          this.logger.warn(`🚨 BLOCKING opponent win at column ${col}`);
+          return col; // MUST BLOCK!
+        }
+      }
+    }
+    
+    // Then check for our winning moves
+    for (const col of validMoves) {
+      let row = GameService.ROWS - 1;
+      while (row >= 0 && board[row][col] !== 'Empty') row--;
+      
+      if (row >= 0) {
+        // Check if we can win
+        if (this.quickWinCheck(board, row, col, 'Yellow')) {
+          this.logger.log(`🎯 Winning move at column ${col}`);
+          return col; // Take the win!
         }
       }
     }
 
-    // Return random valid move
-    return validMoves[Math.floor(Math.random() * validMoves.length)];
+    // Return first valid move (center-biased)
+    return validMoves[0];
+  }
+  
+  /**
+   * Quick win check - FIXED to properly detect threats
+   */
+  private quickWinCheck(board: CellValue[][], row: number, col: number, color: CellValue): boolean {
+    // Temporarily place the piece
+    board[row][col] = color;
+    const result = this.checkWin(board, row, col, color);
+    board[row][col] = 'Empty'; // Restore
+    return result;
   }
 
   /**
@@ -399,6 +427,34 @@ export class GameService {
     }
 
     const startTime = Date.now();
+    
+    // CRITICAL: First check for must-block moves
+    const validMoves = this.getValidMoves(game.board);
+    for (const col of validMoves) {
+      let row = GameService.ROWS - 1;
+      while (row >= 0 && game.board[row][col] !== 'Empty') row--;
+      
+      if (row >= 0) {
+        // Check if opponent wins with this move
+        const opponentDisc = aiDisc === 'Yellow' ? 'Red' : 'Yellow';
+        game.board[row][col] = opponentDisc;
+        const opponentWins = this.checkWin(game.board, row, col, opponentDisc);
+        game.board[row][col] = 'Empty';
+        
+        if (opponentWins) {
+          this.logger.warn(`[${gameId}] 🚨 CRITICAL: Must block opponent win at column ${col}`);
+          return {
+            column: col,
+            explanation: 'Blocking opponent\'s winning move',
+            confidence: 1.0,
+            thinkingTime: Date.now() - startTime,
+            safetyScore: 1.0,
+            strategy: 'defensive_critical',
+            cached: false
+          };
+        }
+      }
+    }
 
     // Emit AI move request event for integration
     this.eventEmitter.emit('ai.move.requested', {
@@ -465,6 +521,45 @@ export class GameService {
     this.logger.log(`[${gameId}] 📊 Fallback AI: Basic minimax algorithm`);
 
     try {
+      // Check opening book first for instant response
+      const moveCount = game.board.flat().filter(cell => cell !== 'Empty').length;
+      if (moveCount < 4) {
+        // Use opening book for first few moves
+        if (moveCount === 0) {
+          // First move - always play center
+          const column = 3;
+          this.logger.log(`[${gameId}] 📖 Opening book: First move - center column ${column}`);
+          return {
+            column,
+            explanation: 'Opening book: Center control is optimal for first move',
+            confidence: 1.0,
+            thinkingTime: 5, // Instant
+            safetyScore: 1.0,
+            adaptationInfo: { mode: 'opening_book', level: 1 },
+            curriculumInfo: { stage: 'opening' },
+            debateResult: null,
+            strategy: 'opening_book',
+            cached: true
+          };
+        } else if (moveCount === 1 && game.board[5][3] === 'Red') {
+          // Opponent played center first - play adjacent
+          const column = 2;
+          this.logger.log(`[${gameId}] 📖 Opening book: Counter-center with column ${column}`);
+          return {
+            column,
+            explanation: 'Opening book: Counter-center strategy',
+            confidence: 0.95,
+            thinkingTime: 5,
+            safetyScore: 1.0,
+            adaptationInfo: { mode: 'opening_book', level: 1 },
+            curriculumInfo: { stage: 'opening' },
+            debateResult: null,
+            strategy: 'opening_book',
+            cached: true
+          };
+        }
+      }
+      
       // Direct fallback to simplified AI - fast and reliable
       const column = this.getFallbackAIMove(game.board);
       const thinkingTime = Date.now() - startTime;
