@@ -100,6 +100,13 @@ export class GameStateManager extends EventEmitter {
   }
 
   /**
+   * Get current game
+   */
+  get getCurrentGame(): GameState | null {
+    return this.currentGame;
+  }
+
+  /**
    * Create new game
    */
   async createGame(aiDifficulty: number = 20): Promise<GameState> {

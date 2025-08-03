@@ -157,8 +157,7 @@ class EnhancedSocketManager {
         clientId: this.generateClientId(),
         version: '1.0.0',
         features: this.getEnabledFeatures(),
-      },
-      path: '/socket.io/'  // Explicitly set the path
+      }
     });
 
     this.setupEventHandlers();
@@ -298,7 +297,7 @@ class EnhancedSocketManager {
         features.push('offline_capable');
       }
       
-      if ('storage' in navigator && navigator.storage && navigator.storage.estimate) {
+      if ('storage' in navigator && navigator.storage && (navigator.storage.estimate as any)) {
         features.push('storage_api');
       }
       
@@ -363,9 +362,9 @@ class EnhancedSocketManager {
         namespace: '/game',
         reconnectionCount: this.metrics.reconnectionCount,
         previousUptime: previousUptime,
-        clientId: this.socket?.auth?.clientId,
-        features: this.socket?.auth?.features,
-        protocolVersion: this.socket?.io.protocol,
+        clientId: (this.socket?.auth as any)?.clientId,
+        features: (this.socket?.auth as any)?.features,
+        protocolVersion: (this.socket?.io as any)?.protocol,
         engineVersion: this.socket?.io.engine?.id
       };
 
@@ -373,7 +372,7 @@ class EnhancedSocketManager {
       integrationLogger.logServiceConnection('Backend API', true, connectionDetails);
 
       // Send connection analytics
-      this.socket.emit('connection:analytics', {
+      this.socket!.emit('connection:analytics', {
         type: 'connected',
         timestamp: new Date().toISOString(),
         metrics: {
@@ -405,7 +404,7 @@ class EnhancedSocketManager {
       // Request server state sync if reconnecting
       if (this.metrics.reconnectionCount > 0) {
         socketLogger.logInfo('🔄 Requesting state synchronization after reconnection');
-        this.socket.emit('sync:request', {
+        this.socket!.emit('sync:request', {
           lastEventId: this.getLastProcessedEventId(),
           clientTime: Date.now()
         });
@@ -517,7 +516,7 @@ class EnhancedSocketManager {
       this.notifyStatusChange();
 
       // Send reconnection analytics
-      this.socket.emit('connection:analytics', {
+      this.socket!.emit('connection:analytics', {
         type: 'reconnected',
         timestamp: new Date().toISOString(),
         metrics: {
@@ -1481,7 +1480,8 @@ class EnhancedSocketManager {
       this.updateMetrics();
       
       // Check if we need to switch transports
-      if (errorInfo.category === 'connection' && this.socket?.io.opts.transports?.length > 1) {
+      const transports = this.socket?.io?.opts?.transports;
+      if (errorInfo.category === 'connection' && transports && transports.length > 1) {
         socketLogger.logWarning('🔄 Considering transport switch due to errors');
         this.considerTransportSwitch();
       }
@@ -1701,9 +1701,11 @@ class EnhancedSocketManager {
   }
 
   private considerTransportSwitch(): void {
-    if (this.socket?.io.opts.transports?.includes('polling') && !this.socket.io.opts.transports[0].includes('polling')) {
+    const transports = this.socket?.io?.opts?.transports as string[] | undefined;
+    if (transports && transports.includes('polling') && 
+        transports[0] && typeof transports[0] === 'string' && !transports[0].includes('polling')) {
       socketLogger.logInfo('🔄 Switching to polling transport due to websocket errors');
-      this.socket.io.opts.transports = ['polling'];
+      this.socket!.io.opts.transports = ['polling'] as any;
       this.forceReconnect();
     }
   }
@@ -1987,7 +1989,7 @@ class EnhancedSocketManager {
     sessionStorage.removeItem('last_game_state');
     
     // Send game analytics
-    this.socket.emit('game:analytics', {
+    this.socket!.emit('game:analytics', {
       duration: data.duration,
       moves: data.totalMoves,
       winner: data.winner,
@@ -2360,7 +2362,8 @@ class EnhancedSocketManager {
     }
 
     // Check if already connected or connecting
-    if (this.socket.connected || this.socket.connecting) {
+    const isConnecting = !this.socket.connected && !this.socket.disconnected;
+    if (this.socket.connected || isConnecting) {
       console.log('✅ Socket already connected or connecting');
       return;
     }
@@ -2504,7 +2507,7 @@ class EnhancedSocketManager {
 
       // Check transport health
       const transport = this.socket.io?.engine?.transport;
-      if (!transport || transport.readyState !== 'open') {
+      if (!transport || (transport as any).readyState !== 'open') {
         return false;
       }
 
@@ -2647,7 +2650,7 @@ class EnhancedSocketManager {
     return {
       initialized: !!this.socket,
       connected: this.socket?.connected || false,
-      connecting: this.socket?.connecting || false,
+      connecting: (this.socket && !this.socket.connected && !this.socket.disconnected) || false,
       disconnected: this.socket?.disconnected || false,
       transport: this.socket?.io?.engine?.transport?.name || null,
       bufferedAmount: this.socket?.sendBuffer?.length || 0,
@@ -2683,7 +2686,7 @@ class EnhancedSocketManager {
         const cleanupPromise = new Promise<void>((resolve) => {
           const timer = setTimeout(() => resolve(), timeout);
           
-          this.socket.emit('client:cleanup', { reason }, () => {
+          this.socket!.emit('client:cleanup', { reason }, () => {
             clearTimeout(timer);
             resolve();
           });
@@ -2717,7 +2720,7 @@ class EnhancedSocketManager {
             try {
               await new Promise<void>((resolve) => {
                 const timer = setTimeout(resolve, 1000);
-                this.socket.emit(event.event, event.data, () => {
+                this.socket!.emit(event.event, event.data, () => {
                   clearTimeout(timer);
                   resolve();
                 });
@@ -2734,7 +2737,8 @@ class EnhancedSocketManager {
 
       // Disconnect socket
       if (this.socket) {
-        if (this.socket.connected || this.socket.connecting) {
+        const isConnecting = !this.socket.connected && !this.socket.disconnected;
+        if (this.socket.connected || isConnecting) {
           console.log('🔌 Disconnecting socket...');
           this.socket.disconnect();
         }
@@ -2744,7 +2748,7 @@ class EnhancedSocketManager {
       // Close manager and all its sockets
       if (this.manager) {
         console.log('🏢 Closing socket manager...');
-        this.manager.close();
+        (this.manager as any)._close();
         this.manager = null;
       }
 
@@ -2825,8 +2829,8 @@ const socketManager = new EnhancedSocketManager({
 });
 
 // Initialize the socket (now async)
-let socket: Socket | null = null;
-let socketInitPromise: Promise<Socket>;
+let socket: Socket | null = null; // Initialize socket as null
+let socketInitPromise: Promise<Socket>; // Initialize promise as null
 
 // Create initialization promise
 socketInitPromise = socketManager.initialize().then(s => {
@@ -2834,7 +2838,7 @@ socketInitPromise = socketManager.initialize().then(s => {
   socketLogger.logInfo('Socket initialized successfully');
   return s;
 }).catch(error => {
-  socketLogger.logError('Failed to initialize socket:', error);
+  socketLogger.logError('Failed to initialize socket:', error); 
   throw error;
 });
 
