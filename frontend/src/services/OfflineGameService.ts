@@ -1,20 +1,22 @@
-/**
- * Offline Game Service
- * Provides seamless online/offline game functionality
- */
+ /**
+  * Offline Game Service - Adapted from backend LocalFirstAIService for frontend use 
+  * Provides seamless online/offline game functionality with progressive AI enhancement 
+  *  
+  */
 
-import { io, Socket } from 'socket.io-client';
-import { GameStateManager, GameState, Move, CellValue } from './GameStateManager';
-import { LocalFirstAIService } from '../../../backend/src/ai/local-first/local-first-ai.service';
+import { io, Socket } from 'socket.io-client'; // Import the io and Socket classes from the socket.io-client package 
+import { GameStateManager, GameState, Move, CellValue } from './GameStateManager'; // Import the GameStateManager, GameState, Move, and CellValue classes from the GameStateManager file 
 
+// GameServiceConfig - Interface for the game service configuration 
 export interface GameServiceConfig {
-  apiUrl: string;
-  enableOffline: boolean;
-  autoReconnect: boolean;
-  reconnectInterval: number;
-  syncBatchSize: number;
+  apiUrl: string; // The URL of the API 
+  enableOffline: boolean; // Whether to enable offline mode 
+  autoReconnect: boolean; // Whether to automatically reconnect 
+  reconnectInterval: number; // The interval in milliseconds to reconnect 
+  syncBatchSize: number; // The number of items to sync in a batch 
 }
 
+// ConnectionStatus - Interface for the connection status 
 export interface ConnectionStatus {
   online: boolean;
   connected: boolean;
@@ -27,6 +29,877 @@ export interface ConnectionStatus {
 
 export type GameEventHandler = (data: any) => void;
 
+/**
+ * LocalFirstAI - Adapted from backend LocalFirstAIService for frontend use
+ * Provides progressive AI enhancement with multiple fallback strategies
+ */
+class LocalFirstAI {
+  private moveCache: Map<string, { move: number; confidence: number; timestamp: number; method: string }>;
+  private positionEvaluationCache: Map<string, number>;
+  private transpositionTable: Map<string, { depth: number; score: number; move: number; flag: 'exact' | 'alpha' | 'beta' }>;
+  private openingBook: Map<string, { moves: number[]; weights: number[] }>;
+  private killerMoves: number[][];
+  private historyTable: number[][];
+  private readonly maxCacheSize = 50000;
+  private readonly maxTranspositionSize = 100000;
+  private computationMetrics: {
+    totalComputations: number;
+    cacheHits: number;
+    averageDepth: number;
+    averageTime: number;
+  };
+
+  constructor() {
+    this.moveCache = new Map();
+    this.positionEvaluationCache = new Map();
+    this.transpositionTable = new Map();
+    this.openingBook = this.initializeOpeningBook();
+    this.killerMoves = Array(20).fill(null).map(() => [-1, -1]);
+    this.historyTable = Array(6).fill(null).map(() => Array(7).fill(0));
+    this.computationMetrics = {
+      totalComputations: 0,
+      cacheHits: 0,
+      averageDepth: 0,
+      averageTime: 0
+    };
+  }
+
+  /**
+   * Get best move with progressive enhancement
+   */
+  async getBestMove(
+    board: CellValue[][],
+    player: 'Red' | 'Yellow',
+    difficulty: number = 20,
+    timeLimit: number = 5000
+  ): Promise<{
+    move: number;
+    confidence: number;
+    method: 'cache' | 'opening' | 'minimax' | 'mcts' | 'neural' | 'heuristic' | 'emergency';
+    depth: number;
+    computationTime: number;
+    evaluations: number;
+  }> {
+    const startTime = performance.now();
+    const boardHash = this.getBoardHash(board);
+    
+    // Check move cache first
+    const cached = this.moveCache.get(boardHash);
+    if (cached && Date.now() - cached.timestamp < 60000) {
+      this.computationMetrics.cacheHits++;
+      return {
+        move: cached.move,
+        confidence: cached.confidence,
+        method: 'cache' as const,
+        depth: 0,
+        computationTime: performance.now() - startTime,
+        evaluations: 0
+      };
+    }
+
+    // Check opening book
+    const moveNumber = this.getMoveNumber(board);
+    if (moveNumber < 8) {
+      const openingMove = this.getOpeningBookMove(boardHash);
+      if (openingMove !== null) {
+        const result = {
+          move: openingMove,
+          confidence: 0.95,
+          method: 'opening' as const,
+          depth: 0,
+          computationTime: performance.now() - startTime,
+          evaluations: 0
+        };
+        this.cacheMove(boardHash, openingMove, 0.95, 'opening');
+        return result;
+      }
+    }
+
+    // Determine computation method based on difficulty and time
+    let result;
+    const depth = Math.min(Math.floor(difficulty / 3), 12);
+    
+    try {
+      if (difficulty >= 60 && timeLimit >= 3000) {
+        // Use advanced algorithms for high difficulty
+        result = await this.computeWithMCTS(board, player, timeLimit * 0.8);
+      } else if (difficulty >= 30) {
+        // Use iterative deepening minimax with alpha-beta
+        result = await this.computeWithIterativeDeepening(board, player, depth, timeLimit * 0.8);
+      } else {
+        // Use standard minimax for lower difficulties
+        result = this.computeWithMinimax(board, player, Math.min(depth, 7));
+      }
+    } catch (error) {
+      console.warn('AI computation failed, using heuristic fallback:', error);
+      result = this.computeHeuristicMove(board, player);
+    }
+
+    // Cache the result
+    this.cacheMove(boardHash, result.move, result.confidence, result.method);
+    
+    // Update metrics
+    this.updateMetrics(result.depth, performance.now() - startTime);
+    
+    return {
+      ...result,
+      computationTime: performance.now() - startTime
+    };
+  }
+
+  /**
+   * Monte Carlo Tree Search implementation
+   */
+  private async computeWithMCTS(
+    board: CellValue[][],
+    player: 'Red' | 'Yellow',
+    timeLimit: number
+  ): Promise<any> {
+    interface MCTSNode {
+      board: CellValue[][];
+      player: 'Red' | 'Yellow';
+      visits: number;
+      wins: number;
+      children: Map<number, MCTSNode>;
+      parent: MCTSNode | null;
+      move?: number;
+    }
+
+    const startTime = performance.now();
+    const root: MCTSNode = { board, player, visits: 0, wins: 0, children: new Map(), parent: null };
+    let simulations = 0;
+    
+    while (performance.now() - startTime < timeLimit) {
+      // Selection
+      let node: MCTSNode = root;
+      const path: MCTSNode[] = [node];
+      
+      while (node.children.size > 0 && node.children.size === this.getValidMoves(node.board).length) {
+        node = this.selectBestChild(node);
+        path.push(node);
+      }
+      
+      // Expansion
+      if (node.visits > 0 && !this.isTerminal(node.board)) {
+        const moves = this.getValidMoves(node.board);
+        for (const move of moves) {
+          if (!node.children.has(move)) {
+            const newBoard = this.makeMove(node.board, move, node.player);
+            const child: MCTSNode = {
+              board: newBoard,
+              player: (node.player === 'Red' ? 'Yellow' : 'Red') as 'Red' | 'Yellow',
+              visits: 0,
+              wins: 0,
+              children: new Map(),
+              parent: node,
+              move
+            };
+            node.children.set(move, child);
+            node = child;
+            path.push(node);
+            break;
+          }
+        }
+      }
+      
+      // Simulation
+      const result = this.simulate(node.board, node.player);
+      
+      // Backpropagation
+      for (const n of path) {
+        n.visits++;
+        if ((result === 'Red' && player === 'Red') || (result === 'Yellow' && player === 'Yellow')) {
+          n.wins++;
+        } else if (result === 'draw') {
+          n.wins += 0.5;
+        }
+      }
+      
+      simulations++;
+    }
+    
+    // Select best move
+    let bestMove = -1;
+    let bestValue = -Infinity;
+    
+    for (const [move, child] of root.children) {
+      const value = child.wins / (child.visits || 1);
+      if (value > bestValue) {
+        bestValue = value;
+        bestMove = move;
+      }
+    }
+    
+    return {
+      move: bestMove,
+      confidence: bestValue,
+      method: 'mcts',
+      depth: Math.floor(Math.log2(simulations)),
+      evaluations: simulations
+    };
+  }
+
+  /**
+   * Iterative deepening with time management
+   */
+  private async computeWithIterativeDeepening(
+    board: CellValue[][],
+    player: 'Red' | 'Yellow',
+    maxDepth: number,
+    timeLimit: number
+  ): Promise<any> {
+    const startTime = performance.now();
+    let bestMove = -1;
+    let bestScore = -Infinity;
+    let completedDepth = 0;
+    let totalEvaluations = 0;
+    
+    for (let depth = 1; depth <= maxDepth; depth++) {
+      if (performance.now() - startTime > timeLimit * 0.8) break;
+      
+      const moves = this.getValidMoves(board);
+      let currentBestMove = -1;
+      let currentBestScore = -Infinity;
+      
+      // Move ordering using history heuristic
+      moves.sort((a, b) => this.historyTable[0][b] - this.historyTable[0][a]);
+      
+      for (const move of moves) {
+        const newBoard = this.makeMove(board, move, player);
+        const score = -this.minimax(
+          newBoard,
+          depth - 1,
+          -Infinity,
+          Infinity,
+          player === 'Red' ? 'Yellow' : 'Red',
+          { evaluations: 0 }
+        );
+        
+        if (score > currentBestScore) {
+          currentBestScore = score;
+          currentBestMove = move;
+        }
+        
+        totalEvaluations++;
+      }
+      
+      bestMove = currentBestMove;
+      bestScore = currentBestScore;
+      completedDepth = depth;
+      
+      // Early exit if we found a winning move
+      if (bestScore > 9000) break;
+    }
+    
+    return {
+      move: bestMove,
+      confidence: this.scoreToConfidence(bestScore),
+      method: 'minimax',
+      depth: completedDepth,
+      evaluations: totalEvaluations
+    };
+  }
+
+  /**
+   * Standard minimax with alpha-beta pruning
+   */
+  private computeWithMinimax(
+    board: CellValue[][],
+    player: 'Red' | 'Yellow',
+    depth: number
+  ): any {
+    const moves = this.getValidMoves(board);
+    let bestMove = moves[0];
+    let bestScore = -Infinity;
+    let totalEvaluations = 0;
+    
+    for (const move of moves) {
+      const newBoard = this.makeMove(board, move, player);
+      const stats = { evaluations: 0 };
+      const score = -this.minimax(
+        newBoard,
+        depth - 1,
+        -Infinity,
+        Infinity,
+        player === 'Red' ? 'Yellow' : 'Red',
+        stats
+      );
+      
+      totalEvaluations += stats.evaluations;
+      
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = move;
+      }
+    }
+    
+    return {
+      move: bestMove,
+      confidence: this.scoreToConfidence(bestScore),
+      method: 'minimax',
+      depth,
+      evaluations: totalEvaluations
+    };
+  }
+
+  /**
+   * Minimax algorithm with enhancements
+   */
+  private minimax(
+    board: CellValue[][],
+    depth: number,
+    alpha: number,
+    beta: number,
+    player: 'Red' | 'Yellow',
+    stats: { evaluations: number }
+  ): number {
+    const boardHash = this.getBoardHash(board);
+    
+    // Check transposition table
+    const ttEntry = this.transpositionTable.get(boardHash);
+    if (ttEntry && ttEntry.depth >= depth) {
+      if (ttEntry.flag === 'exact') return ttEntry.score;
+      if (ttEntry.flag === 'alpha' && ttEntry.score <= alpha) return alpha;
+      if (ttEntry.flag === 'beta' && ttEntry.score >= beta) return beta;
+    }
+    
+    // Terminal node check
+    const winner = this.checkWinner(board);
+    if (winner === player) return 10000 - (10 - depth);
+    if (winner === (player === 'Red' ? 'Yellow' : 'Red')) return -10000 + (10 - depth);
+    if (this.isBoardFull(board)) return 0;
+    if (depth === 0) {
+      stats.evaluations++;
+      return this.evaluatePosition(board, player);
+    }
+    
+    const moves = this.getValidMoves(board);
+    let bestScore = -Infinity;
+    let bestMove = moves[0];
+    let flag: 'exact' | 'alpha' | 'beta' = 'alpha';
+    
+    // Check killer moves first
+    const killers = this.killerMoves[depth] || [];
+    const orderedMoves = [
+      ...killers.filter(k => k !== -1 && moves.includes(k)),
+      ...moves.filter(m => !killers.includes(m))
+    ];
+    
+    for (const move of orderedMoves) {
+      const newBoard = this.makeMove(board, move, player);
+      const score = -this.minimax(
+        newBoard,
+        depth - 1,
+        -beta,
+        -alpha,
+        player === 'Red' ? 'Yellow' : 'Red',
+        stats
+      );
+      
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = move;
+      }
+      
+      alpha = Math.max(alpha, score);
+      
+      if (alpha >= beta) {
+        // Update killer moves
+        if (this.killerMoves[depth]) {
+          if (this.killerMoves[depth][0] !== move) {
+            this.killerMoves[depth][1] = this.killerMoves[depth][0];
+            this.killerMoves[depth][0] = move;
+          }
+        }
+        flag = 'beta';
+        break;
+      }
+    }
+    
+    if (bestScore > alpha) flag = 'exact';
+    
+    // Store in transposition table
+    this.transpositionTable.set(boardHash, {
+      depth,
+      score: bestScore,
+      move: bestMove,
+      flag
+    });
+    
+    // Prune transposition table if too large
+    if (this.transpositionTable.size > this.maxTranspositionSize) {
+      this.pruneTranspositionTable();
+    }
+    
+    return bestScore;
+  }
+
+  /**
+   * Advanced position evaluation
+   */
+  private evaluatePosition(board: CellValue[][], player: 'Red' | 'Yellow'): number {
+    const boardHash = this.getBoardHash(board);
+    const cached = this.positionEvaluationCache.get(boardHash);
+    if (cached !== undefined) return cached;
+    
+    let score = 0;
+    const opponent = player === 'Red' ? 'Yellow' : 'Red';
+    
+    // Center column preference
+    const centerColumn = 3;
+    for (let row = 0; row < 6; row++) {
+      if (board[row][centerColumn] === player) score += 3;
+      if (board[row][centerColumn] === opponent) score -= 3;
+    }
+    
+    // Evaluate all windows
+    score += this.evaluateWindows(board, player);
+    
+    // Positional bonuses
+    const positionWeights = [
+      [3, 4, 5, 7, 5, 4, 3],
+      [4, 6, 8, 10, 8, 6, 4],
+      [5, 8, 11, 13, 11, 8, 5],
+      [5, 8, 11, 13, 11, 8, 5],
+      [4, 6, 8, 10, 8, 6, 4],
+      [3, 4, 5, 7, 5, 4, 3]
+    ];
+    
+    for (let row = 0; row < 6; row++) {
+      for (let col = 0; col < 7; col++) {
+        if (board[row][col] === player) {
+          score += positionWeights[row][col];
+        } else if (board[row][col] === opponent) {
+          score -= positionWeights[row][col];
+        }
+      }
+    }
+    
+    this.positionEvaluationCache.set(boardHash, score);
+    
+    // Prune cache if too large
+    if (this.positionEvaluationCache.size > this.maxCacheSize) {
+      this.pruneEvaluationCache();
+    }
+    
+    return score;
+  }
+
+  /**
+   * Evaluate all possible windows (4-in-a-row patterns)
+   */
+  private evaluateWindows(board: CellValue[][], player: 'Red' | 'Yellow'): number {
+    let score = 0;
+    const opponent = player === 'Red' ? 'Yellow' : 'Red';
+    
+    // Horizontal windows
+    for (let row = 0; row < 6; row++) {
+      for (let col = 0; col < 4; col++) {
+        const window = [board[row][col], board[row][col+1], board[row][col+2], board[row][col+3]];
+        score += this.evaluateWindow(window, player, opponent);
+      }
+    }
+    
+    // Vertical windows
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 7; col++) {
+        const window = [board[row][col], board[row+1][col], board[row+2][col], board[row+3][col]];
+        score += this.evaluateWindow(window, player, opponent);
+      }
+    }
+    
+    // Positive diagonal windows
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 4; col++) {
+        const window = [board[row][col], board[row+1][col+1], board[row+2][col+2], board[row+3][col+3]];
+        score += this.evaluateWindow(window, player, opponent);
+      }
+    }
+    
+    // Negative diagonal windows
+    for (let row = 3; row < 6; row++) {
+      for (let col = 0; col < 4; col++) {
+        const window = [board[row][col], board[row-1][col+1], board[row-2][col+2], board[row-3][col+3]];
+        score += this.evaluateWindow(window, player, opponent);
+      }
+    }
+    
+    return score;
+  }
+
+  /**
+   * Evaluate a single window
+   */
+  private evaluateWindow(window: CellValue[], player: 'Red' | 'Yellow', opponent: 'Red' | 'Yellow'): number {
+    const playerCount = window.filter(cell => cell === player).length;
+    const opponentCount = window.filter(cell => cell === opponent).length;
+    const emptyCount = window.filter(cell => cell === 'Empty').length;
+    
+    if (playerCount === 4) return 10000;
+    if (opponentCount === 4) return -10000;
+    
+    if (playerCount === 3 && emptyCount === 1) return 50;
+    if (opponentCount === 3 && emptyCount === 1) return -50;
+    
+    if (playerCount === 2 && emptyCount === 2) return 10;
+    if (opponentCount === 2 && emptyCount === 2) return -10;
+    
+    if (playerCount === 1 && emptyCount === 3) return 1;
+    if (opponentCount === 1 && emptyCount === 3) return -1;
+    
+    return 0;
+  }
+
+  /**
+   * Heuristic move computation
+   */
+  private computeHeuristicMove(
+    board: CellValue[][],
+    player: 'Red' | 'Yellow'
+  ): any {
+    const opponent = player === 'Red' ? 'Yellow' : 'Red';
+    const moves = this.getValidMoves(board);
+    
+    // 1. Check for winning move
+    for (const move of moves) {
+      const testBoard = this.makeMove(board, move, player);
+      if (this.checkWinner(testBoard) === player) {
+        return { move, confidence: 1.0, method: 'heuristic', depth: 1, evaluations: moves.length };
+      }
+    }
+    
+    // 2. Block opponent's winning move
+    for (const move of moves) {
+      const testBoard = this.makeMove(board, move, opponent);
+      if (this.checkWinner(testBoard) === opponent) {
+        return { move, confidence: 0.9, method: 'heuristic', depth: 1, evaluations: moves.length * 2 };
+      }
+    }
+    
+    // 3. Evaluate all moves and pick best
+    let bestMove = moves[0];
+    let bestScore = -Infinity;
+    
+    for (const move of moves) {
+      const testBoard = this.makeMove(board, move, player);
+      const score = this.evaluatePosition(testBoard, player);
+      
+      // Add randomness for variety
+      const randomizedScore = score + (Math.random() - 0.5) * 10;
+      
+      if (randomizedScore > bestScore) {
+        bestScore = randomizedScore;
+        bestMove = move;
+      }
+    }
+    
+    return {
+      move: bestMove,
+      confidence: this.scoreToConfidence(bestScore),
+      method: 'heuristic',
+      depth: 1,
+      evaluations: moves.length
+    };
+  }
+
+  /**
+   * MCTS helper - select best child using UCB1
+   */
+  private selectBestChild(node: any): any {
+    let bestChild = null;
+    let bestValue = -Infinity;
+    const c = Math.sqrt(2); // Exploration constant
+    
+    for (const child of node.children.values()) {
+      const exploitation = child.wins / (child.visits || 1);
+      const exploration = c * Math.sqrt(Math.log(node.visits) / (child.visits || 1));
+      const value = exploitation + exploration;
+      
+      if (value > bestValue) {
+        bestValue = value;
+        bestChild = child;
+      }
+    }
+    
+    return bestChild;
+  }
+
+  /**
+   * MCTS helper - simulate random playout
+   */
+  private simulate(board: CellValue[][], player: 'Red' | 'Yellow'): 'Red' | 'Yellow' | 'draw' {
+    let currentBoard = board.map(row => [...row]);
+    let currentPlayer = player;
+    let moves = 0;
+    
+    while (moves < 42) {
+      const winner = this.checkWinner(currentBoard);
+      if (winner) return winner as 'Red' | 'Yellow';
+      
+      const validMoves = this.getValidMoves(currentBoard);
+      if (validMoves.length === 0) return 'draw';
+      
+      // Smart random: prefer center columns
+      const weights = validMoves.map(col => {
+        const distance = Math.abs(col - 3);
+        return Math.exp(-distance * 0.5);
+      });
+      
+      const totalWeight = weights.reduce((a, b) => a + b, 0);
+      let random = Math.random() * totalWeight;
+      let selectedMove = validMoves[0];
+      
+      for (let i = 0; i < validMoves.length; i++) {
+        random -= weights[i];
+        if (random <= 0) {
+          selectedMove = validMoves[i];
+          break;
+        }
+      }
+      
+      currentBoard = this.makeMove(currentBoard, selectedMove, currentPlayer);
+      currentPlayer = currentPlayer === 'Red' ? 'Yellow' : 'Red';
+      moves++;
+    }
+    
+    return 'draw';
+  }
+
+  /**
+   * Initialize opening book
+   */
+  private initializeOpeningBook(): Map<string, { moves: number[]; weights: number[] }> {
+    const book = new Map();
+    
+    // Empty board - prefer center
+    book.set('_'.repeat(42), { moves: [3], weights: [1.0] });
+    
+    // Common openings
+    const openings = [
+      { pattern: 'R' + '_'.repeat(41), moves: [2, 3, 4], weights: [0.3, 0.4, 0.3] },
+      { pattern: '_'.repeat(3) + 'R' + '_'.repeat(38), moves: [2, 3, 4], weights: [0.3, 0.4, 0.3] },
+      // Add more opening patterns as needed
+    ];
+    
+    for (const opening of openings) {
+      book.set(opening.pattern, { moves: opening.moves, weights: opening.weights });
+    }
+    
+    return book;
+  }
+
+  /**
+   * Get move from opening book
+   */
+  private getOpeningBookMove(boardHash: string): number | null {
+    const entry = this.openingBook.get(boardHash);
+    if (!entry) return null;
+    
+    // Weighted random selection
+    const random = Math.random();
+    let cumulative = 0;
+    
+    for (let i = 0; i < entry.moves.length; i++) {
+      cumulative += entry.weights[i];
+      if (random <= cumulative) {
+        return entry.moves[i];
+      }
+    }
+    
+    return entry.moves[0];
+  }
+
+  /**
+   * Helper methods
+   */
+  private getBoardHash(board: CellValue[][]): string {
+    return board.map(row => 
+      row.map(cell => cell === 'Red' ? 'R' : cell === 'Yellow' ? 'Y' : '_').join('')
+    ).join('');
+  }
+
+  private getValidMoves(board: CellValue[][]): number[] {
+    const moves: number[] = [];
+    for (let col = 0; col < 7; col++) {
+      if (board[0][col] === 'Empty') moves.push(col);
+    }
+    return moves;
+  }
+
+  private makeMove(board: CellValue[][], col: number, player: CellValue): CellValue[][] {
+    const newBoard = board.map(row => [...row]);
+    for (let row = 5; row >= 0; row--) {
+      if (newBoard[row][col] === 'Empty') {
+        newBoard[row][col] = player;
+        break;
+      }
+    }
+    return newBoard;
+  }
+
+  private checkWinner(board: CellValue[][]): CellValue | null {
+    // Horizontal
+    for (let row = 0; row < 6; row++) {
+      for (let col = 0; col < 4; col++) {
+        const cell = board[row][col];
+        if (cell !== 'Empty' &&
+            cell === board[row][col+1] &&
+            cell === board[row][col+2] &&
+            cell === board[row][col+3]) {
+          return cell;
+        }
+      }
+    }
+    
+    // Vertical
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 7; col++) {
+        const cell = board[row][col];
+        if (cell !== 'Empty' &&
+            cell === board[row+1][col] &&
+            cell === board[row+2][col] &&
+            cell === board[row+3][col]) {
+          return cell;
+        }
+      }
+    }
+    
+    // Diagonal (positive slope)
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 4; col++) {
+        const cell = board[row][col];
+        if (cell !== 'Empty' &&
+            cell === board[row+1][col+1] &&
+            cell === board[row+2][col+2] &&
+            cell === board[row+3][col+3]) {
+          return cell;
+        }
+      }
+    }
+    
+    // Diagonal (negative slope)
+    for (let row = 3; row < 6; row++) {
+      for (let col = 0; col < 4; col++) {
+        const cell = board[row][col];
+        if (cell !== 'Empty' &&
+            cell === board[row-1][col+1] &&
+            cell === board[row-2][col+2] &&
+            cell === board[row-3][col+3]) {
+          return cell;
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  private isBoardFull(board: CellValue[][]): boolean {
+    return board[0].every(cell => cell !== 'Empty');
+  }
+
+  private isTerminal(board: CellValue[][]): boolean {
+    return this.checkWinner(board) !== null || this.isBoardFull(board);
+  }
+
+  private getMoveNumber(board: CellValue[][]): number {
+    let count = 0;
+    for (const row of board) {
+      for (const cell of row) {
+        if (cell !== 'Empty') count++;
+      }
+    }
+    return count;
+  }
+
+  private scoreToConfidence(score: number): number {
+    // Convert evaluation score to confidence (0-1)
+    return (Math.tanh(score / 1000) + 1) / 2;
+  }
+
+  private cacheMove(boardHash: string, move: number, confidence: number, method: string): void {
+    this.moveCache.set(boardHash, {
+      move,
+      confidence,
+      method,
+      timestamp: Date.now()
+    });
+    
+    // Prune old entries if cache is too large
+    if (this.moveCache.size > this.maxCacheSize) {
+      this.pruneMoveCache();
+    }
+  }
+
+  private pruneMoveCache(): void {
+    const entries = Array.from(this.moveCache.entries());
+    entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+    
+    const toRemove = Math.floor(this.moveCache.size * 0.3);
+    for (let i = 0; i < toRemove; i++) {
+      this.moveCache.delete(entries[i][0]);
+    }
+  }
+
+  private pruneEvaluationCache(): void {
+    // Remove random 30% of entries
+    const keys = Array.from(this.positionEvaluationCache.keys());
+    const toRemove = Math.floor(keys.length * 0.3);
+    
+    for (let i = 0; i < toRemove; i++) {
+      const randomIndex = Math.floor(Math.random() * keys.length);
+      this.positionEvaluationCache.delete(keys[randomIndex]);
+      keys.splice(randomIndex, 1);
+    }
+  }
+
+  private pruneTranspositionTable(): void {
+    // Remove entries with lowest depth
+    const entries = Array.from(this.transpositionTable.entries());
+    entries.sort((a, b) => a[1].depth - b[1].depth);
+    
+    const toRemove = Math.floor(this.transpositionTable.size * 0.3);
+    for (let i = 0; i < toRemove; i++) {
+      this.transpositionTable.delete(entries[i][0]);
+    }
+  }
+
+  private updateMetrics(depth: number, time: number): void {
+    this.computationMetrics.totalComputations++;
+    this.computationMetrics.averageDepth = 
+      (this.computationMetrics.averageDepth * (this.computationMetrics.totalComputations - 1) + depth) / 
+      this.computationMetrics.totalComputations;
+    this.computationMetrics.averageTime = 
+      (this.computationMetrics.averageTime * (this.computationMetrics.totalComputations - 1) + time) / 
+      this.computationMetrics.totalComputations;
+  }
+
+  /**
+   * Get AI metrics
+   */
+  getMetrics() {
+    return {
+      ...this.computationMetrics,
+      cacheSize: this.moveCache.size,
+      transpositionTableSize: this.transpositionTable.size,
+      evaluationCacheSize: this.positionEvaluationCache.size,
+      cacheHitRate: this.computationMetrics.totalComputations > 0 
+        ? this.computationMetrics.cacheHits / this.computationMetrics.totalComputations 
+        : 0
+    };
+  }
+
+  /**
+   * Clear all caches
+   */
+  clearCaches(): void {
+    this.moveCache.clear();
+    this.positionEvaluationCache.clear();
+    this.transpositionTable.clear();
+    this.killerMoves = Array(20).fill(null).map(() => [-1, -1]);
+    this.historyTable = Array(6).fill(null).map(() => Array(7).fill(0));
+  }
+}
+
 export class OfflineGameService {
   private socket: Socket | null = null;
   private gameStateManager: GameStateManager;
@@ -36,6 +909,7 @@ export class OfflineGameService {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private aiWorker: Worker | null = null;
   private pendingRequests: Map<string, { resolve: Function; reject: Function }>;
+  private localFirstAI: LocalFirstAI;
 
   constructor(config: Partial<GameServiceConfig> = {}) {
     this.config = {
@@ -61,6 +935,7 @@ export class OfflineGameService {
 
     this.eventHandlers = new Map();
     this.pendingRequests = new Map();
+    this.localFirstAI = new LocalFirstAI();
 
     this.initialize();
   }
@@ -215,36 +1090,96 @@ export class OfflineGameService {
   }
 
   /**
-   * Get AI move
+   * Get AI move with progressive enhancement
    */
   private async getAIMove(): Promise<void> {
     const currentGame = this.gameStateManager.getCurrentGame;
     if (!currentGame) return;
 
+    const startTime = performance.now();
+    let aiResult;
+    let source: 'server' | 'localFirst' | 'worker' | 'fallback' = 'fallback';
+
+    // Try different AI sources with progressive enhancement
     if (this.connectionStatus.connected) {
       try {
-        // Try server AI
-        const response = await this.socketRequest('game:ai-move', {
+        // Try server AI with timeout
+        const serverPromise = this.socketRequest('game:ai-move', {
           gameId: currentGame.id,
           board: currentGame.board,
           difficulty: currentGame.aiDifficulty
-        });
+        }, 3000);
 
-        if (response.column !== undefined) {
-          await this.gameStateManager.makeMove(response.column, 'Yellow', false);
-          this.emit('ai:move', { column: response.column });
+        // Also compute locally in parallel for faster response
+        const localPromise = this.localFirstAI.getBestMove(
+          currentGame.board,
+          'Yellow',
+          currentGame.aiDifficulty,
+          2000
+        );
+
+        // Race between server and local computation
+        const result = await Promise.race([
+          serverPromise.then(r => ({ source: 'server' as const, data: r })),
+          localPromise.then(r => ({ source: 'localFirst' as const, data: r }))
+        ]);
+
+        if (result.source === 'server' && result.data.column !== undefined) {
+          aiResult = { column: result.data.column };
+          source = 'server';
+        } else if (result.source === 'localFirst') {
+          aiResult = { column: result.data.move, ...result.data };
+          source = 'localFirst';
         }
-        
-        return;
       } catch (error) {
-        console.warn('Server AI failed, using offline AI:', error);
+        console.warn('Server AI failed, using local AI:', error);
       }
     }
 
-    // Offline AI
-    const aiMove = await this.computeOfflineAIMove(currentGame.board);
-    await this.gameStateManager.makeMove(aiMove, 'Yellow', true);
-    this.emit('ai:move', { column: aiMove, offline: true });
+    // If no result yet, use LocalFirstAI
+    if (!aiResult) {
+      try {
+        const result = await this.localFirstAI.getBestMove(
+          currentGame.board,
+          'Yellow',
+          currentGame.aiDifficulty,
+          5000
+        );
+        aiResult = { column: result.move, ...result };
+        source = 'localFirst';
+      } catch (error) {
+        console.warn('LocalFirstAI failed, using worker fallback:', error);
+      }
+    }
+
+    // If still no result, try worker
+    if (!aiResult && this.aiWorker) {
+      try {
+        const column = await this.computeOfflineAIMove(currentGame.board);
+        aiResult = { column };
+        source = 'worker';
+      } catch (error) {
+        console.warn('Worker AI failed, using simple fallback:', error);
+      }
+    }
+
+    // Emergency fallback
+    if (!aiResult) {
+      const column = this.simpleAIMove(currentGame.board);
+      aiResult = { column };
+      source = 'fallback';
+    }
+
+    // Make the move
+    await this.gameStateManager.makeMove(aiResult.column, 'Yellow', source !== 'server');
+    
+    // Emit detailed AI move event
+    this.emit('ai:move', {
+      ...aiResult,
+      source,
+      offline: source !== 'server',
+      computationTime: performance.now() - startTime
+    });
   }
 
   /**
@@ -1268,7 +2203,7 @@ export class OfflineGameService {
     
     // Calculate health factors
     const connectivityScore = this.connectionStatus.connected ? 100 : 
-                             this.connectionStatus.reconnecting ? 50 : 0;
+                             this.connectionStatus.reconnecting ? 50 : 0; 
     
     const latencyScore = this.connectionStatus.latency < 50 ? 100 :
                         this.connectionStatus.latency < 100 ? 80 :
@@ -1332,6 +2267,56 @@ export class OfflineGameService {
   }
 
   /**
+   * Get AI performance metrics
+   */
+  getAIMetrics() {
+    return this.localFirstAI.getMetrics();
+  }
+
+  /**
+   * Clear AI caches
+   */
+  clearAICaches(): void {
+    this.localFirstAI.clearCaches();
+    this.emit('ai:caches-cleared', {});
+  }
+
+  /**
+   * Precompute AI moves for current position
+   */
+  async precomputeAIMoves(): Promise<void> {
+    const currentGame = this.gameStateManager.getCurrentGame;
+    if (!currentGame || currentGame.status !== 'active') return;
+
+    const validMoves = [];
+    for (let col = 0; col < 7; col++) {
+      if (currentGame.board[0][col] === 'Empty') {
+        validMoves.push(col);
+      }
+    }
+
+    // Precompute responses for each possible player move
+    for (const move of validMoves) {
+      const testBoard = currentGame.board.map(row => [...row]);
+      // Simulate player move
+      for (let row = 5; row >= 0; row--) {
+        if (testBoard[row][move] === 'Empty') {
+          testBoard[row][move] = 'Red';
+          break;
+        }
+      }
+
+      // Precompute AI response
+      this.localFirstAI.getBestMove(
+        testBoard,
+        'Yellow',
+        currentGame.aiDifficulty,
+        1000
+      ).catch(() => {}); // Silent fail for precomputation
+    }
+  }
+
+  /**
    * Cleanup
    */
   destroy(): void {
@@ -1350,6 +2335,7 @@ export class OfflineGameService {
       this.aiWorker.terminate();
     }
     
+    this.localFirstAI.clearCaches();
     this.gameStateManager.destroy();
     this.eventHandlers.clear();
     this.pendingRequests.clear();
