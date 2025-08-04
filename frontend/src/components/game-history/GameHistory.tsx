@@ -347,7 +347,11 @@ const GameHistory: React.FC<GameHistoryProps> = ({ playerId, isVisible, onClose 
               <h3>Recent Games ({games.length})</h3>
               {games.length > 0 ? renderGameList(games) : (
                 <div className="empty-state">
-                  <p>No games found. Start playing to see your history!</p>
+                  <p>📊 No games recorded yet</p>
+                  <p style={{ fontSize: '14px', color: '#999', marginTop: '10px' }}>
+                    Your game history will appear here after you complete your first game.
+                    Each game is automatically saved when it ends (win, lose, or draw).
+                  </p>
                 </div>
               )}
             </div>

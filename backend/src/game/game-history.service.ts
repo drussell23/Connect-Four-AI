@@ -132,7 +132,14 @@ export class GameHistoryService {
                 .sort((a, b) => new Date(b!.endTime).getTime() - new Date(a!.endTime).getTime())
                 .slice(0, limit);
 
-            this.logger.log(`📚 Retrieved ${games.length} games for player ${playerId}`);
+            this.logger.log(`📚 Retrieved ${games.length} games for player ${playerId} (total stored: ${this.gameHistory.size} games, ${this.playerGameHistory.size} players)`);
+            
+            // Debug logging
+            if (games.length === 0) {
+                this.logger.log(`🔍 Player game IDs for ${playerId}: ${JSON.stringify(playerGames)}`);
+                this.logger.log(`🔍 All stored players: ${JSON.stringify(Array.from(this.playerGameHistory.keys()))}`);
+            }
+            
             return games as GameHistoryEntry[];
         } catch (error) {
             this.logger.error(`🚨 Error getting game history: ${error}`);
@@ -418,11 +425,4 @@ export class GameHistoryService {
         };
     }
 
-      /**
-   * Create sample game data for testing
-   */
-  async createSampleData(): Promise<void> {
-    // Temporarily disabled due to TypeScript compilation issues
-    this.logger.log('📊 Sample data creation temporarily disabled');
-  }
 } 

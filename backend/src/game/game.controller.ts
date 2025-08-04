@@ -328,15 +328,16 @@ export class GameController {
         }
     }
 
-    @Post('history/sample-data')
-    async createSampleData() {
+    @Post('history/clear')
+    async clearGameHistory() {
         try {
-            await this.gameHistoryService.createSampleData();
-            return { success: true, message: 'Sample data created successfully' };
+            await this.gameHistoryService.clearGameHistory();
+            return { success: true, message: 'Game history cleared successfully' };
         } catch (e: any) {
             throw new HttpException(e.message, 500);
         }
     }
+
 
     // Settings Endpoints
     @Get('settings/user/:playerId')
