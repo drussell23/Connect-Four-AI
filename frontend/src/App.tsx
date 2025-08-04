@@ -17,6 +17,10 @@ import AITrainingGround from './components/analytics/AITrainingGround';
 import PlayerStatsComponent from './components/analytics/PlayerStats';
 import { updatePlayerStats } from './services/playerStatsService';
 import { analyzeCurrentPosition, clearMoveAnalysisCache } from './services/moveAnalysisService';
+import { statsTracker } from './services/StatsTracker';
+import './services/DebugStats'; // Load debug utilities
+import './services/TestStats'; // Load test utilities
+import InactivityDetector from './components/InactivityDetector';
 import MoveExplanationPanel from './components/ai-insights/MoveExplanation';
 import MoveAnalysis from './components/ai-insights/MoveAnalysis';
 import GameHistory from './components/game-history/GameHistory';
@@ -433,6 +437,10 @@ const App: React.FC = () => {
       return;
     }
 
+    // Start stats tracking session
+    console.log('📊 Starting stats session with difficulty:', difficulty || aiLevel);
+    statsTracker.startSession('AI', difficulty || aiLevel);
+
     const gameDifficulty = difficulty || selectedDifficulty;
     
     // Clean up for new game
@@ -496,11 +504,28 @@ const App: React.FC = () => {
     );
   };
 
-  // Enhanced victory/defeat handling
+  // Enhanced victory/defeat handling with real stats tracking
   const handleGameEnd = (winner: CellValue | 'Draw', movesPlayed: number) => {
     const isVictory = winner === 'Red';
     const isDraw = winner === 'Draw';
     const isDefeat = winner === 'Yellow';
+
+    // End stats tracking session
+    const result = isVictory ? 'win' : isDraw ? 'draw' : 'loss';
+    console.log('📊 Ending game session with result:', result, 'In game?', statsTracker.isInGame());
+    
+    // Always try to end session if we have moves
+    if (movesPlayed > 0) {
+      // Make sure there's a session (create one if needed for the ending)
+      if (!statsTracker.isInGame()) {
+        console.log('📊 Creating session for game end');
+        statsTracker.startSession('AI', aiLevel);
+      }
+      statsTracker.endSession(result);
+      console.log('📊 Stats after game:', statsTracker.getStats());
+    } else {
+      console.warn('📊 No moves played, not recording game');
+    }
 
     let newStats = { ...playerStats };
     newStats.totalGamesPlayed++;
@@ -719,6 +744,13 @@ const App: React.FC = () => {
     setStarted(false);
     setGameResult(null);
     
+    // End current session if active (but don't reset all stats)
+    if (statsTracker.isInGame()) {
+      console.log('📊 Ending current game session');
+      // Mark as abandoned/incomplete
+      statsTracker.abandonSession();
+    }
+    
     // Perform comprehensive cleanup
     await cleanupService.cleanup({
       clearLocalStorage: false, // Keep user preferences
@@ -826,6 +858,25 @@ const App: React.FC = () => {
       createGameWithStartingPlayer(nextStartingPlayer, selectedDifficulty);
     }
   };
+
+  // Effect: Handle page refresh/unload
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Only show confirmation if game is in progress
+      if (statsTracker.isInGame() && board.some(row => row.some(cell => cell !== 'Empty'))) {
+        console.log('⚠️ Game in progress - showing confirmation');
+        e.preventDefault();
+        e.returnValue = 'You have an active game. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [board]);
 
   // Effect: establish connection & create game
   useEffect(() => {
@@ -1083,6 +1134,11 @@ const App: React.FC = () => {
         console.log('⬅️ Enhanced aiMove', data);
         setBoard(data.board);
 
+        // Track move in stats
+        const boardString = data.board.map(row => row.join('')).join('|');
+        console.log('📊 Recording AI move:', data.lastMove.column);
+        statsTracker.recordMove(data.lastMove.column, 'Yellow', boardString);
+
         // Capture board state after AI move for analysis
         setBoardAfterMove(data.board);
         setLastMoveColumn(data.lastMove.column);
@@ -1170,6 +1226,11 @@ const App: React.FC = () => {
       }) => {
         console.log('⬅️ Enhanced playerMove', data);
         setBoard(data.board);
+
+        // Track move in stats
+        const boardString = data.board.map(row => row.join('')).join('|');
+        console.log('📊 Recording player move:', data.lastMove.column);
+        statsTracker.recordMove(data.lastMove.column, 'Red', boardString);
 
         // Capture board state after player move for analysis
         setBoardAfterMove(data.board);
@@ -1409,6 +1470,9 @@ const App: React.FC = () => {
       return; // Don't make a move, just analyze
     }
 
+    // Start move timer for stats tracking
+    statsTracker.startMoveTimer();
+
     const connStatus = getConnectionStatus();
     console.log('🔍 Current state:', {
       socket: !!socket,
@@ -1496,9 +1560,42 @@ const App: React.FC = () => {
     );
   }
 
+  // Handle inactivity callbacks
+  const handleInactiveUser = () => {
+    console.log('👤 User inactive');
+    // Could pause AI thinking here if needed
+  };
+
+  const handleResumeGame = () => {
+    console.log('▶️ User resumed');
+    // Resume any paused operations
+  };
+
+  const handleInactivityQuit = () => {
+    console.log('🚪 User quit due to inactivity');
+    
+    // Abandon current session without saving (don't count incomplete game)
+    if (statsTracker.isInGame()) {
+      statsTracker.abandonSession();
+    }
+    
+    // Return to menu (stats continue to accumulate)
+    handleQuitToMenu();
+  };
+
   return (
     <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4"
       style={{ fontFamily: "'Poppins', sans-serif" }}>
+
+      {/* Inactivity Detector */}
+      <InactivityDetector
+        enabled={started && !showVictoryModal}
+        isGameActive={!!gameId && board.some(row => row.some(cell => cell !== 'Empty'))}
+        inactivityTimeout={120000} // 2 minutes
+        onInactive={handleInactiveUser}
+        onResume={handleResumeGame}
+        onQuit={handleInactivityQuit}
+      />
 
       {/* Real-Time Connect Four Loading System */}
       {appInitialized && (
@@ -1840,7 +1937,7 @@ const App: React.FC = () => {
                 ×
               </button>
               <PlayerStatsComponent
-                playerId={gameId || 'demo-user'}
+                playerId="player"
                 isVisible={showPlayerStats}
                 onClose={() => setShowPlayerStats(false)}
               />

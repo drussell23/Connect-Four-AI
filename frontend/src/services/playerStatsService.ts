@@ -1,5 +1,6 @@
 // frontend/src/services/playerStatsService.ts
 import { PlayerPerformance, WinRateAnalysis, Achievement } from '../api/analytics';
+import { statsTracker } from './StatsTracker';
 
 // Mock data for development
 const mockPlayerStats: PlayerPerformance = {
@@ -84,66 +85,74 @@ const mockWinRateData: WinRateAnalysis = {
 };
 
 class PlayerStatsService {
-    private stats: Map<string, PlayerPerformance> = new Map();
-    private winRateData: Map<string, WinRateAnalysis> = new Map();
-
-    constructor() {
-        // Initialize with mock data
-        this.stats.set('demo-user', mockPlayerStats);
-        this.winRateData.set('demo-user', mockWinRateData);
-    }
-
     async getPlayerPerformance(playerId: string): Promise<PlayerPerformance> {
-        // In a real app, this would fetch from API/database
-        // For now, return mock data or create new player stats
-        if (this.stats.has(playerId)) {
-            return this.stats.get(playerId)!;
+        // Get real stats from StatsTracker
+        const stats = statsTracker.getStats();
+        
+        // If no games played yet, return default stats with some mock achievements
+        if (stats.totalGames === 0) {
+            return {
+                ...stats,
+                playerId,
+                achievements: [
+                    {
+                        id: 'welcome',
+                        name: 'Welcome!',
+                        description: 'Start your Connect Four journey',
+                        icon: '👋',
+                        unlockedAt: new Date(),
+                        progress: 1,
+                        maxProgress: 1,
+                        rarity: 'common'
+                    }
+                ]
+            };
         }
-
-        // Create new player stats
-        const newPlayerStats: PlayerPerformance = {
-            playerId,
-            totalGames: 0,
-            wins: 0,
-            losses: 0,
-            draws: 0,
-            winRate: 0,
-            averageGameDuration: 0,
-            averageMovesPerGame: 0,
-            bestWinStreak: 0,
-            currentStreak: 0,
-            totalPlayTime: 0,
-            skillLevel: 'beginner',
-            improvementRate: 0,
-            lastPlayed: new Date(),
-            achievements: [],
-            preferredGameMode: 'classic',
-            averageMoveTime: 0,
-            accuracyRate: 0
+        
+        return {
+            ...stats,
+            playerId
         };
-
-        this.stats.set(playerId, newPlayerStats);
-        return newPlayerStats;
     }
 
     async getWinRateAnalysis(playerId: string, timeframe: 'day' | 'week' | 'month' | 'year' | 'all' = 'week'): Promise<WinRateAnalysis> {
-        // In a real app, this would fetch from API/database
-        if (this.winRateData.has(playerId)) {
-            const data = this.winRateData.get(playerId)!;
-            return { ...data, timeframe };
-        }
-
-        // Return empty win rate data
-        return {
-            timeframe,
-            data: [],
-            trends: {
-                overallTrend: 'stable',
-                recentPerformance: 0,
-                bestPeriod: '',
-                worstPeriod: ''
+        // Get real win rate analysis from StatsTracker
+        const analysis = statsTracker.getWinRateAnalysis(
+            timeframe as 'week' | 'month' | 'year'
+        );
+        
+        // If no data, return with sample data for visualization
+        if (analysis.data.length === 0) {
+            // Generate sample data for the last 7 days
+            const sampleData = [];
+            const today = new Date();
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                sampleData.push({
+                    date: date.toISOString().split('T')[0],
+                    games: 0,
+                    wins: 0,
+                    losses: 0,
+                    draws: 0,
+                    winRate: 0
+                });
             }
-        };
+            
+            return {
+                timeframe,
+                data: sampleData,
+                trends: {
+                    overallTrend: 'stable',
+                    recentPerformance: 0,
+                    bestPeriod: '',
+                    worstPeriod: ''
+                }
+            };
+        }
+        
+        return analysis;
     }
 
     async updatePlayerStats(playerId: string, gameResult: 'win' | 'loss' | 'draw', gameData: {
@@ -152,54 +161,14 @@ class PlayerStatsService {
         averageMoveTime: number;
         accuracyRate: number;
     }): Promise<void> {
-        const stats = await this.getPlayerPerformance(playerId);
-
-        // Update basic stats
-        stats.totalGames++;
-        if (gameResult === 'win') {
-            stats.wins++;
-            stats.currentStreak++;
-            if (stats.currentStreak > stats.bestWinStreak) {
-                stats.bestWinStreak = stats.currentStreak;
-            }
-        } else if (gameResult === 'loss') {
-            stats.losses++;
-            stats.currentStreak = 0;
-        } else {
-            stats.draws++;
-            stats.currentStreak = 0;
-        }
-
-        // Update calculated stats
-        stats.winRate = (stats.wins / stats.totalGames) * 100;
-        stats.totalPlayTime += gameData.duration;
-        stats.averageGameDuration = stats.totalPlayTime / stats.totalGames;
-        stats.averageMovesPerGame = ((stats.averageMovesPerGame * (stats.totalGames - 1)) + gameData.moveCount) / stats.totalGames;
-        stats.averageMoveTime = ((stats.averageMoveTime * (stats.totalGames - 1)) + gameData.averageMoveTime) / stats.totalGames;
-        stats.accuracyRate = ((stats.accuracyRate * (stats.totalGames - 1)) + gameData.accuracyRate) / stats.totalGames;
-        stats.lastPlayed = new Date();
-
-        // Update skill level based on win rate
-        if (stats.winRate >= 70) stats.skillLevel = 'expert';
-        else if (stats.winRate >= 50) stats.skillLevel = 'advanced';
-        else if (stats.winRate >= 30) stats.skillLevel = 'intermediate';
-        else stats.skillLevel = 'beginner';
-
-        // Calculate improvement rate (simplified)
-        stats.improvementRate = Math.min(1, stats.winRate / 100);
-
-        // Save updated stats
-        this.stats.set(playerId, stats);
+        // Stats are now updated through StatsTracker.endSession()
+        // This method is kept for backward compatibility
+        console.log('Stats update handled by StatsTracker');
     }
 
     async addAchievement(playerId: string, achievement: Achievement): Promise<void> {
-        const stats = await this.getPlayerPerformance(playerId);
-        const existingAchievement = stats.achievements.find(a => a.id === achievement.id);
-
-        if (!existingAchievement) {
-            stats.achievements.push(achievement);
-            this.stats.set(playerId, stats);
-        }
+        // Achievements are now handled by StatsTracker
+        console.log('Achievements handled by StatsTracker');
     }
 
     async getPlayerStats(playerId: string): Promise<PlayerPerformance> {
@@ -207,8 +176,8 @@ class PlayerStatsService {
     }
 
     async resetPlayerStats(playerId: string): Promise<void> {
-        this.stats.delete(playerId);
-        this.winRateData.delete(playerId);
+        // Reset stats through StatsTracker
+        statsTracker.resetStats();
     }
 }
 
