@@ -790,13 +790,15 @@ export class GameGateway
         }
 
         const fallbackAI = await this.gameAi.getNextMove(fallbackGame.board, 'Yellow', playerId, gameId);
-        const fallbackRes = await this.gameService.dropDisc(gameId, 'AI', fallbackAI);
+        // Handle both number and object return types
+        const aiColumn = typeof fallbackAI === 'number' ? fallbackAI : fallbackAI.move;
+        const fallbackRes = await this.gameService.dropDisc(gameId, 'AI', aiColumn);
 
         if (fallbackRes.success) {
           this.server.to(gameId).emit('aiMove', {
-            column: fallbackAI,
+            column: aiColumn,
             board: fallbackRes.board,
-            lastMove: { column: fallbackAI, playerId: 'Yellow' },
+            lastMove: { column: aiColumn, playerId: 'Yellow' },
             winner: fallbackRes.winner,
             draw: fallbackRes.draw,
             nextPlayer: fallbackRes.nextPlayer,
@@ -934,14 +936,17 @@ export class GameGateway
       });
 
       // Use the basic AI service for strategic moves
-      const column = await this.gameAi.getNextMove(board, 'Yellow', playerId, gameId);
+      const aiResult = await this.gameAi.getNextMove(board, 'Yellow', playerId, gameId);
+      // Handle both number and object return types
+      const column = typeof aiResult === 'number' ? aiResult : aiResult.move;
+      const confidence = typeof aiResult === 'number' ? 0.85 : aiResult.confidence;
 
       // Analyze the move
       const moveAnalysis = this.analyzeMove(board, column);
 
       return {
         column,
-        confidence: 0.85,
+        confidence,
         explanation: moveAnalysis,
         strategy: 'tactical'
       };
