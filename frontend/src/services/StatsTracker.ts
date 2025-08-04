@@ -701,12 +701,8 @@ class StatsTracker {
     
     // Clear all stats
     this.stats = this.createEmptyStats();
-    this.moveCache.clear();
-    this.positionEvaluationCache.clear();
-    this.transpositionTable.clear();
     
-    // Clear from storage
-    localStorage.removeItem(this.STORAGE_KEY);
+    // Clear from storage (though we don't use localStorage anymore)
     sessionStorage.removeItem(this.SESSION_STORAGE_KEY);
     
     console.log('✅ Stats reset complete');
