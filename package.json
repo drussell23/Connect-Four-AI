@@ -22,7 +22,7 @@
     "start:all:fast": "./start-all-fast.sh",
     "stop:all": "./stop-all.sh",
     "restart:all": "./restart-all.sh",
-    "restart:all:fast": "npm run stop:all && npm run start:all:fast",
+    "restart:all:fast": "FAST_MODE=true ./restart-all.sh",
     "restart:integrated": "./restart-all-with-integration.sh",
     "start:all:comprehensive": "./start-all-comprehensive.sh",
     "stop:all:comprehensive": "./stop-all-comprehensive.sh",

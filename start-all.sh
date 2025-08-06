@@ -76,6 +76,16 @@ if ! check_dependencies; then
     fi
 fi
 
+# Check if backend build exists
+if [ ! -f "backend/dist/main.js" ]; then
+    echo -e "${YELLOW}⚠️  Backend build missing - building now...${NC}"
+    (cd backend && npm run build) || {
+        echo -e "${RED}❌ Failed to build backend${NC}"
+        exit 1
+    }
+    echo -e "${GREEN}✅ Backend build completed${NC}"
+fi
+
 # Clean up existing services
 echo -e "${YELLOW}🔧 Cleaning up existing services...${NC}"
 npm run stop:simple 2>/dev/null || true

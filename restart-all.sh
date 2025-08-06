@@ -84,9 +84,10 @@ if [ -f "scripts/self-healing-installer.sh" ]; then
         DEPS_OK=false
     fi
     
-    if [ ! -d "backend/dist" ]; then
-        echo -e "${YELLOW}⚠️  Backend build missing${NC}"
-        DEPS_OK=false
+    if [ ! -f "backend/dist/main.js" ]; then
+        echo -e "${YELLOW}⚠️  Backend build missing - building now...${NC}"
+        cd backend && npm run build && cd ..
+        echo -e "${GREEN}✅ Backend build completed${NC}"
     fi
     
     if [ "$DEPS_OK" = false ]; then
@@ -100,7 +101,12 @@ fi
 # Start all services
 echo ""
 echo -e "${BLUE}Phase 3: Starting all services...${NC}"
-./start-all.sh
+if [ "$FAST_MODE" = "true" ]; then
+    echo -e "${CYAN}⚡ Using FAST_MODE for quicker startup${NC}"
+    FAST_MODE=true ./start-all.sh
+else
+    ./start-all.sh
+fi
 
 # Post-restart verification
 echo ""
@@ -112,22 +118,25 @@ echo -e "${CYAN}🏥 Running final health check...${NC}"
 HEALTH_STATUS=0
 
 # Check critical services
+echo -e "${CYAN}🔍 Checking backend health...${NC}"
 if ! curl -s http://localhost:3000/api/health >/dev/null 2>&1; then
-    echo -e "${RED}❌ Backend health check failed${NC}"
+    echo -e "${RED}❌ Backend health check failed (check logs/backend.log)${NC}"
     HEALTH_STATUS=1
 else
     echo -e "${GREEN}✅ Backend is healthy${NC}"
 fi
 
+echo -e "${CYAN}🔍 Checking frontend...${NC}"
 if ! curl -s http://localhost:3001 >/dev/null 2>&1; then
-    echo -e "${RED}❌ Frontend health check failed${NC}"
+    echo -e "${RED}❌ Frontend health check failed (check logs/frontend.log)${NC}"
     HEALTH_STATUS=1
 else
     echo -e "${GREEN}✅ Frontend is healthy${NC}"
 fi
 
+echo -e "${CYAN}🔍 Checking ML service...${NC}"
 if ! curl -s http://localhost:8000/health >/dev/null 2>&1; then
-    echo -e "${YELLOW}⚠️  ML Service health check failed (may still be initializing)${NC}"
+    echo -e "${YELLOW}⚠️  ML Service health check failed (may still be initializing - check logs/ml_service.log)${NC}"
 else
     echo -e "${GREEN}✅ ML Service is healthy${NC}"
 fi

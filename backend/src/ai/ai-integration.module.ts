@@ -468,15 +468,12 @@ import { AIGameIntegrationService } from './ai-game-integration.service';
     // Learning Services
     LearningIntegrationModule,
     ResourceManagementModule,
-    ReinforcementLearningService,
     ContinuousLearningService,
     PatternDefenseService,
     DifficultyAwarePatternDefenseService,
     
     // Coordination Services
     AICoordinationModule,
-    AICoordinationClient,
-    CoordinationGameIntegrationService,
     
     // Advanced Services
     TypeScriptMLModule,
@@ -484,7 +481,6 @@ import { AIGameIntegrationService } from './ai-game-integration.service';
     LocalFirstModule,
     
     // Utilities
-    RequestBatcher,
     'TensorFlowInitializer',
     'RequestBatcherConfig',
     'ReinforcementLearningConfig',
