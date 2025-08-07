@@ -499,6 +499,31 @@ npm run build
 npm run start:prod
 ```
 
+### **Apple Silicon (M1/M2/M3) Optimization**
+```bash
+# Start with M1 optimizations enabled
+npm run start:m1
+
+# Run with M1 optimization flag
+./start-all.sh --m1-opt
+
+# M1-specific commands
+npm run m1:cleanup      # Emergency memory cleanup
+npm run m1:monitor      # Monitor M1 performance
+npm run m1:benchmark    # Run M1 benchmarks
+
+# The system automatically detects M1 Macs and suggests optimization
+```
+
+**M1 Optimization Features:**
+- **Hardware Acceleration**: WebGPU/Metal backend support
+- **Memory Management**: Unified memory architecture optimization
+- **Neural Engine**: Utilizes Apple Neural Engine when available
+- **Parallel Processing**: 8 worker threads matching M1 cores
+- **Power Efficiency**: Adaptive performance scaling
+- **Cache Optimization**: M1-specific cache sizing
+- **Float16 Support**: Half-precision computation for speed
+
 ### **Docker Deployment**
 ```bash
 # Build all services

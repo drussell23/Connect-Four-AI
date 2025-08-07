@@ -4,7 +4,13 @@
 # 🔄 CONNECT FOUR - RESTART ALL SERVICES WITH HEALTH CHECKS
 # =====================================================
 # This script restarts all services with health checks
-# Usage: ./restart-all.sh or npm run restart:all
+# Usage: ./restart-all.sh [options]
+# Options:
+#   --fast-mode     Skip ML initialization for faster startup
+#   --debug         Enable verbose debugging output
+#   --no-health     Skip post-startup health checks
+#   --memory-opt    Use memory-optimized settings
+#   --dev           Development mode with hot reload
 
 # Colors for output
 RED='\033[0;31m'
@@ -14,6 +20,13 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
+
+# Detect M1 Mac
+IS_M1_MAC=false
+if [[ "$(uname -m)" == "arm64" ]] && [[ "$OSTYPE" == "darwin"* ]]; then
+    IS_M1_MAC=true
+    echo -e "${CYAN}🍎 M1 Mac detected${NC}"
+fi
 
 echo -e "${MAGENTA}🔄 Restarting Connect Four Game Services...${NC}"
 echo -e "${MAGENTA}=========================================${NC}"
@@ -101,12 +114,10 @@ fi
 # Start all services
 echo ""
 echo -e "${BLUE}Phase 3: Starting all services...${NC}"
-if [ "$FAST_MODE" = "true" ]; then
-    echo -e "${CYAN}⚡ Using FAST_MODE for quicker startup${NC}"
-    FAST_MODE=true ./start-all.sh
-else
-    ./start-all.sh
-fi
+
+# Pass through all command line arguments to start-all.sh
+# User must explicitly use --m1-opt if they want M1 optimizations
+./start-all.sh "$@"
 
 # Post-restart verification
 echo ""
@@ -161,3 +172,9 @@ echo "   - ${CYAN}npm run health:check${NC} - Check system health"
 echo "   - ${CYAN}npm run status${NC} - View service status"
 echo "   - ${CYAN}npm run stop:all${NC} - Stop all services"
 echo "   - ${CYAN}npm run fix:dependencies${NC} - Fix dependency issues"
+# Show M1 tip if on M1 but not using M1 optimizations
+if [ "$IS_M1_MAC" = true ] && [[ "$@" != *"--m1-opt"* ]]; then
+    echo ""
+    echo -e "${YELLOW}💡 Tip: To enable M1 optimizations, use:${NC}"
+    echo -e "   ${CYAN}npm run restart:m1${NC} or ${CYAN}./restart-all.sh --m1-opt${NC}"
+fi

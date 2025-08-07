@@ -74,8 +74,8 @@ class SmartApiClient {
       lastError = error as Error;
       console.warn(`⚠️ Primary service ${service} failed:`, error);
 
-      // Fallback to backend if enabled and not already using backend
-      if (fallbackToBackend && service !== 'backend') {
+      // Fallback to backend if enabled
+      if (fallbackToBackend) {
         console.log(`🔄 Falling back to backend service for ${path}`);
         const backendUrl = buildApiEndpoint(path);
         

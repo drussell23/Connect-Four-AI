@@ -1,6 +1,7 @@
 import * as tf from '@tensorflow/tfjs';
 import { CellValue } from '../../connect4AI';
 import { Connect4CNN } from '../../networks/cnnNetworks';
+import { TensorOps, tidyCreateBatch } from '../../shared/tensor-ops';
 
 export interface DQNConfig {
     stateSize: number;

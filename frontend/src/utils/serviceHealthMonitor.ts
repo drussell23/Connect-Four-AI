@@ -44,7 +44,9 @@ class ServiceHealthMonitor {
   public async checkService(service: ServiceEndpoint): Promise<boolean> {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => {
+        controller.abort(new DOMException('Health check timeout after 5s', 'TimeoutError'));
+      }, 5000);
       
       const startTime = Date.now();
       const response = await fetch(service.url, {
@@ -92,10 +94,22 @@ class ServiceHealthMonitor {
 
       // Log error on first failure or every 5th consecutive failure
       if (service.consecutiveFailures === 1 || service.consecutiveFailures % 5 === 0) {
+        let errorMessage = 'Unknown error';
+        if (error instanceof Error) {
+          if (error.name === 'TimeoutError') {
+            errorMessage = 'Health check timeout (5s)';
+          } else if (error.name === 'AbortError') {
+            errorMessage = error.message || 'Request aborted';
+          } else {
+            errorMessage = error.message;
+          }
+        }
+        
         integrationLogger.logError(service.name, {
           message: 'Health check failed',
-          error: error instanceof Error ? error.message : 'Unknown error',
-          consecutiveFailures: service.consecutiveFailures
+          error: errorMessage,
+          consecutiveFailures: service.consecutiveFailures,
+          url: service.url
         });
       }
 

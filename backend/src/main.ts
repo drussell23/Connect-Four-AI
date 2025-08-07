@@ -1,6 +1,14 @@
 import 'reflect-metadata';
 import './tensorflow-init'; // Initialize TensorFlow.js with Node.js backend
-import { TensorFlowM1Initializer } from './ai/m1-optimized/tensorflow-webgpu-init';
+// Conditional M1 imports to avoid loading when not needed
+let TensorFlowM1Initializer: any;
+let M1PerformanceOptimizer: any;
+
+const isM1Enabled = process.env.M1_OPTIMIZED === 'true' || process.env.ENABLE_M1_FEATURES === 'true';
+if (isM1Enabled) {
+  TensorFlowM1Initializer = require('./ai/m1-optimized/tensorflow-webgpu-init').TensorFlowM1Initializer;
+  M1PerformanceOptimizer = require('./ai/m1-optimized/m1-performance-optimizer').M1PerformanceOptimizer;
+}
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
@@ -15,16 +23,36 @@ async function bootstrap() {
   try {
     logger.log('🚀 Starting Enterprise Connect Four Backend...');
     
+    // Apply M1 performance optimizations only if enabled
+    if (isM1Enabled && M1PerformanceOptimizer) {
+      const optimizationConfig = M1PerformanceOptimizer.getOptimizationConfig();
+      M1PerformanceOptimizer.applyTensorFlowOptimizations(optimizationConfig);
+      
+      // Log optimization settings
+      logger.log('🎯 Performance Optimization Settings:');
+      logger.log(`   💾 Max heap size: ${optimizationConfig.recommendedSettings.maxOldSpaceSize}MB`);
+      logger.log(`   🧵 TF threads: ${optimizationConfig.recommendedSettings.tfNumThreads}`);
+      logger.log(`   🎮 Background training: ${optimizationConfig.recommendedSettings.enableBackgroundTraining ? '✅' : '❌'}`);
+      logger.log(`   🤖 Self-play: ${optimizationConfig.recommendedSettings.enableSelfPlay ? '✅' : '❌'}`);
+      
+      // Set up memory monitoring
+      if (optimizationConfig.isM1Architecture) {
+        setInterval(() => {
+          M1PerformanceOptimizer.checkMemoryPressure();
+        }, 30000); // Check every 30 seconds on M1
+      }
+    }
+    
     // Check for fast mode
     const isFastMode = process.env.FAST_MODE === 'true' || process.env.SKIP_ML_INIT === 'true';
     if (isFastMode) {
       logger.log('⚡ Running in FAST MODE - ML initialization skipped');
     }
     
-    // Initialize M1-optimized TensorFlow.js
+    // Initialize M1-optimized TensorFlow.js only if enabled
     const isM1Mac = process.platform === 'darwin' && process.arch === 'arm64';
-    if (isM1Mac && !isFastMode) {
-      logger.log('🍎 Detected M1 Mac - Initializing WebGPU acceleration...');
+    if (isM1Mac && !isFastMode && isM1Enabled && TensorFlowM1Initializer) {
+      logger.log('🍎 Detected M1 Mac with M1 optimizations enabled - Initializing WebGPU acceleration...');
       try {
         await TensorFlowM1Initializer.initialize({
           preferWebGPU: true,

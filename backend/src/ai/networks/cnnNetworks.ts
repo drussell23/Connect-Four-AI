@@ -1,5 +1,6 @@
 import * as tf from '@tensorflow/tfjs';
 import { CellValue } from '../connect4AI';
+import { TensorOps, tidyPredict } from '../shared/tensor-ops';
 
 export interface NetworkConfig {
     boardHeight: number;
@@ -132,27 +133,29 @@ export class Connect4CNN {
      * Convert board to tensor representation
      */
     boardToTensor(board: CellValue[][]): tf.Tensor {
-        const height = board.length;
-        const width = board[0].length;
+        return TensorOps.tidy('boardToTensor', () => {
+            const height = board.length;
+            const width = board[0].length;
 
-        // Create 3-channel representation
-        const tensorData = new Float32Array(height * width * 3);
+            // Create 3-channel representation
+            const tensorData = new Float32Array(height * width * 3);
 
-        for (let r = 0; r < height; r++) {
-            for (let c = 0; c < width; c++) {
-                const baseIdx = (r * width + c) * 3;
-                const cell = board[r][c];
+            for (let r = 0; r < height; r++) {
+                for (let c = 0; c < width; c++) {
+                    const baseIdx = (r * width + c) * 3;
+                    const cell = board[r][c];
 
-                // Channel 0: Red pieces
-                tensorData[baseIdx] = cell === 'Red' ? 1.0 : 0.0;
-                // Channel 1: Yellow pieces  
-                tensorData[baseIdx + 1] = cell === 'Yellow' ? 1.0 : 0.0;
-                // Channel 2: Empty spaces
-                tensorData[baseIdx + 2] = cell === 'Empty' ? 1.0 : 0.0;
+                    // Channel 0: Red pieces
+                    tensorData[baseIdx] = cell === 'Red' ? 1.0 : 0.0;
+                    // Channel 1: Yellow pieces  
+                    tensorData[baseIdx + 1] = cell === 'Yellow' ? 1.0 : 0.0;
+                    // Channel 2: Empty spaces
+                    tensorData[baseIdx + 2] = cell === 'Empty' ? 1.0 : 0.0;
+                }
             }
-        }
 
-        return tf.tensor4d(tensorData, [1, height, width, 3]);
+            return tf.tensor4d(tensorData, [1, height, width, 3]);
+        });
     }
 
     /**
@@ -163,37 +166,37 @@ export class Connect4CNN {
             throw new Error('Model not built. Call buildModel() first.');
         }
 
-        const boardTensor = this.boardToTensor(board);
-
-        try {
-            const [policyLogits, valueLogits] = this.model.predict(boardTensor) as [tf.Tensor, tf.Tensor];
+        return TensorOps.tidy('cnn:predict', () => {
+            const boardTensor = this.boardToTensor(board);
+            const [policyLogits, valueLogits] = this.model!.predict(boardTensor) as [tf.Tensor, tf.Tensor];
 
             // Apply softmax to policy logits
             const policyProbs = tf.softmax(policyLogits);
 
-            // Get arrays
-            const policy = await policyProbs.data();
-            const value = await valueLogits.data();
+            // Get arrays synchronously within tidy
+            const policy = Array.from(policyProbs.dataSync());
+            const value = valueLogits.dataSync()[0];
 
             // Calculate confidence (entropy-based)
-            const entropy = await this.calculateEntropy(policyProbs);
-            const confidence = Math.exp(-entropy); // Higher confidence = lower entropy
+            const logProbs = tf.log(tf.add(policyProbs, 1e-8));
+            const entropy = tf.neg(tf.sum(tf.mul(policyProbs, logProbs)));
+            const entropyValue = entropy.dataSync()[0];
+            const confidence = Math.exp(-entropyValue);
 
-            // Cleanup tensors
+            // Clean up intermediate tensors
             boardTensor.dispose();
             policyLogits.dispose();
             valueLogits.dispose();
             policyProbs.dispose();
+            logProbs.dispose();
+            entropy.dispose();
 
             return {
-                policy: Array.from(policy),
-                value: value[0],
+                policy,
+                value,
                 confidence
             };
-        } catch (error) {
-            boardTensor.dispose();
-            throw error;
-        }
+        });
     }
 
     /**

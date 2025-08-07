@@ -2881,13 +2881,39 @@ const socketProxy = new Proxy({} as Socket, {
           });
         };
       }
+      
       // For property access like 'id', 'connected', etc., return appropriate defaults
       if (prop === 'id') return null;
       if (prop === 'connected') return false;
       if (prop === 'disconnected') return true;
       
-      // Log warning for other properties
-      console.warn(`⚠️ Socket accessed before initialization. Property: ${String(prop)}`);
+      // React internal properties - return null without warning
+      const reactInternals = ['$$typeof', '_owner', '_store', 'key', 'ref', 'type', 'props', '_self', '_source'];
+      if (reactInternals.includes(String(prop))) {
+        return null;
+      }
+      
+      // Symbol properties - likely React internals or Node.js internals
+      if (typeof prop === 'symbol') {
+        return null;
+      }
+      
+      // Common object methods and properties - return safe defaults
+      const safeProperties = [
+        'valueOf', 'toString', 'constructor', 'hasOwnProperty', 
+        'isPrototypeOf', 'propertyIsEnumerable', 'toLocaleString',
+        '__proto__', '__defineGetter__', '__defineSetter__',
+        '__lookupGetter__', '__lookupSetter__'
+      ];
+      
+      if (safeProperties.includes(String(prop))) {
+        return undefined;
+      }
+      
+      // Only log warnings in development mode for unknown properties
+      if (process.env.NODE_ENV === 'development') {
+        console.debug(`Socket proxy: Property '${String(prop)}' accessed before initialization`);
+      }
       return undefined;
     }
     return (socket as any)[prop];

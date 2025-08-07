@@ -79,9 +79,9 @@ stop_service_by_port() {
 
 # Stop services gracefully using PID files first
 echo -e "${CYAN}📋 Stopping services gracefully...${NC}"
+stop_service_by_pid "performance_monitor"
 stop_service_by_pid "python_trainer"
 stop_service_by_pid "ai_coordination"
-stop_service_by_pid "continuous_learning"
 stop_service_by_pid "ml_inference"
 stop_service_by_pid "ml_service"
 stop_service_by_pid "frontend"
@@ -96,7 +96,6 @@ stop_service_by_port 8001 "ML Inference"
 stop_service_by_port 8002 "Continuous Learning WS"
 stop_service_by_port 8003 "AI Coordination"
 stop_service_by_port 8004 "Python Trainer"
-stop_service_by_port 8005 "Continuous Learning"
 stop_service_by_port 8888 "Integration WebSocket"
 
 # Kill any remaining Node.js and Python processes
@@ -113,6 +112,7 @@ pkill -f 'python.*enhanced_inference' 2>/dev/null && echo -e "${GREEN}   ✅ Kil
 pkill -f 'python.*ai_coordination' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining coordination processes${NC}"
 pkill -f 'python.*continuous_learning' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining learning processes${NC}"
 pkill -f 'python.*training_service' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining training processes${NC}"
+pkill -f 'python.*metal_inference' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining Metal inference processes${NC}"
 
 # Clean up PID files
 echo -e "${CYAN}🗑️  Cleaning up PID files...${NC}"
@@ -127,7 +127,7 @@ echo ""
 echo -e "${CYAN}🔍 Verifying all services are stopped...${NC}"
 SERVICES_RUNNING=false
 
-for port in 3000 3001 8000 8001 8002 8003 8004 8005 8888; do
+for port in 3000 3001 8000 8001 8002 8003 8004 8888; do
     if lsof -i :$port | grep -q LISTEN 2>/dev/null; then
         echo -e "${RED}   ❌ Port $port is still in use${NC}"
         SERVICES_RUNNING=true
@@ -144,3 +144,8 @@ fi
 echo ""
 echo -e "${BLUE}💡 To start services again, run:${NC} npm run start:all"
 echo -e "${BLUE}💡 To check system health, run:${NC} npm run health:check"
+
+# Check if M1 Mac and suggest memory cleanup
+if [[ "$(uname -m)" == "arm64" ]] && [[ "$OSTYPE" == "darwin"* ]]; then
+    echo -e "${CYAN}🍎 M1 Mac detected${NC}"
+fi

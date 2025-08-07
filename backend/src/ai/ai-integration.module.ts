@@ -31,9 +31,25 @@ import { AICoordinationClient } from './coordination/ai-coordination-client.serv
 import { CoordinationGameIntegrationService } from './coordination/coordination-game-integration.service';
 import { OpeningBook } from './opening-book/opening-book';
 import { UltimateAIFactory } from './ultimate-ai.factory';
-import { EnhancedAsyncOrchestrator } from './m1-optimized/enhanced-async-orchestrator';
-import { ParallelAIOrchestrator } from './m1-optimized/parallel-ai-orchestrator';
-import { TensorFlowM1Initializer } from './m1-optimized/tensorflow-webgpu-init';
+// M1 imports are conditional - only import when M1 optimizations are enabled
+const isM1Enabled = process.env.M1_OPTIMIZED === 'true' || process.env.ENABLE_M1_FEATURES === 'true';
+console.log('[AIIntegrationModule] M1 Loading Check:', {
+  M1_OPTIMIZED: process.env.M1_OPTIMIZED,
+  ENABLE_M1_FEATURES: process.env.ENABLE_M1_FEATURES,
+  isM1Enabled
+});
+
+// Lazy imports for M1 components to avoid loading when not needed
+let EnhancedAsyncOrchestrator: any;
+let ParallelAIOrchestrator: any; 
+let TensorFlowM1Initializer: any;
+
+if (isM1Enabled) {
+  console.log('[AIIntegrationModule] Loading M1 components...');
+  EnhancedAsyncOrchestrator = require('./m1-optimized/enhanced-async-orchestrator').EnhancedAsyncOrchestrator;
+  ParallelAIOrchestrator = require('./m1-optimized/parallel-ai-orchestrator').ParallelAIOrchestrator;
+  TensorFlowM1Initializer = require('./m1-optimized/tensorflow-webgpu-init').TensorFlowM1Initializer;
+}
 import { TypeScriptMLModule } from './typescript-ml/typescript-ml.module';
 import { TypeScriptMLService } from './typescript-ml/typescript-ml.service';
 import { HybridArchitectureModule } from './hybrid-architecture/hybrid-architecture.module';
@@ -79,7 +95,7 @@ import { AIGameIntegrationService } from './ai-game-integration.service';
     SimpleAIService,
     OpeningBook,
     UltimateAIFactory,
-    ParallelAIOrchestrator,
+    ...(isM1Enabled && ParallelAIOrchestrator ? [ParallelAIOrchestrator] : []),
     
     // Learning Services
     ContinuousLearningService,
@@ -89,18 +105,18 @@ import { AIGameIntegrationService } from './ai-game-integration.service';
     // Main Game Integration Service
     AIGameIntegrationService,
     
-    // Enhanced M1-Optimized Orchestrator
+    // Enhanced M1-Optimized Orchestrator (conditional)
     {
       provide: AsyncAIOrchestrator,
-      useClass: EnhancedAsyncOrchestrator
+      useClass: isM1Enabled && EnhancedAsyncOrchestrator ? EnhancedAsyncOrchestrator : AsyncAIOrchestrator
     },
     
-    // TensorFlow M1 Initializer for WebGPU acceleration
+    // TensorFlow M1 Initializer for WebGPU acceleration (conditional)
     {
       provide: 'TensorFlowInitializer',
       useFactory: async () => {
         const isFastMode = process.env.FAST_MODE === 'true' || process.env.SKIP_ML_INIT === 'true';
-        if (!isFastMode) {
+        if (!isFastMode && isM1Enabled && TensorFlowM1Initializer) {
           await TensorFlowM1Initializer.initialize({
             preferWebGPU: true,
             enableMemoryGrowth: true,
@@ -112,8 +128,9 @@ import { AIGameIntegrationService } from './ai-game-integration.service';
           const backendInfo = TensorFlowM1Initializer.getBackendInfo();
           console.log(`🚀 TensorFlow initialized with ${backendInfo.backend} backend`);
           console.log(`   Features: ${JSON.stringify(backendInfo.features)}`);
+          return TensorFlowM1Initializer;
         }
-        return TensorFlowM1Initializer;
+        return null; // No M1 initializer when not enabled
       }
     },
     
@@ -557,7 +574,7 @@ export class AIIntegrationModule implements OnModuleInit, OnModuleDestroy {
     if (this.rlTrainingInterval) clearInterval(this.rlTrainingInterval);
     if (this.batchProcessInterval) clearInterval(this.batchProcessInterval);
 
-    // Dispose TensorFlow resources
+    // Dispose TensorFlow resources (if M1 enabled)
     if (this.tfInitializer && typeof this.tfInitializer.dispose === 'function') {
       this.tfInitializer.dispose();
     }
@@ -854,7 +871,7 @@ export class AIIntegrationModule implements OnModuleInit, OnModuleDestroy {
       this.rlConfig.service.getStats()
     ]);
 
-    const tfBackend = this.tfInitializer.getBackendInfo();
+    const tfBackend = this.tfInitializer?.getBackendInfo() || { backend: 'cpu', features: {} };
     
     return {
       ai: aiHealth,
@@ -868,7 +885,9 @@ export class AIIntegrationModule implements OnModuleInit, OnModuleDestroy {
 
   private logSystemCapabilities() {
     console.log('🎯 AI System Capabilities:');
-    console.log('  ✅ M1 Hardware Acceleration (WebGPU)');
+    if (isM1Enabled) {
+      console.log('  ✅ M1 Hardware Acceleration (WebGPU)');
+    }
     console.log('  ✅ Distributed Coordination');
     console.log('  ✅ Reinforcement Learning (Rainbow DQN)');
     console.log('  ✅ Request Batching & Priority Queuing');
@@ -879,7 +898,7 @@ export class AIIntegrationModule implements OnModuleInit, OnModuleDestroy {
     console.log('  ✅ Hybrid Architecture Support');
     console.log('  ✅ Local-First AI');
     
-    const tfBackend = this.tfInitializer.getBackendInfo();
+    const tfBackend = this.tfInitializer?.getBackendInfo() || { backend: 'cpu', features: {} };
     console.log(`  🚀 TensorFlow Backend: ${tfBackend.backend}`);
     console.log(`  🔧 Features: ${Object.entries(tfBackend.features)
       .filter(([_, v]) => v)

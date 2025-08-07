@@ -58,19 +58,37 @@ const envConfiguration = () => ({
   integrationPort: parseInt(process.env.INTEGRATION_PORT, 10) || 8888,
 });
 
+// Conditionally load M1 module based on environment
+const moduleImports = [
+  ConfigModule.forRoot({
+    isGlobal: true,
+    envFilePath: '.env',
+    load: [envConfiguration],
+    cache: true,
+  }),
+  ScheduleModule.forRoot(),
+  ServiceIntegrationModule,
+  GameModule,
+  MlModule
+];
+
+// Only load M1 optimizations if explicitly enabled
+const m1Enabled = process.env.M1_OPTIMIZED === 'true' || process.env.ENABLE_M1_FEATURES === 'true';
+console.log('[AppModule] M1 Module Loading Check:', {
+  M1_OPTIMIZED: process.env.M1_OPTIMIZED,
+  ENABLE_M1_FEATURES: process.env.ENABLE_M1_FEATURES,
+  m1Enabled,
+  moduleCount: moduleImports.length
+});
+if (m1Enabled) {
+  console.log('[AppModule] Adding M1OptimizedAIModule to imports');
+  // Lazy load the module only when needed
+  const { M1OptimizedAIModule } = require('./ai/m1-optimized/m1-optimized-ai.module');
+  moduleImports.splice(2, 0, M1OptimizedAIModule); // Insert after ScheduleModule
+}
+
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
-      load: [envConfiguration],
-      cache: true,
-    }),
-    ScheduleModule.forRoot(),
-    ServiceIntegrationModule,
-    GameModule,
-    MlModule
-  ],
+  imports: moduleImports,
   controllers: [HealthController, TensorFlowStatusController],
   providers: [],
 })

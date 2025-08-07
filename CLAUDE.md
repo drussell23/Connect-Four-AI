@@ -2,6 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Database Management
+
+The project uses SQLite for development with automatic initialization:
+- Database is created once on first run at `./data/connect_four_dev.db`
+- Tables persist across restarts - no data loss between sessions
+- Run `cd backend && npm run db:init` to manually initialize
+- Run `cd backend && npm run db:reset` to completely reset (WARNING: destroys all data)
+- The database is NOT recreated on every startup - only missing tables are added
+
 ## Architecture Overview
 
 Connect Four AI is an enterprise-grade AI research platform with a sophisticated microservices architecture:
@@ -27,6 +36,21 @@ npm run emergency
 
 # Check system health
 npm run system:health
+```
+
+### Apple Silicon (M1/M2/M3) Optimization
+```bash
+# Start with M1 optimizations (for Apple Silicon Macs)
+npm run start:m1
+
+# M1-specific operations
+npm run m1:cleanup       # Emergency memory cleanup for M1
+npm run m1:monitor       # Monitor M1-specific performance
+npm run m1:benchmark     # Run M1 optimization benchmarks
+
+# Manual control
+./start-all.sh --m1-opt  # Start with M1 optimizations
+./restart-all.sh --m1-opt # Restart with M1 optimizations
 ```
 
 ### Testing

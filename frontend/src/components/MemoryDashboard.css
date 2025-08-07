@@ -1,0 +1,396 @@
+/**
+ * Memory Dashboard Styles
+ */
+
+.memory-dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #f3f4f6;
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #1f2937;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ef4444;
+}
+
+.status-dot.connected {
+  background-color: #10b981;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.dashboard-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-tabs button {
+  padding: 10px 20px;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.dashboard-tabs button:hover {
+  background: #e5e7eb;
+}
+
+.dashboard-tabs button.active {
+  background: #3b82f6;
+  color: white;
+}
+
+.dashboard-content {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.metric-card {
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  transition: all 0.2s;
+}
+
+.metric-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.metric-detail {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Pressure-specific colors */
+.metric-card.pressure-normal {
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+.metric-card.pressure-moderate {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.metric-card.pressure-high {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.metric-card.pressure-critical {
+  border-color: #991b1b;
+  background: #fef2f2;
+  animation: critical-pulse 1s infinite;
+}
+
+@keyframes critical-pulse {
+  0%, 100% {
+    border-color: #991b1b;
+  }
+  50% {
+    border-color: #ef4444;
+  }
+}
+
+/* Degradation colors */
+.metric-card.degradation-reduced {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.metric-card.degradation-minimal {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.metric-card.degradation-emergency {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.phase-status {
+  margin-top: 30px;
+}
+
+.phase-status h3 {
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: #1f2937;
+}
+
+.phase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.phase-indicator {
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.phase-indicator.enabled {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.phase-indicator.disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border: 1px solid #e5e7eb;
+}
+
+.chart-container {
+  margin-bottom: 30px;
+}
+
+.chart-container h3 {
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: #1f2937;
+}
+
+.memory-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.detail-card {
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.detail-card h4 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 20px;
+  background: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.ai-status {
+  margin-bottom: 30px;
+}
+
+.status-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.status-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.status-table td:first-child {
+  font-weight: 500;
+  color: #6b7280;
+  width: 200px;
+}
+
+.mode-defensive {
+  color: #f59e0b;
+  font-weight: bold;
+}
+
+.mode-normal {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.emergency-button {
+  padding: 12px 24px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.emergency-button:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stress-test-controls {
+  max-width: 600px;
+}
+
+.stress-test-controls h3 {
+  margin-bottom: 10px;
+  font-size: 20px;
+  color: #1f2937;
+}
+
+.stress-test-controls p {
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+.stress-test-button {
+  padding: 15px 30px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.stress-test-button:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stress-test-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.test-progress {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .dashboard-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}

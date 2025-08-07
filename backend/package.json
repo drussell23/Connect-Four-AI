@@ -2,9 +2,10 @@
     "name": "connect-four-backend",
     "version": "1.0.0",
     "scripts": {
-        "start:dev": "node --expose-gc --max-old-space-size=512 --optimize-for-size node_modules/.bin/nest start --watch",
+        "start:dev": "node --max-old-space-size=${BACKEND_MEMORY_LIMIT:-2048} node_modules/.bin/nest start --watch",
         "build": "nest build",
-        "start:prod": "node --expose-gc --max-old-space-size=512 --optimize-for-size dist/main.js",
+        "start:prod": "node --max-old-space-size=${BACKEND_MEMORY_LIMIT:-2048} dist/main.js",
+        "start:m1": "BACKEND_MEMORY_LIMIT=1024 TF_NUM_INTRAOP_THREADS=2 node --max-old-space-size=1024 dist/main.js",
         "start": "npm run start:prod",
         "test": "jest",
         "test:watch": "jest --watch",
