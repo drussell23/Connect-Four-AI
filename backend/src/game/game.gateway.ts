@@ -32,6 +32,7 @@ import { AICoordinationClient } from '../ai/coordination/ai-coordination-client.
 import { GameHistoryService, GameHistoryEntry } from './game-history.service';
 import { OrganicAITimingService } from '../ai/organic-ai-timing.service';
 import { GameAIOrganicService } from './game-ai-organic.service';
+import { EventThrottle } from '../utils/event-throttle';
 
 interface CreateGamePayload {
   playerId: string;
@@ -82,6 +83,8 @@ export class GameGateway
   private readonly AI_THINK_DELAY_MS = 200; // Natural thinking time (0.20s base) - faster but still human-like
   private readonly AI_FIRST_MOVE_DELAY_MS = process.env.AI_FIRST_MOVE_DELAY_MS ? parseInt(process.env.AI_FIRST_MOVE_DELAY_MS) : 500; // Slightly longer for first move (0.5s)
 
+  private readonly eventThrottle: EventThrottle;
+
   constructor(
     private readonly gameService: GameService,
     private readonly gameAi: GameAIService,
@@ -103,8 +106,25 @@ export class GameGateway
     private readonly coordinationIntegration?: CoordinationGameIntegrationService,
     private readonly aiCoordinationClient?: AICoordinationClient,
   ) {
+    // Initialize event throttle with 500ms minimum interval
+    this.eventThrottle = new EventThrottle(500, 2000);
+    
     // Subscribe to AI thinking events and forward to frontend
     this.setupAIEventListeners();
+  }
+
+  /**
+   * Emit aiThinking event with throttling to prevent spam
+   */
+  private emitAIThinking(gameId: string, data: any): void {
+    const eventKey = `aiThinking-${gameId}`;
+    this.eventThrottle.throttle(
+      eventKey,
+      (eventData) => {
+        this.server.to(gameId).emit('aiThinking', eventData);
+      },
+      data
+    );
   }
 
   afterInit(server: Server) {
@@ -275,7 +295,7 @@ export class GameGateway
         });
 
         // Emit AI thinking with coordination hub status
-        this.server.to(gameId).emit('aiThinking', {
+        this.emitAIThinking(gameId, {
           status: 'coordinating',
           capabilities: [
             'ensemble_decision',
@@ -360,7 +380,7 @@ export class GameGateway
         this.logger.log(`[${gameId}] 🚀 Using SimpleAI for gameplay`);
 
         // Emit AI thinking with simple status
-        this.server.to(gameId).emit('aiThinking', {
+        this.emitAIThinking(gameId, {
           status: 'analyzing',
           capabilities: [
             'basic_minimax',
@@ -434,7 +454,7 @@ export class GameGateway
         this.logger.log(`[${gameId}] 🎯 Using Adaptive AI Orchestrator for level ${difficulty}`);
 
         // Emit AI thinking with adaptive status
-        this.server.to(gameId).emit('aiThinking', {
+        this.emitAIThinking(gameId, {
           status: 'analyzing',
           capabilities: ['adaptive_computation', 'criticality_analysis', 'dynamic_scaling'],
           mode: 'adaptive'
@@ -514,7 +534,7 @@ export class GameGateway
         );
 
         // Emit AI thinking status
-        this.server.to(gameId).emit('aiThinking', {
+        this.emitAIThinking(gameId, {
           status: 'analyzing',
           capabilities: ['unified_threat_detection', 'adaptive_strategy', 'pattern_recognition'],
           mode: 'unified'
@@ -599,7 +619,7 @@ export class GameGateway
           );
 
           // Emit AI thinking status
-          this.server.to(gameId).emit('aiThinking', {
+          this.emitAIThinking(gameId, {
             status: 'analyzing',
             capabilities: [
               'unified_threat_detection',
@@ -689,7 +709,7 @@ export class GameGateway
       if (isEarlyGame) {
         this.logger.log(`[${gameId}] ⚡ Early game move ${totalMoves + 1} - using fast AI`);
 
-        this.server.to(gameId).emit('aiThinking', {
+        this.emitAIThinking(gameId, {
           type: 'systemActivation',
           message: '⚡ Early Game AI activated',
           details: {
@@ -742,7 +762,7 @@ export class GameGateway
       }
 
       // Mid/late game fallback
-      this.server.to(gameId).emit('aiThinking', {
+      this.emitAIThinking(gameId, {
         type: 'systemActivation',
         message: '🎲 Streamlined Strategic AI activated',
         details: {
@@ -943,7 +963,7 @@ export class GameGateway
       }
 
       // Emit progress update
-      this.server.to(gameId).emit('aiThinking', {
+      this.emitAIThinking(gameId, {
         type: 'progress',
         message: 'Analyzing with tactical AI strategy (depth: 6, confidence: building...)',
         details: {
@@ -971,7 +991,7 @@ export class GameGateway
       };
     } catch (error) {
       // Emit fallback notice
-      this.server.to(gameId).emit('aiThinking', {
+      this.emitAIThinking(gameId, {
         type: 'progress',
         message: 'Switching to basic heuristic analysis',
         details: {
@@ -2076,7 +2096,7 @@ export class GameGateway
 
     try {
       // Emit coordination status
-      this.server.to(gameId).emit('aiThinking', {
+      this.emitAIThinking(gameId, {
         status: 'coordinating',
         capabilities: [
           'multi_agent_ensemble',
@@ -2131,7 +2151,7 @@ export class GameGateway
     this.eventEmitter.on('ai.thinking.progress', (data) => {
       // Only emit to the specific game room
       if (data.gameId && this.server) {
-        this.server.to(data.gameId).emit('aiThinking', {
+        this.emitAIThinking(data.gameId, {
           phase: data.phase,
           progress: data.progress,
           message: data.message,
@@ -2167,7 +2187,7 @@ export class GameGateway
     // Forward criticality analysis
     this.eventEmitter.on('ai.criticality.analyzed', (data: any) => {
       if (data.gameId) {
-        this.server.to(data.gameId).emit('aiThinking', {
+        this.emitAIThinking(data.gameId, {
           type: 'criticality',
           message: `Game criticality: ${data.criticality.score.toFixed(2)} - ${this.getCriticalityLevel(data.criticality.score)}`,
           details: {
@@ -2185,7 +2205,7 @@ export class GameGateway
     // Forward AI analysis progress
     this.eventEmitter.on('ai.analysis.progress', (data: any) => {
       if (data.gameId) {
-        this.server.to(data.gameId).emit('aiThinking', {
+        this.emitAIThinking(data.gameId, {
           type: 'progress',
           message: `Analyzing with ${data.strategy} strategy (depth: ${data.depth}, confidence: ${data.confidence?.toFixed(2) || 'N/A'})`,
           details: data,
@@ -2197,7 +2217,7 @@ export class GameGateway
     // Forward variation found
     this.eventEmitter.on('ai.variation.found', (data: any) => {
       if (data.gameId) {
-        this.server.to(data.gameId).emit('aiThinking', {
+        this.emitAIThinking(data.gameId, {
           type: 'variation',
           message: `Found variation: ${data.variation} with score ${data.score}`,
           details: data,
@@ -2210,7 +2230,7 @@ export class GameGateway
     this.eventEmitter.on('ai.move.computed', (data: any) => {
       if (data.gameId) {
         const { moveAnalysis, actualTime } = data;
-        this.server.to(data.gameId).emit('aiThinking', {
+        this.emitAIThinking(data.gameId, {
           type: 'moveDecision',
           message: `AI decided on column ${moveAnalysis.column} with ${(moveAnalysis.confidence * 100).toFixed(1)}% confidence`,
           details: {
@@ -2231,7 +2251,7 @@ export class GameGateway
     // Forward difficulty mapping
     this.eventEmitter.on('ai.difficulty.mapped', (data: any) => {
       if (data.gameId) {
-        this.server.to(data.gameId).emit('aiThinking', {
+        this.emitAIThinking(data.gameId, {
           type: 'difficultyMapping',
           message: `Difficulty: Level ${data.frontendLevel} (${data.difficultyName}) → ${data.backendDifficulty.toFixed(1)}/10 backend scale`,
           details: {
@@ -2247,7 +2267,7 @@ export class GameGateway
     // Forward enhanced RL events
     this.eventEmitter.on('ai.enhanced_rl.applied', (data: any) => {
       if (data.gameId) {
-        this.server.to(data.gameId).emit('aiThinking', {
+        this.emitAIThinking(data.gameId, {
           type: 'enhancedRL',
           message: `🧠 Enhanced RLHF system applied constitutional AI principles`,
           details: {
@@ -2270,7 +2290,7 @@ export class GameGateway
     // Forward enhanced AI move analysis
     this.eventEmitter.on('ai.move.enhanced', (data: any) => {
       if (data.gameId) {
-        this.server.to(data.gameId).emit('aiThinking', {
+        this.emitAIThinking(data.gameId, {
           type: 'enhancedAnalysis',
           message: `🎯 Enhanced analysis: ${data.explanation?.naturalLanguageExplanation || 'Advanced strategic evaluation'}`,
           details: {

@@ -18,6 +18,7 @@ import { UnifiedAIIntegrationModule } from '../ai/unified/unified-ai-integration
 import { AICoordinationModule } from '../ai/coordination/ai-coordination.module';
 import { OrganicAITimingService } from '../ai/organic-ai-timing.service';
 import { GameAIOrganicService } from './game-ai-organic.service';
+import { EventThrottle } from '../utils/event-throttle';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { GameAIOrganicService } from './game-ai-organic.service';
     TrainingService,
     SettingsService,
     AIGameIntegrationService,
+    EventThrottle,
     // AdaptiveAIOrchestrator is already provided by AIIntegrationModule - removed to avoid duplicate instantiation
   ],
   exports: [GameService, GameGateway],
