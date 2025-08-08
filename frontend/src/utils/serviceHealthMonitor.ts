@@ -129,7 +129,7 @@ class ServiceHealthMonitor {
   }
 
   public async checkAllServices(): Promise<void> {
-    // Skip health checks in production
+    // If production and cross-origin, limit to same-origin backend health to avoid CORS
     if (this.services.length === 0) {
       return;
     }

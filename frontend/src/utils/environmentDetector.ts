@@ -42,7 +42,8 @@ class EnvironmentDetector {
     backend: {
       // Backend default in this repo is 3000
       local: 'http://localhost:3000',
-      production: process.env.REACT_APP_API_URL || 'https://connect-four-ai-roge.onrender.com',
+      // In production, prefer explicit env override; otherwise default to same-origin
+      production: process.env.REACT_APP_API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}` : ''),
       development: process.env.REACT_APP_DEV_API_URL || 'http://localhost:3000',
       staging: process.env.REACT_APP_STAGING_API_URL || 'https://connect-four-staging.onrender.com'
     },
@@ -186,7 +187,7 @@ class EnvironmentDetector {
   }
 
   public getServiceConfiguration(): ServiceConfiguration {
-    return {
+    const cfg = {
       backend: this.getServiceUrl('backend'),
       mlService: this.getServiceUrl('mlService'),
       mlInference: this.getServiceUrl('mlInference'),
@@ -195,6 +196,19 @@ class EnvironmentDetector {
       pythonTrainer: this.getServiceUrl('pythonTrainer'),
       integrationWebSocket: this.getServiceUrl('integrationWebSocket')
     };
+
+    // If running in a browser (e.g., Vercel), prefer same-origin backend to avoid CORS
+    try {
+      if (typeof window !== 'undefined') {
+        const sameOrigin = `${window.location.protocol}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}`;
+        // If production and no explicit override, stick to same-origin
+        if (this.environmentInfo?.isProduction && !process.env.REACT_APP_API_URL) {
+          cfg.backend = sameOrigin;
+        }
+      }
+    } catch {}
+
+    return cfg;
   }
 
   public shouldUseLocalServices(): boolean {
@@ -212,8 +226,10 @@ class EnvironmentDetector {
 
     // In production, only check main backend health
     if (env.isProduction) {
+      // In production, use same-origin backend to avoid CORS errors
+      const origin = `${env.protocol}//${env.hostname}${env.port ? `:${env.port}` : ''}`;
       return [
-        { name: 'Backend API', url: `${config.backend}/api/health` }
+        { name: 'Backend API', url: `${origin}/api/health` }
       ];
     }
 
