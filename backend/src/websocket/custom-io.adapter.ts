@@ -18,7 +18,8 @@ export class CustomIoAdapter extends IoAdapter {
       'https://connect-four-ai-derek.vercel.app',
       'https://connect-four-ai-roge.vercel.app',
       'https://*.vercel.app', // Allow all Vercel preview deployments
-      'https://*.onrender.com' // Allow Render deployments
+      'https://*.onrender.com', // Allow Render deployments
+      '*' // Allow all origins temporarily for debugging
     ];
 
     const server = super.createIOServer(port, {

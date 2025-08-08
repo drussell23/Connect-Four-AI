@@ -14,7 +14,7 @@ services:
       - key: CORS_ENABLED
         value: "true"
       - key: CORS_ORIGINS
-        value: https://connect-four-ai-derek.vercel.app
+        value: '["https://connect-four-ai-derek.vercel.app","https://connect-four-ai-roge.vercel.app","https://*.vercel.app","https://*.onrender.com"]'
       - key: FRONTEND_URL
         value: https://connect-four-ai-derek.vercel.app
       # Disable external services until they're deployed
@@ -43,7 +43,7 @@ services:
       - key: BACKEND_URL
         value: https://connect-four-ai-roge.onrender.com
       - key: CORS_ORIGINS
-        value: https://connect-four-ai-derek.vercel.app,https://connect-four-ai-roge.onrender.com
+        value: 'https://connect-four-ai-derek.vercel.app,https://connect-four-ai-roge.onrender.com,https://*.vercel.app,https://*.onrender.com'
       - key: PYTHONUNBUFFERED
         value: "1"
 

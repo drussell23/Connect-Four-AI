@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CORS Test for Connect Four AI</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Connect Four AI CORS Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        // Test URLs
+        const backends = [
+            'http://localhost:3000',
+            'https://connect-four-ai-roge.onrender.com'
+        ];
+        
+        async function testCORS() {
+            for (const backend of backends) {
+                results.innerHTML += `<h2>Testing ${backend}</h2>`;
+                
+                // Test health endpoint
+                try {
+                    const healthResponse = await fetch(`${backend}/api/health`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'include'
+                    });
+                    
+                    if (healthResponse.ok) {
+                        const data = await healthResponse.json();
+                        results.innerHTML += `<p style="color: green;">✅ Health check passed: ${JSON.stringify(data.status)}</p>`;
+                    } else {
+                        results.innerHTML += `<p style="color: red;">❌ Health check failed: ${healthResponse.status} ${healthResponse.statusText}</p>`;
+                    }
+                } catch (error) {
+                    results.innerHTML += `<p style="color: red;">❌ Health check error: ${error.message}</p>`;
+                }
+                
+                // Test WebSocket connection
+                try {
+                    const wsUrl = backend.replace('https:', 'wss:').replace('http:', 'ws:');
+                    results.innerHTML += `<p>Testing WebSocket at ${wsUrl}...</p>`;
+                    
+                    const socket = io(wsUrl + '/game', {
+                        transports: ['websocket', 'polling'],
+                        reconnection: false,
+                        timeout: 5000
+                    });
+                    
+                    socket.on('connect', () => {
+                        results.innerHTML += `<p style="color: green;">✅ WebSocket connected: ${socket.id}</p>`;
+                        socket.disconnect();
+                    });
+                    
+                    socket.on('connect_error', (error) => {
+                        results.innerHTML += `<p style="color: red;">❌ WebSocket error: ${error.message}</p>`;
+                    });
+                    
+                    // Give it 5 seconds to connect
+                    setTimeout(() => {
+                        if (!socket.connected) {
+                            results.innerHTML += `<p style="color: orange;">⚠️ WebSocket connection timeout</p>`;
+                            socket.disconnect();
+                        }
+                    }, 5000);
+                    
+                } catch (error) {
+                    results.innerHTML += `<p style="color: red;">❌ WebSocket error: ${error.message}</p>`;
+                }
+                
+                results.innerHTML += '<hr>';
+            }
+        }
+        
+        // Run tests when page loads
+        window.onload = testCORS;
+    </script>
+</body>
+</html>

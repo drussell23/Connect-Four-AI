@@ -95,6 +95,8 @@ async function bootstrap() {
       'http://localhost:3001',
       'https://connect-four-ai-derek.vercel.app',
       'https://connect-four-ai-roge.vercel.app',
+      'https://*.vercel.app',
+      'https://*.onrender.com',
       '*' // Allow all origins for now
     ];
 
@@ -106,11 +108,24 @@ async function bootstrap() {
 
         // Check if origin is in allowed list
         if (corsOrigins.includes('*') || corsOrigins.includes(origin)) {
-          callback(null, true);
-        } else {
-          logger.warn(`CORS blocked origin: ${origin}`);
-          callback(null, true); // For now, allow all origins during debugging
+          return callback(null, true);
         }
+        
+        // Check wildcard patterns
+        const wildcardMatch = corsOrigins.some(pattern => {
+          if (pattern.includes('*')) {
+            const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+            return regex.test(origin);
+          }
+          return false;
+        });
+        
+        if (wildcardMatch) {
+          return callback(null, true);
+        }
+
+        logger.warn(`CORS blocked origin: ${origin}`);
+        callback(null, true); // For now, allow all origins during debugging
       },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
