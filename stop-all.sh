@@ -114,6 +114,18 @@ pkill -f 'python.*continuous_learning' 2>/dev/null && echo -e "${GREEN}   ✅ Ki
 pkill -f 'python.*training_service' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining training processes${NC}"
 pkill -f 'python.*metal_inference' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining Metal inference processes${NC}"
 
+# Kill uvicorn processes specifically
+pkill -f 'uvicorn' 2>/dev/null && echo -e "${GREEN}   ✅ Killed remaining uvicorn processes${NC}"
+
+# Extra aggressive cleanup for ML service ports
+for port in 8000 8001 8002 8003 8004; do
+    if lsof -i :$port | grep -q LISTEN 2>/dev/null; then
+        echo -e "${YELLOW}   Port $port still in use, performing aggressive cleanup...${NC}"
+        lsof -ti:$port | xargs kill -9 2>/dev/null || true
+        sleep 0.5
+    fi
+done
+
 # Clean up PID files
 echo -e "${CYAN}🗑️  Cleaning up PID files...${NC}"
 rm -f logs/*.pid
@@ -121,6 +133,9 @@ rm -f logs/*.pid
 # Optional: Clean up log files (commented out by default)
 # echo -e "${CYAN}📄 Cleaning up log files...${NC}"
 # rm -f logs/*.log
+
+# Wait a moment for processes to fully terminate
+sleep 1
 
 # Check if all services are stopped
 echo ""

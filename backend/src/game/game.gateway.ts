@@ -2025,6 +2025,13 @@ export class GameGateway
   handleServiceStatusUpdate(payload: any) {
     this.server.emit('serviceStatusUpdate', payload);
   }
+  
+  @SubscribeMessage('requestServiceStatus')
+  async handleServiceStatusRequest(@ConnectedSocket() client: Socket) {
+    // Request current status from the orchestrator
+    this.eventEmitter.emit('service.status.request', { clientId: client.id });
+    return { event: 'serviceStatusRequested', data: { message: 'Status update requested' } };
+  }
 
   /**
    * Determine the current game phase based on board state

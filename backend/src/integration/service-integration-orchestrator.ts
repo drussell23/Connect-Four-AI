@@ -4,6 +4,7 @@ import { HttpService } from '@nestjs/axios';
 import { WebSocket } from 'ws';
 import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
+import { Interval } from '@nestjs/schedule';
 
 /**
  * 🎯 SERVICE INTEGRATION ORCHESTRATOR
@@ -24,7 +25,7 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
   private readonly logger = new Logger(ServiceIntegrationOrchestrator.name);
   
   // WebSocket connections to all services
-  private mlWebSocket: WebSocket | null = null;
+  // ML Service uses HTTP API instead of WebSocket
   private aiCoordinationWebSocket: WebSocket | null = null;
   private continuousLearningWebSocket: WebSocket | null = null;
   
@@ -60,13 +61,18 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
     
     if (isProduction || disableExternalServices) {
       this.logger.log('📦 External services disabled in production mode');
-      // Mark all services as unavailable
+      // Mark internal services as available
+      this.serviceStatus.set('backend', true);
+      this.serviceStatus.set('frontend', false); // Frontend is separate
+      this.serviceStatus.set('integration_websocket', true); // Part of backend
+      this.serviceStatus.set('game_websocket', true); // Part of backend
+      
+      // Mark external services as unavailable
       this.serviceStatus.set('ml_service', false);
       this.serviceStatus.set('ml_inference', false);
       this.serviceStatus.set('continuous_learning', false);
       this.serviceStatus.set('ai_coordination', false);
       this.serviceStatus.set('python_trainer', false);
-      this.serviceStatus.set('integration_websocket', true); // This is part of backend
       this.broadcastServiceStatus();
       return;
     }
@@ -83,11 +89,18 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
     // Initialize background simulations
     await this.initializeBackgroundSimulations();
     
-    // Integration WebSocket is part of the backend service
-    this.serviceStatus.set('integration_websocket', true);
+    // Set internal services that are always running with the backend
+    this.serviceStatus.set('backend', true); // Backend is running if this code is executing
+    this.serviceStatus.set('integration_websocket', true); // Part of backend
+    this.serviceStatus.set('game_websocket', true); // Game gateway is part of backend
     
     // Do initial health check and broadcast status
     await this.checkAllServicesHealth();
+    
+    // Broadcast initial status after a short delay to ensure all listeners are ready
+    setTimeout(() => {
+      this.broadcastServiceStatus();
+    }, 2000);
     
     this.logger.log('✅ Service Integration Orchestrator initialized successfully');
   }
@@ -261,6 +274,9 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
     
     // Simulation events
     this.eventEmitter.on('simulation.completed', (data) => this.handleSimulationCompleted(data));
+    
+    // Service status request
+    this.eventEmitter.on('service.status.request', () => this.broadcastServiceStatus());
   }
 
   /**
@@ -344,7 +360,7 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
    * Run a single AI vs AI simulation
    */
   private async runSingleSimulation(
-    workerId: number,
+    _workerId: number,
     difficulty1: number,
     difficulty2: number
   ): Promise<any> {
@@ -506,7 +522,7 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
             board: data.board,
             model_type: 'ensemble',
           })
-        ).catch(err => ({ data: null }))
+        ).catch(() => ({ data: null }))
       );
     }
     
@@ -518,7 +534,7 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
             board: data.board,
             gameState: data.gameState,
           })
-        ).catch(err => ({ data: null }))
+        ).catch(() => ({ data: null }))
       );
     }
     
@@ -638,7 +654,7 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
   /**
    * Adjust simulation strategy based on insights
    */
-  private adjustSimulationStrategy(insights: any): void {
+  private adjustSimulationStrategy(_insights: any): void {
     // Implement adaptive simulation strategy
     // For example, focus on positions where AI performs poorly
   }
@@ -657,8 +673,11 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
    */
   private async checkAllServicesHealth(): Promise<void> {
     const services = [
+      { name: 'backend', url: 'http://localhost:3000/api/health' },
+      { name: 'frontend', url: 'http://localhost:3001' },
       { name: 'ml_service', url: 'http://localhost:8000/health' },
       { name: 'ml_inference', url: 'http://localhost:8001/health' },
+      { name: 'continuous_learning', url: 'http://localhost:8002/health' },
       { name: 'ai_coordination', url: 'http://localhost:8003/health' },
       { name: 'python_trainer', url: 'http://localhost:8004/health' },
     ];
@@ -769,13 +788,32 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
    */
   private broadcastServiceStatus(): void {
     const statusUpdate = {
+      backend: this.serviceStatus.get('backend') || false,
+      frontend: this.serviceStatus.get('frontend') || false,
       ml_service: this.serviceStatus.get('ml_service') || false,
       ml_inference: this.serviceStatus.get('ml_inference') || false,
       continuous_learning: this.serviceStatus.get('continuous_learning') || false,
       ai_coordination: this.serviceStatus.get('ai_coordination') || false,
       python_trainer: this.serviceStatus.get('python_trainer') || false,
+      game_websocket: this.serviceStatus.get('game_websocket') || false,
       integration_websocket: this.serviceStatus.get('integration_websocket') || false,
     };
+    
+    // Count online services
+    const onlineCount = Object.values(statusUpdate).filter(status => status).length;
+    const totalCount = Object.keys(statusUpdate).length;
+    
+    // Log service integration summary
+    this.logger.log(`📊 Service Integration Summary: (${onlineCount}/${totalCount} services online)`);
+    this.logger.log(`   Backend: ${statusUpdate.backend ? '✅' : '❌'}`);
+    this.logger.log(`   Frontend: ${statusUpdate.frontend ? '✅' : '❌'}`);
+    this.logger.log(`   ML Service: ${statusUpdate.ml_service ? '✅' : '❌'}`);
+    this.logger.log(`   ML Inference: ${statusUpdate.ml_inference ? '✅' : '❌'}`);
+    this.logger.log(`   Continuous Learning: ${statusUpdate.continuous_learning ? '✅' : '❌'}`);
+    this.logger.log(`   AI Coordination: ${statusUpdate.ai_coordination ? '✅' : '❌'}`);
+    this.logger.log(`   Python Trainer: ${statusUpdate.python_trainer ? '✅' : '❌'}`);
+    this.logger.log(`   Game WebSocket: ${statusUpdate.game_websocket ? '✅' : '❌'}`);
+    this.logger.log(`   Integration WebSocket: ${statusUpdate.integration_websocket ? '✅' : '❌'}`);
     
     // Emit service status update event
     this.eventEmitter.emit('service.status.update', statusUpdate);
@@ -785,9 +823,16 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
    * Get integration metrics
    */
   getMetrics(): any {
+    const serviceStatusObj = Object.fromEntries(this.serviceStatus);
+    const onlineCount = Object.values(serviceStatusObj).filter(status => status).length;
+    const totalCount = Object.keys(serviceStatusObj).length;
+    
     return {
       ...this.metrics,
-      serviceStatus: Object.fromEntries(this.serviceStatus),
+      serviceStatus: serviceStatusObj,
+      servicesOnline: onlineCount,
+      servicesTotal: totalCount,
+      servicesSummary: `${onlineCount}/${totalCount} services online`,
       simulationWorkers: this.simulationWorkers.map(w => ({
         id: w.id,
         active: w.active,
@@ -802,5 +847,15 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
    */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  
+  /**
+   * Periodic service status summary logging
+   * Runs every 60 seconds to log the current service integration status
+   */
+  @Interval(60000)
+  public logServiceStatusSummary(): void {
+    const metrics = this.getMetrics();
+    this.logger.log(`📊 Service Integration Summary: (${metrics.servicesOnline}/${metrics.servicesTotal} services online)`);
   }
 }

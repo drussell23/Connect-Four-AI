@@ -94,10 +94,8 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
 
 // Helper to determine if we need the /api prefix
 const needsApiPrefix = (): boolean => {
-    const apiUrl = getEnvVar('REACT_APP_API_URL', 'http://localhost:3001');
-    // In production (Render), we need the /api prefix
-    // Locally, we typically don't need it (but this can be configured)
-    return apiUrl.includes('onrender.com') || getEnvVar('REACT_APP_USE_API_PREFIX', 'false') === 'true';
+    // Backend mounts API at /api in all environments per backend/src/main.ts
+    return true;
 };
 
 // Get dynamic service configuration

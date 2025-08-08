@@ -40,6 +40,11 @@ export class IntegrationWebSocketGateway
     
     // Setup internal event listeners
     this.setupInternalListeners();
+    
+    // Listen for service status updates from orchestrator
+    this.eventEmitter.on('service.status.update', (status) => {
+      this.server.emit('service_status_bulk_update', status);
+    });
   }
 
   handleConnection(client: Socket) {

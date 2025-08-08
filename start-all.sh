@@ -605,21 +605,121 @@ start_service "frontend" "frontend" \
 
 # ML Services (only if not in fast mode)
 if [ "$FAST_MODE" != true ]; then
-    start_service "ml_service" "ml_service" \
-        "ML_SERVICE_HOST=0.0.0.0 PORT=8000 ML_WEBSOCKET_PORT=8002 ENABLE_LEARNING_MONITOR=true ENABLE_DIFFICULTY_AWARE_LEARNING=true DIFFICULTY_MODELS_COUNT=10 python3 start_with_continuous_learning.py" \
-        "8000" 120
+    echo -e "${CYAN}🐍 Checking Python environment...${NC}"
     
-    start_service "ml_inference" "ml_service" \
-        "ML_INFERENCE_HOST=0.0.0.0 ML_INFERENCE_PORT=8001 python3 enhanced_inference.py" \
-        "8001" 60
-    
-    start_service "ai_coordination" "ml_service" \
-        "AI_COORDINATION_HOST=0.0.0.0 AI_COORDINATION_PORT=8003 python3 ai_coordination_hub.py" \
-        "8003" 60
-    
-    start_service "python_trainer" "backend/src/ai/hybrid-architecture/python-trainer" \
-        "HOST=0.0.0.0 PORT=8004 python3 training_service_minimal.py" \
-        "8004" 60
+    # Check if Python is available
+    if command -v python3 &> /dev/null; then
+        PYTHON_VERSION=$(python3 --version | cut -d' ' -f2)
+        echo -e "${GREEN}✅ Found Python $PYTHON_VERSION${NC}"
+        
+        # Setup Python environment if needed
+        setup_python_env() {
+            local venv_path="$1"
+            local requirements_file="$2"
+            local service_name="$3"
+            local needs_setup=false
+            
+            # Check if venv exists
+            if [ ! -d "$venv_path" ]; then
+                echo -e "${YELLOW}📦 Creating virtual environment for $service_name...${NC}"
+                python3 -m venv "$venv_path" || return 1
+                needs_setup=true
+            fi
+            
+            # Activate venv
+            source "$venv_path/bin/activate"
+            
+            # Check if dependencies need to be installed
+            local marker_file="$venv_path/.deps_installed"
+            local requirements_changed=false
+            
+            # Check if requirements file has changed since last install
+            if [ -f "$requirements_file" ] && [ -f "$marker_file" ]; then
+                if [ "$requirements_file" -nt "$marker_file" ]; then
+                    requirements_changed=true
+                    echo -e "${YELLOW}📝 Requirements file has been updated${NC}"
+                fi
+            fi
+            
+            # Install dependencies if needed
+            if [ "$needs_setup" = true ] || [ "$requirements_changed" = true ] || [ ! -f "$marker_file" ] || ! python3 -c "import uvicorn, fastapi" &> /dev/null 2>&1; then
+                echo -e "${YELLOW}📦 Installing requirements for $service_name...${NC}"
+                pip install --upgrade pip >/dev/null 2>&1
+                if [ -f "$requirements_file" ]; then
+                    pip install -r "$requirements_file" >/dev/null 2>&1 || {
+                        echo -e "${RED}❌ Failed to install requirements for $service_name${NC}"
+                        deactivate
+                        return 1
+                    }
+                else
+                    # Install minimal requirements
+                    pip install fastapi uvicorn >/dev/null 2>&1
+                fi
+                # Mark dependencies as installed
+                touch "$marker_file"
+                echo -e "${GREEN}✅ $service_name environment ready${NC}"
+            else
+                echo -e "${GREEN}✅ $service_name environment already configured (skipping setup)${NC}"
+            fi
+            
+            deactivate
+            return 0
+        }
+        
+        # Setup ml_service environment
+        if [ -d "ml_service" ]; then
+            setup_python_env "ml_service/venv" "ml_service/requirements.txt" "ml_service" || {
+                echo -e "${YELLOW}⚠️ ML service setup failed, continuing without ML services${NC}"
+                SKIP_ML=true
+            }
+        fi
+        
+        # Setup python-trainer environment
+        TRAINER_DIR="backend/src/ai/hybrid-architecture/python-trainer"
+        if [ -d "$TRAINER_DIR" ] && [ "$SKIP_ML" != true ]; then
+            setup_python_env "$TRAINER_DIR/venv" "$TRAINER_DIR/requirements.txt" "python-trainer" || {
+                echo -e "${YELLOW}⚠️ Python trainer setup failed${NC}"
+            }
+        fi
+        
+        # Start ML services if setup succeeded
+        if [ "$SKIP_ML" != true ]; then
+            echo ""
+            echo -e "${CYAN}🚀 Starting ML services...${NC}"
+            
+            # ML Service
+            if [ -d "ml_service/venv" ]; then
+                start_service "ml_service" "ml_service" \
+                    "source venv/bin/activate && uvicorn ml_service:app --host 0.0.0.0 --port 8000 --reload" \
+                    "8000" 120
+                
+                start_service "ml_inference" "ml_service" \
+                    "source venv/bin/activate && uvicorn enhanced_inference:app --host 0.0.0.0 --port 8001 --reload" \
+                    "8001" 60
+                
+                start_service "ai_coordination" "ml_service" \
+                    "source venv/bin/activate && uvicorn ai_coordination_hub:app --host 0.0.0.0 --port 8003 --reload" \
+                    "8003" 60
+            fi
+            
+            # Python Trainer services
+            if [ -d "$TRAINER_DIR/venv" ]; then
+                start_service "continuous_learning" "$TRAINER_DIR" \
+                    "source venv/bin/activate && uvicorn training_service_minimal:app --host 0.0.0.0 --port 8002 --reload" \
+                    "8002" 60
+                
+                # Use minimal version for python_trainer too (TensorFlow issues)
+                start_service "python_trainer" "$TRAINER_DIR" \
+                    "source venv/bin/activate && uvicorn training_service_minimal:app --host 0.0.0.0 --port 8004 --reload" \
+                    "8004" 60
+            fi
+        fi
+    else
+        echo -e "${YELLOW}⚠️ Python not found. ML services will not start.${NC}"
+        echo -e "${CYAN}💡 To enable ML services:${NC}"
+        echo -e "   • Install Python 3.9 or later"
+        echo -e "   • Run: npm run start:all (it will set up everything automatically)"
+    fi
 else
     echo -e "${CYAN}⚡ Skipping ML services in fast mode${NC}"
 fi

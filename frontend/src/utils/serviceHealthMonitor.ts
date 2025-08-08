@@ -24,8 +24,8 @@ class ServiceHealthMonitor {
   private getHealthTimeoutMs(): number {
     try {
       const env = this.environmentInfo;
-      // Allow longer time for cold starts in production
-      return env.isProduction ? 15000 : 5000;
+      // Allow longer time for cold starts (increase local/dev to 10s)
+      return env.isProduction ? 15000 : 10000;
     } catch {
       return 10000;
     }

@@ -92,10 +92,10 @@ echo ""
 
 # Initialize counters
 healthy_count=0
-total_services=4
+total_services=9  # Updated to include all services
 
 # Check Backend Service
-if check_service "Backend Service (Port 3000)" "http://localhost:3000/api/games/settings/user/demo-user" "NestJS API with game logic and settings"; then
+if check_service "Backend Service (Port 3000)" "http://localhost:3000/api/health" "NestJS API with game logic and WebSocket gateway"; then
     ((healthy_count++))
 fi
 
@@ -105,7 +105,27 @@ if check_service "Frontend Service (Port 3001)" "http://localhost:3001" "React d
 fi
 
 # Check ML Service
-if check_service "ML Service (Port 8000)" "http://localhost:8000/health" "Python AI service with ML models"; then
+if check_service "ML Service (Port 8000)" "http://localhost:8000/health" "Main ML API with model management"; then
+    ((healthy_count++))
+fi
+
+# Check ML Inference
+if check_service "ML Inference (Port 8001)" "http://localhost:8001/health" "Dedicated inference endpoint for AI predictions"; then
+    ((healthy_count++))
+fi
+
+# Check Continuous Learning
+if check_service "Continuous Learning (Port 8002)" "http://localhost:8002/health" "Real-time model training and improvement"; then
+    ((healthy_count++))
+fi
+
+# Check AI Coordination
+if check_service "AI Coordination (Port 8003)" "http://localhost:8003/health" "Multi-agent AI coordination hub"; then
+    ((healthy_count++))
+fi
+
+# Check Python Trainer
+if check_service "Python Trainer (Port 8004)" "http://localhost:8004/health" "Advanced training algorithms and strategies"; then
     ((healthy_count++))
 fi
 
@@ -113,6 +133,18 @@ fi
 if check_websocket; then
     ((healthy_count++))
 fi
+
+# Check Integration WebSocket
+echo -e "${PURPLE}🔌 Integration WebSocket (Port 8888)${NC}"
+echo -e "   URL: ws://localhost:8888"
+echo -e "   Description: Service integration and monitoring"
+if lsof -i :8888 >/dev/null 2>&1; then
+    echo -e "   ${GREEN}✅ HEALTHY${NC} - Port is listening"
+    ((healthy_count++))
+else
+    echo -e "   ${RED}❌ UNHEALTHY${NC} - Port not available"
+fi
+echo ""
 
 echo "======================================================"
 echo -e "${YELLOW}📊 DETAILED SERVICE INFORMATION${NC}"
@@ -122,6 +154,11 @@ echo ""
 get_service_info 3000 "Backend Service"
 get_service_info 3001 "Frontend Service"
 get_service_info 8000 "ML Service"
+get_service_info 8001 "ML Inference"
+get_service_info 8002 "Continuous Learning"
+get_service_info 8003 "AI Coordination"
+get_service_info 8004 "Python Trainer"
+get_service_info 8888 "Integration WebSocket"
 
 echo "======================================================"
 echo -e "${YELLOW}🎯 FINAL STATUS SUMMARY${NC}"
@@ -135,18 +172,25 @@ if [ $healthy_count -eq $total_services ]; then
     echo -e "   🎮 Frontend: ${BLUE}http://localhost:3001${NC}"
     echo -e "   🔧 Backend API: ${BLUE}http://localhost:3000/api${NC}"
     echo -e "   🤖 ML Service: ${BLUE}http://localhost:8000${NC}"
-    echo -e "   🔌 WebSocket: ${BLUE}ws://localhost:3000/game${NC}"
+    echo -e "   🧠 ML Inference: ${BLUE}http://localhost:8001${NC}"
+    echo -e "   📚 Continuous Learning: ${BLUE}http://localhost:8002${NC}"
+    echo -e "   🎯 AI Coordination: ${BLUE}http://localhost:8003${NC}"
+    echo -e "   🏋️ Python Trainer: ${BLUE}http://localhost:8004${NC}"
+    echo -e "   🔌 Game WebSocket: ${BLUE}ws://localhost:3000/game${NC}"
+    echo -e "   🔗 Integration WebSocket: ${BLUE}ws://localhost:8888${NC}"
     echo ""
-    echo -e "${GREEN}✨ Your Connect Four AI game is fully operational!${NC}"
+    echo -e "${GREEN}✨ Your Connect Four AI game is fully operational with all ML services!${NC}"
     echo ""
     echo -e "${PURPLE}🎮 Ready to play? Open http://localhost:3001 in your browser!${NC}"
 else
     echo -e "${RED}⚠️  WARNING: Only $healthy_count/$total_services services are healthy${NC}"
     echo ""
     echo -e "${YELLOW}🔧 Troubleshooting tips:${NC}"
+    echo -e "   • Start all services: ${BLUE}npm run start:all${NC}"
     echo -e "   • Check if all services are started: ${BLUE}npm run status:detailed${NC}"
-    echo -e "   • Restart services: ${BLUE}npm run restart:turbo:build:enhanced:force:clean${NC}"
-    echo -e "   • Check logs: ${BLUE}npm run dev:logs${NC}"
+    echo -e "   • Restart services: ${BLUE}npm run restart:all${NC}"
+    echo -e "   • Check logs: ${BLUE}tail -f logs/*.log${NC}"
+    echo -e "   • For ML services issues: ${BLUE}npm run ml:status${NC}"
     echo -e "   • Emergency cleanup: ${BLUE}npm run emergency${NC}"
 fi
 

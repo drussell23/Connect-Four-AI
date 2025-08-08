@@ -40,9 +40,10 @@ class EnvironmentDetector {
   // Service endpoint configurations
   private readonly serviceEndpoints: Record<string, ServiceEndpoint> = {
     backend: {
-      local: 'http://localhost:3000',
+      // Backend default in this repo is 3001
+      local: 'http://localhost:3001',
       production: process.env.REACT_APP_API_URL || 'https://connect-four-ai-roge.onrender.com',
-      development: process.env.REACT_APP_DEV_API_URL || 'http://localhost:3000',
+      development: process.env.REACT_APP_DEV_API_URL || 'http://localhost:3001',
       staging: process.env.REACT_APP_STAGING_API_URL || 'https://connect-four-staging.onrender.com'
     },
     mlService: {

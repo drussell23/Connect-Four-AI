@@ -25,11 +25,23 @@ Connect Four AI is an enterprise-grade AI research platform with a sophisticated
 
 ### Development
 ```bash
-# Standard development (RECOMMENDED)
+# Standard development - starts EVERYTHING including ML services
 npm run dev
+
+# Alternative: Start all services with automatic Python setup
+npm run start:all
+
+# Fast mode without ML services
+npm run start:all:fast
 
 # Enhanced restart with comprehensive cleanup
 npm run restart:turbo:build:enhanced:force:clean
+
+# Stop everything (frontend, backend, ML services)
+npm run stop:all
+
+# Restart everything
+npm run restart:all
 
 # Emergency stop all services
 npm run emergency
@@ -74,14 +86,49 @@ cd backend && npm run build   # TypeScript check for backend
 
 ### ML Pipeline
 ```bash
-# Interactive ML management
-npm run ml:pipeline
+# Set up Python environment (one-time)
+npm run ml:setup
+
+# Start all ML services
+npm run ml:start
+
+# Stop ML services
+npm run ml:stop
 
 # Check ML service status
 npm run ml:status
 
+# Interactive ML management
+npm run ml:pipeline
+
 # Train models
 npm run ml:train
+```
+
+### Complete Stack with ML Services
+
+The main `start:all` command now includes automatic ML services setup:
+
+```bash
+# Start everything - frontend, backend, AND ML services
+npm run start:all
+
+# This automatically:
+# 1. Checks for Python installation
+# 2. Creates Python virtual environments (first run only)
+# 3. Installs ML dependencies (first run only)
+# 4. Starts all services:
+#    - Backend (port 3000)
+#    - Frontend (port 3001)
+#    - ML Service (port 8000)
+#    - ML Inference (port 8001)
+#    - Continuous Learning (port 8002)
+#    - AI Coordination (port 8003)
+#    - Python Trainer (port 8004)
+#    - Integration WebSocket (port 8888)
+
+# To skip ML services for faster startup:
+npm run start:all:fast
 ```
 
 ## Self-Healing Dependencies

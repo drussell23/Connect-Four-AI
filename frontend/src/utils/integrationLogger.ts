@@ -314,13 +314,22 @@ class IntegrationLogger {
 
   // Update multiple service statuses from backend
   public updateServiceStatuses(statuses: {
+    backend?: boolean;
+    frontend?: boolean;
     ml_service?: boolean;
     ml_inference?: boolean;
     continuous_learning?: boolean;
     ai_coordination?: boolean;
     python_trainer?: boolean;
+    game_websocket?: boolean;
     integration_websocket?: boolean;
   }): void {
+    // Always mark backend as connected if we're receiving status updates
+    if (statuses.backend !== undefined || Object.keys(statuses).length > 0) {
+      this.updateServiceStatus('Backend API', true);
+      this.logServiceConnection('Backend API', true);
+    }
+    
     if (statuses.ml_service !== undefined) {
       this.updateServiceStatus('ML Service', statuses.ml_service);
       this.logServiceConnection('ML Service', statuses.ml_service);
