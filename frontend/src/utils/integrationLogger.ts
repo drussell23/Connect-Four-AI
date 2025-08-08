@@ -53,6 +53,11 @@ class IntegrationLogger {
         'color: #FFC107; font-style: italic;'
       );
     }
+    
+    // Show initial service summary after a short delay
+    setTimeout(() => {
+      this.getServiceSummary();
+    }, 1000);
   }
 
   private initializeConsoleStyles(): void {
@@ -330,28 +335,31 @@ class IntegrationLogger {
       this.logServiceConnection('Backend API', true);
     }
     
+    // Treat health snapshots (booleans) and string states ('connected'/'disconnected')
+    const toBool = (v: any) => (typeof v === 'string' ? v === 'connected' : !!v);
+
     if (statuses.ml_service !== undefined) {
-      this.updateServiceStatus('ML Service', statuses.ml_service);
+      this.updateServiceStatus('ML Service', toBool(statuses.ml_service));
       this.logServiceConnection('ML Service', statuses.ml_service);
     }
     if (statuses.ml_inference !== undefined) {
-      this.updateServiceStatus('ML Inference', statuses.ml_inference);
+      this.updateServiceStatus('ML Inference', toBool(statuses.ml_inference));
       this.logServiceConnection('ML Inference', statuses.ml_inference);
     }
     if (statuses.continuous_learning !== undefined) {
-      this.updateServiceStatus('Continuous Learning', statuses.continuous_learning);
+      this.updateServiceStatus('Continuous Learning', toBool(statuses.continuous_learning));
       this.logServiceConnection('Continuous Learning', statuses.continuous_learning);
     }
     if (statuses.ai_coordination !== undefined) {
-      this.updateServiceStatus('AI Coordination', statuses.ai_coordination);
+      this.updateServiceStatus('AI Coordination', toBool(statuses.ai_coordination));
       this.logServiceConnection('AI Coordination', statuses.ai_coordination);
     }
     if (statuses.python_trainer !== undefined) {
-      this.updateServiceStatus('Python Trainer', statuses.python_trainer);
+      this.updateServiceStatus('Python Trainer', toBool(statuses.python_trainer));
       this.logServiceConnection('Python Trainer', statuses.python_trainer);
     }
     if (statuses.integration_websocket !== undefined) {
-      this.updateServiceStatus('Integration WebSocket', statuses.integration_websocket);
+      this.updateServiceStatus('Integration WebSocket', toBool(statuses.integration_websocket));
       this.logServiceConnection('Integration WebSocket', statuses.integration_websocket);
     }
   }

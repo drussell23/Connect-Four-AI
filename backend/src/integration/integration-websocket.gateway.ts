@@ -37,6 +37,13 @@ export class IntegrationWebSocketGateway
 
   afterInit(server: Server) {
     this.logger.log('🌐 Integration WebSocket Gateway initialized on port 8888');
+
+    // Bootstrap: announce backend integration socket is up
+    this.eventEmitter.emit('service.status.update', {
+      backend: true,
+      integration_websocket: true,
+      game_websocket: true
+    });
     
     // Setup internal event listeners
     this.setupInternalListeners();

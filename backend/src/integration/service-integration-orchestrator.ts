@@ -102,6 +102,12 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
       this.broadcastServiceStatus();
     }, 2000);
     
+    // Broadcast again after 5 seconds to ensure frontend gets the status
+    setTimeout(() => {
+      this.logger.log('📡 Broadcasting service status to all connected clients...');
+      this.broadcastServiceStatus();
+    }, 5000);
+    
     this.logger.log('✅ Service Integration Orchestrator initialized successfully');
   }
 

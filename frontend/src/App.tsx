@@ -905,6 +905,11 @@ const App: React.FC = () => {
 
     apiSocket.on('connect', () => {
       console.log('🔗 connected, id=', apiSocket.id);
+      
+      // Request current service status
+      console.log('📊 Requesting service status...');
+      apiSocket.emit('requestServiceStatus');
+      
       // Don't create game immediately - let loading complete first
       startTransition(() => {
         setShowLoadingProgress(false);
@@ -1308,12 +1313,19 @@ const App: React.FC = () => {
       console.log('📊 Service status update:', data);
       integrationLogger.updateServiceStatuses(data);
     });
+    
+    // Also listen for bulk status updates from integration websocket
+    socket.on('service_status_bulk_update', (data: any) => {
+      console.log('📊 Bulk service status update:', data);
+      integrationLogger.updateServiceStatuses(data);
+    });
 
     return () => {
       socket.off('playerMove');
       socket.off('aiThinking');
       socket.off('aiMove');
       socket.off('serviceStatusUpdate');
+      socket.off('service_status_bulk_update');
     };
   }, [socket, aiLevel]);
 

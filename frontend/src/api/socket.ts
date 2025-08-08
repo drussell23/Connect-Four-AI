@@ -360,6 +360,13 @@ class EnhancedSocketManager {
       socketLogger.logInfo('⏱️ Connection established in:', `${Date.now() - (this.connectionAttemptCount > 0 ? connectionTime : 0)}ms`);
       socketLogger.markConnectionComplete();
 
+      // Request current service status snapshot on connect
+      try {
+        this.socket!.emit('requestServiceStatus');
+      } catch (e) {
+        // ignore
+      }
+
       // Enhanced connection analytics
       const connectionDetails = {
         socketId: this.socket?.id,
