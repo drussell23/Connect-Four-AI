@@ -2,6 +2,7 @@
 import io, { Manager } from 'socket.io-client';
 import type { Socket } from 'socket.io-client';
 import { appConfig, buildApiEndpoint } from '../config/environment';
+import { environmentDetector } from '../utils/environmentDetector';
 import { socketLogger } from './socketLogger';
 import { integrationLogger } from '../utils/integrationLogger';
 
@@ -94,9 +95,10 @@ class EnhancedSocketManager {
   // Validate server connection health
   private async validateConnection(): Promise<boolean> {
     try {
+      const timeoutMs = environmentDetector.getEnvironmentInfo().isProduction ? 12000 : 5000;
       const response = await fetch(`${appConfig.api.baseUrl}/api/health`, {
         method: 'GET',
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(timeoutMs),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -2382,9 +2384,10 @@ class EnhancedSocketManager {
 
   private async validateServerConnection(): Promise<boolean> {
     try {
+      const timeoutMs = environmentDetector.getEnvironmentInfo().isProduction ? 12000 : 3000;
       const response = await fetch(buildApiEndpoint('/health'), {
         method: 'GET',
-        signal: AbortSignal.timeout(3000)
+        signal: AbortSignal.timeout(timeoutMs)
       });
       return response.ok;
     } catch (error) {
@@ -2397,7 +2400,7 @@ class EnhancedSocketManager {
       clearTimeout(this.connectionRetryTimer);
     }
 
-    const delay = Math.min(1000 * Math.pow(1.5, this.connectionAttemptCount), 10000);
+    const delay = Math.min(1000 * Math.pow(1.5, this.connectionAttemptCount), environmentDetector.getEnvironmentInfo().isProduction ? 20000 : 10000);
     const jitter = Math.random() * 1000;
 
     console.log(`⏰ Scheduling connection retry in ${Math.round((delay + jitter) / 1000)}s...`);

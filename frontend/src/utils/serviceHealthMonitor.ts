@@ -21,6 +21,16 @@ class ServiceHealthMonitor {
     this.initializeServices();
   }
 
+  private getHealthTimeoutMs(): number {
+    try {
+      const env = this.environmentInfo;
+      // Allow longer time for cold starts in production
+      return env.isProduction ? 15000 : 5000;
+    } catch {
+      return 10000;
+    }
+  }
+
   private initializeServices(): void {
     // Get health check endpoints based on environment
     const endpoints = getHealthCheckEndpoints();
@@ -44,9 +54,10 @@ class ServiceHealthMonitor {
   public async checkService(service: ServiceEndpoint): Promise<boolean> {
     try {
       const controller = new AbortController();
+      const timeoutMs = this.getHealthTimeoutMs();
       const timeoutId = setTimeout(() => {
-        controller.abort(new DOMException('Health check timeout after 5s', 'TimeoutError'));
-      }, 5000);
+        controller.abort(new DOMException(`Health check timeout after ${Math.round(timeoutMs/1000)}s`, 'TimeoutError'));
+      }, timeoutMs);
       
       const startTime = Date.now();
       const response = await fetch(service.url, {
@@ -97,7 +108,7 @@ class ServiceHealthMonitor {
         let errorMessage = 'Unknown error';
         if (error instanceof Error) {
           if (error.name === 'TimeoutError') {
-            errorMessage = 'Health check timeout (5s)';
+            errorMessage = `Health check timeout (${Math.round(this.getHealthTimeoutMs()/1000)}s)`;
           } else if (error.name === 'AbortError') {
             errorMessage = error.message || 'Request aborted';
           } else {
