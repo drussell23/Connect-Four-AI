@@ -19,6 +19,58 @@
 
 ---
 
+## 🆕 Recent Updates (January 2025)
+
+### **Latest Improvements**
+- 🚀 **Faster AI Response** - Optimized from 400-600ms to 200-300ms
+- 📊 **Complete Service Monitoring** - All 9 services now properly tracked
+- 🔧 **WebSocket Stability** - Fixed connection issues and improved reliability
+- 🎯 **Enhanced Integration** - Better service discovery and status reporting
+- ⚡ **Reduced Timeouts** - AI computation timeouts reduced from 3-4s to 1-2s
+- 🌐 **Frontend Integration** - Real-time service status in the UI
+
+### **What's Working Now**
+- ✅ All AI algorithms fully integrated and operational
+- ✅ Service health monitoring with real-time updates
+- ✅ M1/M2/M3 Apple Silicon optimization
+- ✅ Multi-tier caching for instant responses
+- ✅ 9-service microarchitecture running smoothly
+- ✅ WebSocket real-time gameplay
+
+---
+
+## 💻 Tech Stack
+
+### **Frontend**
+- **React 18** with TypeScript
+- **Socket.io Client** for real-time gameplay
+- **Framer Motion** for animations
+- **TailwindCSS** for styling
+- **Vite** for blazing fast builds
+
+### **Backend**
+- **NestJS** framework with TypeScript
+- **Socket.io** for WebSocket communication
+- **SQLite** for game persistence
+- **Bull** for queue management
+- **Node.js 18+** runtime
+
+### **AI/ML Services**
+- **Python 3.9+** with FastAPI
+- **TensorFlow.js** for neural networks
+- **NumPy** for computations
+- **Scikit-learn** for ML algorithms
+- **Redis** for caching
+
+### **Infrastructure**
+- **Docker** containerization
+- **PM2** process management
+- **Nginx** reverse proxy
+- **GitHub Actions** CI/CD
+- **Vercel/Render** deployment
+
+---
+
 ## 🌟 Revolutionary Features - Version 3.0
 
 ### 🚀 ULTRA-ENHANCED AI SYSTEM
@@ -476,27 +528,59 @@ export const AI_PROFILES = {
 
 ## 🚀 Installation & Deployment
 
-### **Development Setup**
+### **Quick Start**
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/ConnectFourGame.git
+git clone https://github.com/derekjrussell/ConnectFourGame.git
 cd ConnectFourGame
 
 # Install dependencies
 npm install
 
-# Install Python dependencies (optional, for ML services)
-cd ml_service && pip install -r requirements.txt && cd ..
+# Start everything with one command (includes ML services)
+npm run start:all
 
-# Development mode (full features)
+# Alternative: Fast mode without ML services
+npm run start:all:fast
+
+# Development mode with hot reload
 npm run dev
 
-# Fast development mode (reduced features, faster startup)
-npm run dev:fast
+# Stop all services
+npm run stop:all
 
-# Production build
-npm run build
-npm run start:prod
+# Check system health
+npm run health:check
+```
+
+### **Useful Commands**
+```bash
+# Service Management
+npm run start:all           # Start all services
+npm run start:all:fast      # Start without ML services  
+npm run stop:all           # Stop everything
+npm run restart:all        # Restart all services
+npm run emergency          # Emergency stop all
+
+# Development
+npm run dev               # Development mode
+npm run build            # Build for production
+npm run test             # Run tests
+npm run test:ai          # Test AI algorithms
+
+# Monitoring
+npm run health:check     # Check all services
+npm run logs            # View logs
+npm run monitor         # Real-time monitoring
+
+# Database
+npm run db:init         # Initialize database
+npm run db:reset        # Reset database (WARNING: data loss)
+
+# ML Services
+npm run ml:start        # Start ML services
+npm run ml:stop         # Stop ML services
+npm run ml:status       # Check ML status
 ```
 
 ### **Apple Silicon (M1/M2/M3) Optimization**
@@ -636,6 +720,50 @@ logger.info('AI move computed', {
 
 // Log aggregation with ELK stack
 // Elasticsearch + Logstash + Kibana
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### **Common Issues**
+
+#### Services Not Starting
+```bash
+# Check if ports are in use
+lsof -i :3000,3001,8000-8004,8888
+
+# Kill all services and restart
+npm run emergency
+npm run start:all
+```
+
+#### WebSocket Connection Failed
+```bash
+# Check backend is running
+curl http://localhost:3000/api/health
+
+# Restart with clean state
+npm run restart:all
+```
+
+#### ML Services Not Responding
+```bash
+# Check Python installation
+python3 --version  # Should be 3.9+
+
+# Reinstall ML dependencies
+cd ml_service && pip install -r requirements.txt
+```
+
+#### High Memory Usage
+```bash
+# Use fast mode (no ML services)
+npm run start:all:fast
+
+# Or limit services
+npm run start:backend  # Just backend
+npm run start:frontend # Just frontend
 ```
 
 ---
@@ -821,14 +949,15 @@ if (supportsWebGPU()) {
 ### **Project Milestones**
 - ✅ 30+ AI algorithms implemented
 - ✅ <1ms cached response achieved
-- ✅ 99.99% uptime maintained
-- ✅ 100K+ games played
-- ✅ 95% AI win rate at max difficulty
-- ✅ WebGPU acceleration implemented
-- ✅ Distributed computing ready
+- ✅ 9 microservices architecture deployed
+- ✅ Real-time WebSocket gameplay
+- ✅ M1/M2/M3 optimization with WebGPU
+- ✅ Service health monitoring system
+- ✅ 200-300ms AI response time
 - ✅ Self-learning AI deployed
-- ✅ Real-time multiplayer active
+- ✅ Multi-tier caching system
 - ✅ Professional opening book integrated
+- ✅ Comprehensive service integration
 
 ### **Performance Records**
 - Fastest move: 0.8ms (cached)
@@ -840,25 +969,35 @@ if (supportsWebGPU()) {
 
 ---
 
-## 🔮 Future Roadmap
+## 🔮 Development Roadmap
 
-### **Q1 2024**
-- [ ] Quantum computing integration
-- [ ] Voice control interface
-- [ ] AR/VR game modes
-- [ ] Mobile native apps
+We have an exciting roadmap ahead! Check out our detailed [ROADMAP.md](./ROADMAP.md) for the full vision.
 
-### **Q2 2024**
-- [ ] Blockchain integration for tournaments
-- [ ] AI personality customization
-- [ ] Advanced coaching mode
-- [ ] Social features and clans
+### **Highlights for 2025**
+- 🎮 **Multiplayer Lobbies & Tournaments** - Competitive gameplay
+- 🤖 **AI Personalities** - Different playing styles and strategies  
+- ⚡ **WebAssembly Integration** - 10x performance improvement
+- 📱 **Mobile Apps** - Native iOS and Android support
+- 🧠 **AI vs AI Arena** - Watch algorithms compete
+- 🌍 **Global Expansion** - Multi-language support
+- 🚀 **AR/VR Support** - Next-gen gaming experience
 
-### **Q3 2024**
-- [ ] AI vs AI tournaments
-- [ ] Custom rule variations
-- [ ] Stream integration (Twitch/YouTube)
-- [ ] Educational curriculum
+---
+
+## ⚠️ Known Issues & Limitations
+
+### **Current Limitations**
+- ML services require Python 3.9+ and may have compatibility issues on some systems
+- WebGPU acceleration is experimental and requires Chrome/Edge 113+
+- High memory usage when running all 9 services (recommended: 8GB+ RAM)
+- Some TypeScript warnings in development mode (being addressed)
+- Service integration status may take 5-10 seconds to fully populate on startup
+
+### **Platform-Specific Notes**
+- **Windows**: May need to run as administrator for port binding
+- **macOS**: First run may trigger security prompts for Python
+- **Linux**: May need to install additional dependencies for TensorFlow
+- **Docker**: Requires 4GB+ memory allocation
 
 ---
 

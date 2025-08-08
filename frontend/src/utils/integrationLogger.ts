@@ -24,6 +24,7 @@ export interface ServiceStatus {
   learning: boolean;
   trainer: boolean;
   integration: boolean;
+  gameWebsocket: boolean;
 }
 
 class IntegrationLogger {
@@ -38,7 +39,8 @@ class IntegrationLogger {
     coordination: false,
     learning: false,
     trainer: false,
-    integration: false
+    integration: false,
+    gameWebsocket: false
   };
 
   constructor() {
@@ -77,7 +79,8 @@ class IntegrationLogger {
       'AI Coordination': { Port: 8003, Status: '🔄 Connecting...' },
       'Continuous Learning': { Port: 8002, Status: '🔄 Connecting...' },
       'Python Trainer': { Port: 8004, Status: '🔄 Connecting...' },
-      'Integration WebSocket': { Port: 8888, Status: '🔄 Connecting...' }
+      'Integration WebSocket': { Port: 8888, Status: '🔄 Connecting...' },
+      'Game WebSocket': { Port: 3000, Status: '🔄 Connecting...' }
     });
     console.groupEnd();
   }
@@ -297,7 +300,8 @@ class IntegrationLogger {
       'AI Coordination': 'coordination',
       'Continuous Learning': 'learning',
       'Python Trainer': 'trainer',
-      'Integration WebSocket': 'integration'
+      'Integration WebSocket': 'integration',
+      'Game WebSocket': 'gameWebsocket'
     };
 
     const key = serviceMap[service];
@@ -339,28 +343,39 @@ class IntegrationLogger {
     const toBool = (v: any) => (typeof v === 'string' ? v === 'connected' : !!v);
 
     if (statuses.ml_service !== undefined) {
-      this.updateServiceStatus('ML Service', toBool(statuses.ml_service));
-      this.logServiceConnection('ML Service', statuses.ml_service);
+      const mlServiceStatus = toBool(statuses.ml_service);
+      this.updateServiceStatus('ML Service', mlServiceStatus);
+      this.logServiceConnection('ML Service', mlServiceStatus);
     }
     if (statuses.ml_inference !== undefined) {
-      this.updateServiceStatus('ML Inference', toBool(statuses.ml_inference));
-      this.logServiceConnection('ML Inference', statuses.ml_inference);
+      const mlInferenceStatus = toBool(statuses.ml_inference);
+      this.updateServiceStatus('ML Inference', mlInferenceStatus);
+      this.logServiceConnection('ML Inference', mlInferenceStatus);
     }
     if (statuses.continuous_learning !== undefined) {
-      this.updateServiceStatus('Continuous Learning', toBool(statuses.continuous_learning));
-      this.logServiceConnection('Continuous Learning', statuses.continuous_learning);
+      const continuousLearningStatus = toBool(statuses.continuous_learning);
+      this.updateServiceStatus('Continuous Learning', continuousLearningStatus);
+      this.logServiceConnection('Continuous Learning', continuousLearningStatus);
     }
     if (statuses.ai_coordination !== undefined) {
-      this.updateServiceStatus('AI Coordination', toBool(statuses.ai_coordination));
-      this.logServiceConnection('AI Coordination', statuses.ai_coordination);
+      const aiCoordinationStatus = toBool(statuses.ai_coordination);
+      this.updateServiceStatus('AI Coordination', aiCoordinationStatus);
+      this.logServiceConnection('AI Coordination', aiCoordinationStatus);
     }
     if (statuses.python_trainer !== undefined) {
-      this.updateServiceStatus('Python Trainer', toBool(statuses.python_trainer));
-      this.logServiceConnection('Python Trainer', statuses.python_trainer);
+      const pythonTrainerStatus = toBool(statuses.python_trainer);
+      this.updateServiceStatus('Python Trainer', pythonTrainerStatus);
+      this.logServiceConnection('Python Trainer', pythonTrainerStatus);
     }
     if (statuses.integration_websocket !== undefined) {
-      this.updateServiceStatus('Integration WebSocket', toBool(statuses.integration_websocket));
-      this.logServiceConnection('Integration WebSocket', statuses.integration_websocket);
+      const integrationWebSocketStatus = toBool(statuses.integration_websocket);
+      this.updateServiceStatus('Integration WebSocket', integrationWebSocketStatus);
+      this.logServiceConnection('Integration WebSocket', integrationWebSocketStatus);
+    }
+    if (statuses.game_websocket !== undefined) {
+      const gameWebSocketStatus = toBool(statuses.game_websocket);
+      this.updateServiceStatus('Game WebSocket', gameWebSocketStatus);
+      this.logServiceConnection('Game WebSocket', gameWebSocketStatus);
     }
   }
 
@@ -375,7 +390,8 @@ class IntegrationLogger {
       { name: 'AI Coordination', status: this.serviceStatus.coordination },
       { name: 'Continuous Learning', status: this.serviceStatus.learning },
       { name: 'Python Trainer', status: this.serviceStatus.trainer },
-      { name: 'Integration WebSocket', status: this.serviceStatus.integration }
+      { name: 'Integration WebSocket', status: this.serviceStatus.integration },
+      { name: 'Game WebSocket', status: this.serviceStatus.gameWebsocket }
     ];
 
     const summary = services.map(s => ({

@@ -59,8 +59,8 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
     const isProduction = this.configService.get('NODE_ENV') === 'production';
     const disableExternalServices = this.configService.get('DISABLE_EXTERNAL_SERVICES', 'false') === 'true';
     
-    if (isProduction || disableExternalServices) {
-      this.logger.log('📦 External services disabled in production mode');
+    if (disableExternalServices) {
+      this.logger.log('📦 External services disabled by configuration');
       // Mark internal services as available
       this.serviceStatus.set('backend', true);
       this.serviceStatus.set('frontend', false); // Frontend is separate
@@ -678,10 +678,14 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
    * Check health of all services
    */
   private async checkAllServicesHealth(): Promise<void> {
+    // Resolve dynamic ports/URLs from configuration
+    const backendPort = this.configService.get('port') || 3001;
+    const backendUrl = this.configService.get('backendUrl') || `http://localhost:${backendPort}`;
+
     const services = [
-      { name: 'backend', url: 'http://localhost:3000/api/health' },
-      { name: 'frontend', url: 'http://localhost:3001' },
-      { name: 'ml_service', url: 'http://localhost:8000/health' },
+      { name: 'backend', url: `${backendUrl}/api/health` },
+      { name: 'frontend', url: this.configService.get('frontendUrl') || 'http://localhost:3001' },
+      { name: 'ml_service', url: this.configService.get('mlServiceUrl') ? `${this.configService.get('mlServiceUrl')}/health` : 'http://localhost:8000/health' },
       { name: 'ml_inference', url: 'http://localhost:8001/health' },
       { name: 'continuous_learning', url: 'http://localhost:8002/health' },
       { name: 'ai_coordination', url: 'http://localhost:8003/health' },
