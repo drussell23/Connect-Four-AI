@@ -331,42 +331,75 @@ export class AIGameIntegrationService implements OnModuleInit {
         }
       }
 
-      // 4. Check precomputed moves (using available methods)
-      if (this.precomputationEngine && typeof (this.precomputationEngine as any).getPrecomputed === 'function') {
+      // 4. Ultra-fast tactical pass (immediate win/block)
+      const tactical = this.findImmediateTacticalMove(board, aiPlayer);
+      if (tactical !== null) {
+        const tacticalResponse = await this.createEnhancedResponse(
+          {
+            move: tactical.move,
+            confidence: tactical.reason === 'win' ? 0.99 : 0.9,
+            explanation: tactical.reason === 'win' ? 'Immediate winning move' : 'Immediate block to prevent loss'
+          },
+          'tactical_fastpath',
+          this.currentProfile,
+          requestStartTime,
+          false,
+          false
+        );
+
+        // Cache tactical response for short duration to avoid recomputation on reconnects
+        if (this.cacheManager && typeof (this.cacheManager as any).set === 'function') {
+          try {
+            await (this.cacheManager as any).set(cacheKey, tacticalResponse, 300000); // 5 minutes
+          } catch (error) {
+            this.logger.warn(`Cache set failed (tactical): ${error.message}`);
+          }
+        }
+
+        return tacticalResponse;
+      }
+
+      // 5. Smart tactical + precomputation synergy (board not too full)
+      const moveCount = board.flat().filter(cell => cell !== 'Empty').length;
+      const isBoardSparse = moveCount <= 18; // early/mid game heuristic
+      if (isBoardSparse) {
         try {
-          const precomputedData = await (this.precomputationEngine as any).getPrecomputed(board);
-          if (precomputedData && precomputedData.move !== undefined) {
-            this.performanceMetrics.precomputationHitRate = 
-              (this.performanceMetrics.precomputationHitRate * 0.9) + (1 * 0.1);
-            
-            const precomputedResponse = await this.createPrecomputedResponse(
-              precomputedData.move,
-              board,
-              aiPlayer,
-              requestStartTime
+          const smartMove = await this.selectSmartMoveWithPrecompute(board, aiPlayer);
+          if (smartMove !== null) {
+            const smartResponse = await this.createEnhancedResponse(
+              {
+                move: smartMove,
+                confidence: 0.88,
+                explanation: 'Combined tactical safety and precomputation for long-term advantage'
+              },
+              'tactical_precompute_synergy',
+              this.currentProfile,
+              requestStartTime,
+              false,
+              true
             );
-            
-            // Cache the precomputed response (if cache available)
+
+            // Cache briefly to improve responsiveness on reconnects
             if (this.cacheManager && typeof (this.cacheManager as any).set === 'function') {
               try {
-                await (this.cacheManager as any).set(cacheKey, precomputedResponse, 1800000); // 30 minutes
+                await (this.cacheManager as any).set(cacheKey, smartResponse, 600000); // 10 minutes
               } catch (error) {
-                this.logger.warn(`Cache set failed: ${error.message}`);
+                this.logger.warn(`Cache set failed (synergy): ${error.message}`);
               }
             }
-            
-            return precomputedResponse;
+
+            return smartResponse;
           }
         } catch (error) {
-          this.logger.warn(`Precomputation failed: ${error.message}`);
+          this.logger.warn(`Synergy selection failed: ${error.message}`);
         }
       }
 
-      // 5. Get optimization profile for game type
+      // 6. Get optimization profile for game type
       const profile = this.getOptimizationProfile(gameType);
       this.currentProfile = profile;
 
-      // 6. Resource-aware decision making
+      // 7. Resource-aware decision making
       const resourceConstraints = await this.getResourceConstraints();
       const adaptiveConfig = await this.getAdaptiveConfiguration(
         difficulty, 
@@ -374,7 +407,7 @@ export class AIGameIntegrationService implements OnModuleInit {
         resourceConstraints
       );
 
-      // 7. Batch request if system is under load
+      // 8. Batch request if system is under load
       if (this.requestBatcher && resourceConstraints.shouldBatch && typeof (this.requestBatcher as any).submitRequest === 'function') {
         try {
           return await this.handleBatchedRequest(
@@ -391,7 +424,7 @@ export class AIGameIntegrationService implements OnModuleInit {
         }
       }
 
-      // 8. Generate AI move with full optimization pipeline
+      // 9. Generate AI move with full optimization pipeline
       const aiResponse = await this.generateOptimizedMove(
         gameId,
         board,
@@ -403,7 +436,7 @@ export class AIGameIntegrationService implements OnModuleInit {
         requestStartTime
       );
 
-      // 9. Cache the result for future use
+      // 10. Cache the result for future use
       if (this.cacheManager && !aiResponse.metadata.cacheHit && typeof (this.cacheManager as any).set === 'function') {
         try {
           const cacheTTL = this.calculateCacheTTL(difficulty, profile);
@@ -413,15 +446,15 @@ export class AIGameIntegrationService implements OnModuleInit {
         }
       }
 
-      // 10. Schedule precomputation for likely next positions
+      // 11. Schedule precomputation for likely next positions
       if (this.precomputationEngine) {
         this.schedulePrecomputation(board, aiResponse.move, aiPlayer);
       }
 
-      // 11. Update performance metrics
+      // 12. Update performance metrics
       await this.updatePerformanceMetrics(aiResponse, requestStartTime);
 
-      // 12. Self-tuning optimization (if available)
+      // 13. Self-tuning optimization (if available)
       if (this.selfTuningOptimizer && typeof (this.selfTuningOptimizer as any).recordPerformance === 'function') {
         try {
           await (this.selfTuningOptimizer as any).recordPerformance({
@@ -1298,6 +1331,148 @@ export class AIGameIntegrationService implements OnModuleInit {
   private isEarlyGame(board: CellValue[][]): boolean {
     const moveCount = board.flat().filter(cell => cell !== 'Empty').length;
     return moveCount <= 8; // First 8 moves
+  }
+
+  // Fast path to detect immediate win or block without deep search
+  private findImmediateTacticalMove(board: CellValue[][], aiPlayer: CellValue): { move: number; reason: 'win' | 'block' } | null {
+    const opponent: CellValue = aiPlayer === 'Red' ? 'Yellow' : 'Red';
+
+    // Helper: drop a disc in a copy and check win
+    const simulateDrop = (b: CellValue[][], col: number, player: CellValue): { board: CellValue[][], row: number } | null => {
+      if (b[0][col] !== 'Empty') return null;
+      const nb = b.map(row => [...row]);
+      for (let r = nb.length - 1; r >= 0; r--) {
+        if (nb[r][col] === 'Empty') {
+          nb[r][col] = player;
+          return { board: nb, row: r };
+        }
+      }
+      return null;
+    };
+
+    const cols = Array.from({ length: 7 }, (_, i) => i);
+
+    // 1) Check for winning move for AI
+    for (const c of cols) {
+      const sim = simulateDrop(board, c, aiPlayer);
+      if (!sim) continue;
+      if (this.checkWin(sim.board, sim.row, c, aiPlayer)) {
+        return { move: c, reason: 'win' };
+      }
+    }
+
+    // 2) Check for necessary block against opponent immediate win
+    for (const c of cols) {
+      const sim = simulateDrop(board, c, opponent);
+      if (!sim) continue;
+      if (this.checkWin(sim.board, sim.row, c, opponent)) {
+        return { move: c, reason: 'block' };
+      }
+    }
+
+    return null;
+  }
+
+  // Minimal win check from last placed position
+  private checkWin(board: CellValue[][], row: number, col: number, player: CellValue): boolean {
+    const directions = [
+      [0, 1],   // horizontal
+      [1, 0],   // vertical
+      [1, 1],   // diag down-right
+      [1, -1],  // diag down-left
+    ];
+
+    const inBounds = (r: number, c: number) => r >= 0 && r < board.length && c >= 0 && c < board[0].length;
+
+    for (const [dr, dc] of directions) {
+      let count = 1;
+      // forward
+      for (let k = 1; k < 4; k++) {
+        const r = row + dr * k, c = col + dc * k;
+        if (!inBounds(r, c) || board[r][c] !== player) break;
+        count++;
+      }
+      // backward
+      for (let k = 1; k < 4; k++) {
+        const r = row - dr * k, c = col - dc * k;
+        if (!inBounds(r, c) || board[r][c] !== player) break;
+        count++;
+      }
+      if (count >= 4) return true;
+    }
+    return false;
+  }
+
+  // Select move by combining tactical safety with precomputed strategic gain
+  private async selectSmartMoveWithPrecompute(board: CellValue[][], aiPlayer: CellValue): Promise<number | null> {
+    if (!this.precomputationEngine || typeof (this.precomputationEngine as any).getPrecomputed !== 'function') {
+      return null;
+    }
+
+    // 1) If any immediate win or block exists, prefer it
+    const tactical = this.findImmediateTacticalMove(board, aiPlayer);
+    if (tactical) return tactical.move;
+
+    // 2) Otherwise, rank valid moves by precomputed advantage and basic heuristics
+    const validMoves = this.getValidMoves(board);
+    if (validMoves.length === 0) return null;
+
+    // Get precomputed suggestion for current position (if any)
+    let precomputed: any = null;
+    try {
+      precomputed = await (this.precomputationEngine as any).getPrecomputed(board);
+    } catch {}
+
+    // Build scoring
+    let best = { move: validMoves[0], score: -Infinity };
+    for (const move of validMoves) {
+      // Apply move to a copy
+      const sim = this.simulateDropSimple(board, move, aiPlayer);
+      if (!sim) continue;
+
+      // Immediate win check on simulated board (cheap)
+      if (this.checkWin(sim.board, sim.row, move, aiPlayer)) {
+        return move;
+      }
+
+      // Heuristics: center preference and potential threats next
+      const centerBias = 1 - Math.abs(3 - move) * 0.1; // 1.0 for col 3, then 0.9, 0.8...
+
+      // Precomputed alignment: if engine recommended a move, bonus
+      const precomputeBonus = precomputed && precomputed.move === move ? 0.2 : 0.0;
+
+      // Light opponent safety: avoid moves that give opponent an immediate win
+      const unsafe = this.createsImmediateOpponentWin(sim.board, move, aiPlayer);
+      const safetyPenalty = unsafe ? 0.5 : 0.0;
+
+      const score = centerBias + precomputeBonus - safetyPenalty;
+      if (score > best.score) best = { move, score };
+    }
+
+    return best.score > -Infinity ? best.move : null;
+  }
+
+  private simulateDropSimple(b: CellValue[][], col: number, player: CellValue): { board: CellValue[][], row: number } | null {
+    if (b[0][col] !== 'Empty') return null;
+    const nb = b.map(row => [...row]);
+    for (let r = nb.length - 1; r >= 0; r--) {
+      if (nb[r][col] === 'Empty') {
+        nb[r][col] = player;
+        return { board: nb, row: r };
+      }
+    }
+    return null;
+  }
+
+  private createsImmediateOpponentWin(boardAfterMyMove: CellValue[][], myCol: number, aiPlayer: CellValue): boolean {
+    const opponent: CellValue = aiPlayer === 'Red' ? 'Yellow' : 'Red';
+    const validMoves = this.getValidMoves(boardAfterMyMove);
+    for (const oppCol of validMoves) {
+      const sim = this.simulateDropSimple(boardAfterMyMove, oppCol, opponent);
+      if (!sim) continue;
+      if (this.checkWin(sim.board, sim.row, oppCol, opponent)) return true;
+    }
+    return false;
   }
 
   private generateCommonPositions(): Array<{board: CellValue[][], player: CellValue, difficulty: number}> {
