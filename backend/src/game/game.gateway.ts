@@ -83,8 +83,6 @@ export class GameGateway
   private readonly AI_THINK_DELAY_MS = 200; // Natural thinking time (0.20s base) - faster but still human-like
   private readonly AI_FIRST_MOVE_DELAY_MS = process.env.AI_FIRST_MOVE_DELAY_MS ? parseInt(process.env.AI_FIRST_MOVE_DELAY_MS) : 500; // Slightly longer for first move (0.5s)
 
-  private readonly eventThrottle: EventThrottle;
-
   constructor(
     private readonly gameService: GameService,
     private readonly gameAi: GameAIService,
@@ -105,10 +103,8 @@ export class GameGateway
     private readonly simpleAI?: SimpleAIService,
     private readonly coordinationIntegration?: CoordinationGameIntegrationService,
     private readonly aiCoordinationClient?: AICoordinationClient,
+    private readonly eventThrottle?: EventThrottle,
   ) {
-    // Initialize event throttle with 500ms minimum interval
-    this.eventThrottle = new EventThrottle(500, 2000);
-    
     // Subscribe to AI thinking events and forward to frontend
     this.setupAIEventListeners();
   }
@@ -117,6 +113,12 @@ export class GameGateway
    * Emit aiThinking event with throttling to prevent spam
    */
   private emitAIThinking(gameId: string, data: any): void {
+    if (!this.eventThrottle) {
+      // Fallback to direct emission if throttle is not available
+      this.server.to(gameId).emit('aiThinking', data);
+      return;
+    }
+    
     const eventKey = `aiThinking-${gameId}`;
     this.eventThrottle.throttle(
       eventKey,
