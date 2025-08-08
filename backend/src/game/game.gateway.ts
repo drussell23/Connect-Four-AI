@@ -76,8 +76,8 @@ export class GameGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() private server!: Server;
   private readonly logger = new Logger(GameGateway.name);
-  private readonly AI_THINK_DELAY_MS = 600; // Natural thinking time (0.6s base)
-  private readonly AI_FIRST_MOVE_DELAY_MS = process.env.AI_FIRST_MOVE_DELAY_MS ? parseInt(process.env.AI_FIRST_MOVE_DELAY_MS) : 1200; // Slightly longer for first move
+  private readonly AI_THINK_DELAY_MS = 200; // Natural thinking time (0.20s base) - faster but still human-like
+  private readonly AI_FIRST_MOVE_DELAY_MS = process.env.AI_FIRST_MOVE_DELAY_MS ? parseInt(process.env.AI_FIRST_MOVE_DELAY_MS) : 500; // Slightly longer for first move (0.5s)
 
   constructor(
     private readonly gameService: GameService,
@@ -511,7 +511,7 @@ export class GameGateway
             'Yellow' as UnifiedCellValue,
             difficulty,
             {
-              timeLimit: 5000,
+              timeLimit: Math.min(2000, 1000 + Math.floor((difficulty/25) * 500)), // Reduced from 3-4s to 1-2s
               useCache: true
             }
           );
@@ -598,7 +598,7 @@ export class GameGateway
           const config: UnifiedAIConfig = {
             difficulty,
             personality: game.aiPersonality || 'balanced',
-            timeLimit: 5000,
+            timeLimit: Math.min(4000, 3000 + Math.floor((difficulty/25) * 1000)),
             useCache: true,
             learningEnabled: true,
             explanationLevel: 'detailed'
@@ -1200,7 +1200,7 @@ export class GameGateway
         // Trigger AI move with natural human-like delay
         setTimeout(async () => {
           await this.triggerAIMove(gameId, playerId);
-        }, this.AI_THINK_DELAY_MS + Math.random() * 400); // 0.6-1.0s delay
+        }, this.AI_THINK_DELAY_MS + Math.random() * 100); // ~0.20–0.30s delay - faster but still variable
       }
 
     } catch (error: any) {

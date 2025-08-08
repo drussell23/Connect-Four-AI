@@ -95,8 +95,9 @@ class EnhancedSocketManager {
   // Validate server connection health
   private async validateConnection(): Promise<boolean> {
     try {
-      const timeoutMs = environmentDetector.getEnvironmentInfo().isProduction ? 12000 : 5000;
-      const response = await fetch(`${appConfig.api.baseUrl}/api/health`, {
+      const timeoutMs = environmentDetector.getEnvironmentInfo().isProduction ? 12000 : 10000;
+      const healthEndpoint = buildApiEndpoint('/health');
+      const response = await fetch(healthEndpoint, {
         method: 'GET',
         signal: AbortSignal.timeout(timeoutMs),
         headers: {
@@ -114,7 +115,9 @@ class EnhancedSocketManager {
       socketLogger.logWarning('Health check returned non-OK status:', response.status);
       return false;
     } catch (error) {
-      socketLogger.logError('Health check failed:', error);
+      socketLogger.logWarning('Server health check failed, connection may be degraded');
+      // Non-fatal during startup; automatic retries will continue
+      // Don't log the full error as it's expected during initial connection
       return false;
     }
   }
@@ -2245,8 +2248,12 @@ class EnhancedSocketManager {
       if (this.manager && !this.isReconnecting) {
         const isHealthy = await this.validateConnection();
         if (!isHealthy && this.socket?.connected) {
-          socketLogger.logWarning('Server health check failed, connection may be degraded');
-          // Could trigger proactive reconnection here if needed
+          // One retry before warning to avoid noisy transient logs
+          await new Promise(r => setTimeout(r, 1000));
+          const secondTry = await this.validateConnection();
+          if (!secondTry) {
+            socketLogger.logWarning('Server health check failed, connection may be degraded');
+          }
         }
       }
     }, 30000); // Check every 30 seconds

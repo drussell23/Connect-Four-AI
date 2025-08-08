@@ -40,10 +40,10 @@ class EnvironmentDetector {
   // Service endpoint configurations
   private readonly serviceEndpoints: Record<string, ServiceEndpoint> = {
     backend: {
-      // Backend default in this repo is 3001
-      local: 'http://localhost:3001',
+      // Backend default in this repo is 3000
+      local: 'http://localhost:3000',
       production: process.env.REACT_APP_API_URL || 'https://connect-four-ai-roge.onrender.com',
-      development: process.env.REACT_APP_DEV_API_URL || 'http://localhost:3001',
+      development: process.env.REACT_APP_DEV_API_URL || 'http://localhost:3000',
       staging: process.env.REACT_APP_STAGING_API_URL || 'https://connect-four-staging.onrender.com'
     },
     mlService: {
@@ -99,7 +99,6 @@ class EnvironmentDetector {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
     const port = window.location.port;
-    const href = window.location.href;
 
     // Detect deployment platform
     const isVercel = hostname.includes('vercel.app') || 
