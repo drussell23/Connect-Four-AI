@@ -14,6 +14,7 @@ import { GameService } from './game.service';
 import { GameAIService } from './game-ai.service';
 import { AiProfileService } from './ai-profile.service';
 import { MlClientService } from '../ml/ml-client.service';
+import { OptimizedMlClientService } from '../ml/ml-client-optimized.service';
 import { DashboardService } from './dashboard.service';
 import { TrainingService, TrainingConfiguration } from './training.service';
 import { OnEvent, EventEmitter2 } from '@nestjs/event-emitter';
@@ -29,6 +30,8 @@ import { SimpleAIService } from '../ai/simple-ai.service';
 import { CoordinationGameIntegrationService } from '../ai/coordination/coordination-game-integration.service';
 import { AICoordinationClient } from '../ai/coordination/ai-coordination-client.service';
 import { GameHistoryService, GameHistoryEntry } from './game-history.service';
+import { OrganicAITimingService } from '../ai/organic-ai-timing.service';
+import { GameAIOrganicService } from './game-ai-organic.service';
 
 interface CreateGamePayload {
   playerId: string;
@@ -84,9 +87,12 @@ export class GameGateway
     private readonly gameAi: GameAIService,
     private readonly aiProfileService: AiProfileService,
     private readonly mlClientService: MlClientService,
+    private readonly optimizedMlClient: OptimizedMlClientService,
     private readonly dashboardService: DashboardService,
     private readonly trainingService: TrainingService,
     private readonly gameHistoryService: GameHistoryService,
+    private readonly organicTiming: OrganicAITimingService,
+    private readonly gameAIOrganicService: GameAIOrganicService,
     private readonly eventEmitter: EventEmitter2,
     private readonly asyncAIOrchestrator?: AsyncAIOrchestrator,
     private readonly performanceMonitor?: PerformanceMonitor,
@@ -103,6 +109,13 @@ export class GameGateway
 
   afterInit(server: Server) {
     this.logger.log('WebSocket server initialized');
+    
+    // Log ML service status
+    const mlStatus = this.optimizedMlClient.getServiceStatus();
+    this.logger.log(`🧠 ML Service Status: ${mlStatus.available ? '✅ Available' : '❌ Unavailable'}`);
+    if (!mlStatus.available) {
+      this.logger.warn('⚠️ AI will use local algorithms for faster response times');
+    }
   }
 
   handleConnection(client: Socket) {
@@ -130,13 +143,17 @@ export class GameGateway
       client.join(gameId);
       this.logger.log(`Game ${gameId} created by ${playerId}, starting player: ${firstPlayer}, difficulty: ${difficulty}`);
 
-      // If AI is starting, trigger the first AI move with natural delay
+      // If AI is starting, trigger the first AI move with organic timing
       if (firstPlayer === 'Yellow') {
         this.logger.log(`[${gameId}] AI is starting - triggering first move`);
-        // Natural delay for first move
+        // Use organic AI service for consistent timing
         setTimeout(async () => {
-          await this.triggerAIMove(gameId, playerId);
-        }, this.AI_FIRST_MOVE_DELAY_MS);
+          await this.gameAIOrganicService.executeOrganicAIMove({
+            gameId,
+            playerId,
+            difficulty: difficulty || 5,
+          });
+        }, 300); // Small delay to let UI settle
       }
 
       // Return the callback response that the frontend expects
@@ -1194,13 +1211,15 @@ export class GameGateway
         }
       }
 
-      // If game continues and it's AI's turn, trigger enhanced AI move
+      // If game continues and it's AI's turn, use organic timing
       if (!result.winner && !result.draw && result.nextPlayer === 'Yellow') {
-        this.logger.log(`[${gameId}] 🤖 Triggering Enhanced AI response`);
-        // Trigger AI move with natural human-like delay
-        setTimeout(async () => {
-          await this.triggerAIMove(gameId, playerId);
-        }, this.AI_THINK_DELAY_MS + Math.random() * 100); // ~0.20–0.30s delay - faster but still variable
+        this.logger.log(`[${gameId}] 🤖 Triggering AI response with organic timing`);
+        // Use organic AI service for smooth, consistent timing
+        await this.gameAIOrganicService.executeOrganicAIMove({
+          gameId,
+          playerId,
+          difficulty: 5, // Default difficulty
+        });
       }
 
     } catch (error: any) {
@@ -2108,6 +2127,40 @@ export class GameGateway
    * Set up listeners for AI thinking events to forward to frontend
    */
   private setupAIEventListeners(): void {
+    // Subscribe to organic AI thinking events
+    this.eventEmitter.on('aiThinking', (data) => {
+      this.server.to(data.gameId).emit('aiThinking', {
+        phase: data.phase,
+        progress: data.progress,
+        message: data.message,
+        estimatedTime: data.estimatedTime,
+        organic: true,
+      });
+    });
+
+    // Subscribe to AI move completion
+    this.eventEmitter.on('aiMove', (data) => {
+      this.server.to(data.gameId).emit('aiMove', {
+        column: data.column,
+        board: data.board,
+        lastMove: data.lastMove,
+        winner: data.winner,
+        draw: data.draw,
+        nextPlayer: data.nextPlayer,
+        thinkingTime: data.thinkingTime,
+        naturalTiming: data.naturalTiming,
+        gameMetrics: data.gameMetrics,
+      });
+    });
+
+    // Subscribe to AI errors
+    this.eventEmitter.on('aiMoveError', (data) => {
+      this.server.to(data.gameId).emit('gameError', {
+        message: 'AI failed to make a move',
+        error: data.error,
+      });
+    });
+    
     // Forward criticality analysis
     this.eventEmitter.on('ai.criticality.analyzed', (data: any) => {
       if (data.gameId) {

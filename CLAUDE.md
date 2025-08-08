@@ -31,8 +31,11 @@ npm run dev
 # Alternative: Start all services with automatic Python setup
 npm run start:all
 
-# Fast mode without ML services
+# Fast mode without ML services (fastest startup)
 npm run start:all:fast
+
+# Optimized mode with ML failover (fast AI responses even with ML issues)
+npm run start:all:optimized
 
 # Enhanced restart with comprehensive cleanup
 npm run restart:turbo:build:enhanced:force:clean

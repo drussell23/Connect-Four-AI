@@ -14,6 +14,7 @@ const envConfiguration = () => ({
   port: parseInt(process.env.BACKEND_PORT, 10) || 3001,
   frontendPort: parseInt(process.env.FRONTEND_PORT, 10) || 3000,
   mlServicePort: parseInt(process.env.ML_SERVICE_PORT, 10) || 8000,
+  mlOptimization: process.env.ML_OPTIMIZATION === 'true',
 
   // URLs
   backendUrl: process.env.BACKEND_URL || 'http://localhost:3001',

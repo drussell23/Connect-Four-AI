@@ -19,6 +19,7 @@ import { CellValue, legalMoves, UltimateConnect4AI } from '../ai/connect4AI';
 import { minimax, mcts } from '../ai/connect4AI';
 import { AiProfileService } from './ai-profile.service';
 import { MlClientService } from '../ml/ml-client.service';
+import { OptimizedMlClientService } from '../ml/ml-client-optimized.service';
 import { AsyncAIOrchestrator, AIRequest } from '../ai/async/async-ai-orchestrator';
 import { AIStrategy } from '../ai/async/strategy-selector';
 import { OpeningBook } from '../ai/opening-book/opening-book';
@@ -113,6 +114,7 @@ export class GameAIService {
   constructor(
     private readonly aiProfileService: AiProfileService,
     private readonly mlClientService: MlClientService,
+    @Optional() private readonly optimizedMlClient?: OptimizedMlClientService,
     @Optional() private readonly asyncAIOrchestrator?: AsyncAIOrchestrator,
     @Optional() private readonly openingBook?: OpeningBook,
     @Optional() private readonly ultimateAI?: UltimateConnect4AI,
@@ -415,10 +417,12 @@ export class GameAIService {
       try {
         // Get ML guidance if available
         let probs: number[] | undefined;
-        if (aiLevel >= 5) {
+        if (aiLevel >= 5 && this.optimizedMlClient) {
           try {
-            const mlResult = await this.mlClientService.getPrediction(board);
-            probs = mlResult.probs;
+            const mlResult = await this.optimizedMlClient.getPrediction(board);
+            if (mlResult) {
+              probs = mlResult.probs;
+            }
           } catch (error) {
             this.logger.debug('ML guidance unavailable for minimax');
           }
@@ -473,9 +477,11 @@ export class GameAIService {
     try {
       // Get neural network guidance
       let probs: number[] | undefined;
-      if (aiLevel >= 7) {
-        const mlResult = await this.mlClientService.getPrediction(board);
-        probs = mlResult.probs;
+      if (aiLevel >= 7 && this.optimizedMlClient) {
+        const mlResult = await this.optimizedMlClient.getPrediction(board);
+        if (mlResult) {
+          probs = mlResult.probs;
+        }
       }
       
       const move = mcts(board, aiDisc, timeMs, probs);
@@ -509,10 +515,18 @@ export class GameAIService {
   ): Promise<{ move: number; confidence: number; explanation?: string }> {
     
     try {
-      const move = await this.mlClientService.getBestMove(board, aiDisc);
-      const { probs } = await this.mlClientService.getPrediction(board);
+      // Use optimized ML client with fast fallback
+      if (!this.optimizedMlClient) {
+        throw new Error('ML client not available');
+      }
       
-      const confidence = probs[move] || 0.5;
+      const move = await this.optimizedMlClient.getBestMove(board, aiDisc);
+      if (move === null) {
+        throw new Error('ML service unavailable');
+      }
+      
+      const predResult = await this.optimizedMlClient.getPrediction(board);
+      const confidence = predResult ? (predResult.probs[move] || 0.5) : 0.5;
       
       return {
         move,
@@ -2171,7 +2185,16 @@ export class GameAIService {
     board: CellValue[][],
   ): Promise<number[] | null> {
     try {
-      const { probs } = await this.mlClientService.getPrediction(board);
+      // Use optimized ML client if available
+      const mlResult = this.optimizedMlClient 
+        ? await this.optimizedMlClient.getPrediction(board)
+        : await this.mlClientService.getPrediction(board);
+      
+      if (!mlResult) {
+        return null;
+      }
+      
+      const { probs } = mlResult;
       const legal = legalMoves(board);
 
       // Create a sparse array of probabilities for legal moves

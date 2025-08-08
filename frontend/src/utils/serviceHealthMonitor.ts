@@ -24,10 +24,11 @@ class ServiceHealthMonitor {
   private getHealthTimeoutMs(): number {
     try {
       const env = this.environmentInfo;
-      // Allow longer time for cold starts (increase local/dev to 10s)
-      return env.isProduction ? 15000 : 10000;
+      // Reduced timeouts to prevent UI blocking
+      // ML services often fail in production, so use shorter timeout
+      return env.isProduction ? 3000 : 5000;
     } catch {
-      return 10000;
+      return 3000;
     }
   }
 

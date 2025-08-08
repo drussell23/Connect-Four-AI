@@ -16,6 +16,8 @@ import { AIIntegrationModule } from '../ai/ai-integration.module';
 import { AIGameIntegrationService } from '../ai/ai-game-integration.service';
 import { UnifiedAIIntegrationModule } from '../ai/unified/unified-ai-integration.module';
 import { AICoordinationModule } from '../ai/coordination/ai-coordination.module';
+import { OrganicAITimingService } from '../ai/organic-ai-timing.service';
+import { GameAIOrganicService } from './game-ai-organic.service';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { AICoordinationModule } from '../ai/coordination/ai-coordination.module'
     GameGateway,
     AiProfileService,
     GameAIService,
+    GameAIOrganicService,
+    OrganicAITimingService,
     DashboardService,
     TrainingService,
     SettingsService,
