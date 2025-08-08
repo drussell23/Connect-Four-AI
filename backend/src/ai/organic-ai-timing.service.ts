@@ -99,7 +99,7 @@ export class OrganicAITimingService {
   }
   
   /**
-   * Simulate natural thinking progression
+   * Simulate natural thinking progression with throttled updates
    */
   async simulateThinking(
     totalTime: number,
@@ -114,10 +114,21 @@ export class OrganicAITimingService {
     ];
     
     let elapsedTime = 0;
+    const UPDATE_INTERVAL = 250; // Update every 250ms instead of 100ms
+    const MAX_UPDATES_PER_PHASE = 4; // Maximum 4 updates per phase
     
     for (const phaseInfo of phases) {
       const phaseDuration = totalTime * phaseInfo.duration;
-      const steps = Math.ceil(phaseDuration / 100); // Update every 100ms
+      const steps = Math.min(
+        MAX_UPDATES_PER_PHASE,
+        Math.ceil(phaseDuration / UPDATE_INTERVAL)
+      );
+      
+      // Only emit updates if phase is long enough
+      if (phaseDuration < 100) {
+        elapsedTime += phaseDuration;
+        continue;
+      }
       
       for (let i = 0; i <= steps; i++) {
         const phaseProgress = (i / steps) * 100;
@@ -125,30 +136,42 @@ export class OrganicAITimingService {
         
         const event: AITimingEvent = {
           phase: phaseInfo.phase,
-          progress: Math.min(100, overallProgress),
+          progress: Math.min(100, Math.round(overallProgress)),
           estimatedTimeRemaining: Math.max(0, totalTime - elapsedTime),
           message: phaseInfo.message,
         };
         
-        // Emit progress event
-        if (this.eventEmitter) {
+        // Emit progress event with throttling
+        if (this.eventEmitter && i % 2 === 0) { // Only emit every other update
           this.eventEmitter.emit('ai.thinking.progress', {
             gameId,
             ...event,
           });
         }
         
-        // Call callback if provided
-        if (onProgress) {
+        // Call callback if provided (less frequently)
+        if (onProgress && (i === 0 || i === steps)) {
           onProgress(event);
         }
         
         // Wait for next update
         if (i < steps) {
-          await new Promise(resolve => setTimeout(resolve, Math.min(100, phaseDuration / steps)));
-          elapsedTime += Math.min(100, phaseDuration / steps);
+          const waitTime = phaseDuration / steps;
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          elapsedTime += waitTime;
         }
       }
+    }
+    
+    // Final progress update
+    if (this.eventEmitter) {
+      this.eventEmitter.emit('ai.thinking.progress', {
+        gameId,
+        phase: 'moving',
+        progress: 100,
+        estimatedTimeRemaining: 0,
+        message: 'Executing move...',
+      });
     }
   }
   

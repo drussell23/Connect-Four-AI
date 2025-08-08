@@ -56,20 +56,10 @@ export class GameAIOrganicService {
       // Start AI computation in parallel with timing simulation
       const aiMovePromise = this.computeAIMove(game.board, difficulty, gameId);
       
-      // Simulate natural thinking progression
+      // Simulate natural thinking progression (events are throttled internally)
       const timingPromise = this.organicTiming.simulateThinking(
         thinkingTime,
-        gameId,
-        (event) => {
-          // Emit thinking progress to frontend
-          this.eventEmitter.emit('aiThinking', {
-            gameId,
-            phase: event.phase,
-            progress: event.progress,
-            message: event.message,
-            estimatedTime: event.estimatedTimeRemaining,
-          });
-        }
+        gameId
       );
       
       // Wait for both AI computation and minimum thinking time

@@ -2127,15 +2127,18 @@ export class GameGateway
    * Set up listeners for AI thinking events to forward to frontend
    */
   private setupAIEventListeners(): void {
-    // Subscribe to organic AI thinking events
-    this.eventEmitter.on('aiThinking', (data) => {
-      this.server.to(data.gameId).emit('aiThinking', {
-        phase: data.phase,
-        progress: data.progress,
-        message: data.message,
-        estimatedTime: data.estimatedTime,
-        organic: true,
-      });
+    // Subscribe to throttled AI thinking progress events
+    this.eventEmitter.on('ai.thinking.progress', (data) => {
+      // Only emit to the specific game room
+      if (data.gameId && this.server) {
+        this.server.to(data.gameId).emit('aiThinking', {
+          phase: data.phase,
+          progress: data.progress,
+          message: data.message,
+          estimatedTime: data.estimatedTimeRemaining,
+          organic: true,
+        });
+      }
     });
 
     // Subscribe to AI move completion
