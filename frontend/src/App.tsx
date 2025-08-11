@@ -18,6 +18,8 @@ import PlayerStatsComponent from './components/analytics/PlayerStats';
 import { updatePlayerStats } from './services/playerStatsService';
 import { analyzeCurrentPosition, clearMoveAnalysisCache } from './services/moveAnalysisService';
 import { statsTracker } from './services/StatsTracker';
+import { memoryLogger } from './utils/memory-console-logger';
+import './utils/memory-console-commands'; // Load memory console commands
 import './services/DebugStats'; // Load debug utilities
 import './services/TestStats'; // Load test utilities
 import InactivityDetector from './components/InactivityDetector';
@@ -26,6 +28,7 @@ import MoveAnalysis from './components/ai-insights/MoveAnalysis';
 import GameHistory from './components/game-history/GameHistory';
 import UserSettings from './components/settings/UserSettings';
 import apiSocket, { getConnectionStatus } from './api/socket';
+import { setupMemoryListeners, removeMemoryListeners } from './utils/setup-memory-listeners';
 import { appConfig, enterprise, ai, game, ui, dev, analytics } from './config/environment';
 import { integrationLogger } from './utils/integrationLogger';
 import { serviceHealthMonitor } from './utils/serviceHealthMonitor';
@@ -911,6 +914,10 @@ const App: React.FC = () => {
       console.log('📊 Requesting service status...');
       apiSocket.emit('requestServiceStatus');
       
+      // Setup memory dashboard listeners on the main socket
+      console.log('📊 Setting up memory dashboard...');
+      setupMemoryListeners(apiSocket);
+      
       // Don't create game immediately - let loading complete first
       startTransition(() => {
         setShowLoadingProgress(false);
@@ -948,6 +955,7 @@ const App: React.FC = () => {
       apiSocket.off('connect');
       apiSocket.off('disconnect');
       apiSocket.off('gameCreated');
+      removeMemoryListeners(apiSocket);
     };
   }, [started]);
 

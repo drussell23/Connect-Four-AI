@@ -25,7 +25,6 @@ interface MetricsSubscription {
 }
 
 @WebSocketGateway({
-  namespace: '/metrics',
   cors: {
     origin: '*',
     credentials: true,

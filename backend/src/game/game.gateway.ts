@@ -2388,6 +2388,30 @@ export class GameGateway
         });
       }
     });
+
+    // Forward memory dashboard metrics
+    this.eventEmitter.on('dashboard.metrics', (metrics: any) => {
+      this.logger.debug('Broadcasting memory metrics to all clients');
+      this.server.emit('metrics:update', metrics);
+    });
+
+    // Forward memory state changes
+    this.eventEmitter.on('memory.state.changed', (state: any) => {
+      this.server.emit('memory:alert', {
+        level: state.level,
+        timestamp: Date.now(),
+        message: this.getMemoryAlertMessage(state.level)
+      });
+    });
+
+    // Forward degradation level changes
+    this.eventEmitter.on('degradation.level.changed', (data: any) => {
+      this.server.emit('degradation:change', {
+        previousLevel: data.previousLevel,
+        currentLevel: data.currentLevel,
+        timestamp: Date.now()
+      });
+    });
   }
 
   /**
@@ -2397,5 +2421,23 @@ export class GameGateway
     if (score < 0.3) return 'Low (quick strategic move)';
     if (score < 0.7) return 'Medium (balanced analysis)';
     return 'High (deep critical analysis)';
+  }
+
+  /**
+   * Get human-readable memory alert message
+   */
+  private getMemoryAlertMessage(level: string): string {
+    switch (level) {
+      case 'low':
+        return 'Memory usage is normal';
+      case 'moderate':
+        return 'Memory usage is elevated - optimizations active';
+      case 'high':
+        return 'High memory pressure - degradation active';
+      case 'critical':
+        return 'Critical memory pressure - emergency measures active';
+      default:
+        return `Memory alert: ${level}`;
+    }
   }
 }
