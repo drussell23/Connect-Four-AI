@@ -128,6 +128,7 @@ export class MemoryDashboardController {
     private readonly degradationService: GracefulDegradationService,
     private readonly stressTestService: M1StressTestService
   ) {
+    this.logger.log('🚀 Memory Dashboard Controller initialized');
     this.startMetricsCollection();
   }
 
@@ -416,6 +417,13 @@ export class MemoryDashboardController {
    * Start periodic metrics collection
    */
   private startMetricsCollection(): void {
+    this.logger.log('📊 Starting metrics collection (1s interval)');
+    
+    // Emit first metric immediately
+    const initialMetrics = this.collectMetrics();
+    this.eventEmitter.emit('dashboard.metrics', initialMetrics);
+    this.logger.log('📊 Emitted initial metrics');
+    
     setInterval(() => {
       const metrics = this.collectMetrics();
       
@@ -429,6 +437,7 @@ export class MemoryDashboardController {
       
       // Emit for WebSocket
       this.eventEmitter.emit('dashboard.metrics', metrics);
+      this.logger.debug('📊 Emitted metrics update');
     }, 1000); // Collect every second
   }
 }

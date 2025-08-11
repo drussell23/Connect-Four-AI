@@ -1467,6 +1467,34 @@ export class GameGateway
   }
 
   /**
+   * Request dashboard metrics manually
+   */
+  @SubscribeMessage('requestDashboardMetrics')
+  async handleRequestDashboardMetrics(
+    @ConnectedSocket() client: Socket
+  ): Promise<void> {
+    try {
+      this.logger.log('📊 Manual dashboard metrics request from client');
+      
+      // Emit a test metric immediately
+      const testMetric = {
+        timestamp: Date.now(),
+        test: true,
+        message: 'Manual metrics request received'
+      };
+      
+      client.emit('metrics:update', testMetric);
+      this.logger.log('📊 Sent test metric to client');
+      
+      // Also trigger a real metrics emit
+      this.eventEmitter.emit('dashboard.metrics.request');
+      
+    } catch (error: any) {
+      this.logger.error(`Failed to send dashboard metrics: ${error.message}`);
+    }
+  }
+
+  /**
    * Get adaptive AI game insights
    */
   @SubscribeMessage('getAIGameInsights')
@@ -2391,8 +2419,13 @@ export class GameGateway
 
     // Forward memory dashboard metrics
     this.eventEmitter.on('dashboard.metrics', (metrics: any) => {
-      this.logger.debug('Broadcasting memory metrics to all clients');
-      this.server.emit('metrics:update', metrics);
+      this.logger.log('📊 Broadcasting memory metrics to all clients');
+      if (this.server) {
+        this.server.emit('metrics:update', metrics);
+        this.logger.debug('📊 Metrics broadcasted');
+      } else {
+        this.logger.warn('📊 Server not initialized, cannot broadcast metrics');
+      }
     });
 
     // Forward memory state changes
