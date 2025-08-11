@@ -9,6 +9,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as os from 'os';
 import { M1PerformanceOptimizer } from './m1-performance-optimizer';
+import { MemoryPressureLevel } from './dynamic-memory-monitor';
 
 export enum TaskPriority {
   CRITICAL = 0,    // Must run immediately (game moves)
@@ -71,6 +72,15 @@ export class BackgroundLearningThrottle {
   // Task limits based on system state
   private maxConcurrentTasks = 2;
   private isPaused = false;
+  
+  // Worker scaling for M1 optimization
+  private workerCount: number = 8; // M1 optimal default
+  private readonly workerScalingConfig = {
+    CRITICAL: 1,
+    HIGH: 2,
+    MODERATE: 4,
+    NORMAL: 8
+  };
   
   constructor(
     private readonly eventEmitter: EventEmitter2,
@@ -341,6 +351,51 @@ export class BackgroundLearningThrottle {
   }
   
   /**
+   * Scale workers based on memory pressure
+   */
+  private scaleWorkers(pressure: MemoryPressureLevel): void {
+    const previousCount = this.workerCount;
+    
+    switch(pressure) {
+      case MemoryPressureLevel.CRITICAL:
+        this.workerCount = this.workerScalingConfig.CRITICAL;
+        break;
+      case MemoryPressureLevel.HIGH:
+        this.workerCount = this.workerScalingConfig.HIGH;
+        break;
+      case MemoryPressureLevel.MODERATE:
+        this.workerCount = this.workerScalingConfig.MODERATE;
+        break;
+      case MemoryPressureLevel.NORMAL:
+      default:
+        this.workerCount = this.workerScalingConfig.NORMAL;
+        break;
+    }
+    
+    // Adjust max concurrent tasks based on worker count
+    this.maxConcurrentTasks = Math.min(this.workerCount, this.maxConcurrentTasks);
+    
+    if (previousCount !== this.workerCount) {
+      this.logger.log(`🔧 Scaled workers from ${previousCount} to ${this.workerCount} (pressure: ${pressure})`);
+      
+      // Emit scaling event
+      this.eventEmitter.emit('background.workers.scaled', {
+        previousCount,
+        newCount: this.workerCount,
+        pressure,
+        timestamp: Date.now()
+      });
+    }
+  }
+
+  /**
+   * Get current worker count
+   */
+  getWorkerCount(): number {
+    return this.workerCount;
+  }
+
+  /**
    * Pause all running tasks
    */
   private pauseAllTasks(): void {
@@ -414,23 +469,46 @@ export class BackgroundLearningThrottle {
    * Setup event listeners
    */
   private setupEventListeners(): void {
-    // Listen for memory pressure events
+    // Listen for memory state changes with worker scaling
+    this.eventEmitter.on('memory.state.changed', (state: { level: MemoryPressureLevel }) => {
+      // Scale workers based on memory pressure
+      this.scaleWorkers(state.level);
+      
+      switch(state.level) {
+        case MemoryPressureLevel.CRITICAL:
+          this.logger.error('Critical memory pressure - emergency pause');
+          this.pauseAllTasks();
+          break;
+          
+        case MemoryPressureLevel.HIGH:
+          this.logger.warn('High memory pressure - pausing tasks');
+          this.pauseAllTasks();
+          break;
+          
+        case MemoryPressureLevel.MODERATE:
+          // Just reduce workers, don't pause
+          if (this.runningTasks.size > this.workerCount) {
+            this.logger.warn(`Reducing active tasks to match worker count: ${this.workerCount}`);
+          }
+          break;
+          
+        case MemoryPressureLevel.NORMAL:
+          if (this.isPaused) {
+            this.logger.log('Memory pressure normalized, resuming tasks');
+            this.resumeTasks();
+          }
+          break;
+      }
+    });
+    
+    // Legacy event support
     this.eventEmitter.on('memory.pressure.high', () => {
-      this.logger.warn('Received high memory pressure event');
+      this.scaleWorkers(MemoryPressureLevel.HIGH);
       this.pauseAllTasks();
     });
     
     this.eventEmitter.on('memory.pressure.moderate', () => {
-      // Reduce concurrent tasks
-      if (this.runningTasks.size > 1) {
-        this.maxConcurrentTasks = 1;
-      }
-    });
-    
-    this.eventEmitter.on('memory.state.changed', (state) => {
-      if (state.level === 'normal' && this.isPaused) {
-        this.resumeTasks();
-      }
+      this.scaleWorkers(MemoryPressureLevel.MODERATE);
     });
   }
   

@@ -21,11 +21,14 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
-# Detect M1 Mac
+# Detect M1 Mac and auto-enable optimization
 IS_M1_MAC=false
+START_FLAGS=""
 if [[ "$(uname -m)" == "arm64" ]] && [[ "$OSTYPE" == "darwin"* ]]; then
     IS_M1_MAC=true
-    echo -e "${CYAN}🍎 M1 Mac detected${NC}"
+    echo -e "${CYAN}🍎 M1 Mac detected - Auto-enabling optimizations${NC}"
+    # Pass M1 optimization flags to start script
+    START_FLAGS="--m1-opt --memory-opt"
 fi
 
 echo -e "${MAGENTA}🔄 Restarting Connect Four Game Services...${NC}"
@@ -116,8 +119,8 @@ echo ""
 echo -e "${BLUE}Phase 3: Starting all services...${NC}"
 
 # Pass through all command line arguments to start-all.sh
-# User must explicitly use --m1-opt if they want M1 optimizations
-./start-all.sh "$@"
+# Include auto-detected M1 optimization flags
+./start-all.sh $START_FLAGS "$@"
 
 # Post-restart verification
 echo ""

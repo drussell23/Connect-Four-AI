@@ -40,11 +40,13 @@ MAX_STARTUP_TIME=300  # 5 minutes max startup time
 HEALTH_CHECK_RETRIES=3
 SERVICE_START_DELAY=2
 
-# Detect M1 Mac but don't auto-enable optimization
+# Detect M1 Mac and auto-enable optimization
 IS_M1_MAC=false
 if [[ "$(uname -m)" == "arm64" ]] && [[ "$OSTYPE" == "darwin"* ]]; then
     IS_M1_MAC=true
-    echo -e "${CYAN}🍎 M1 Mac detected${NC}"
+    M1_OPTIMIZED=true
+    MEMORY_OPTIMIZED=true
+    echo -e "${CYAN}🍎 M1 Mac detected - Auto-enabling optimizations${NC}"
 fi
 
 # Parse command line arguments
@@ -594,9 +596,17 @@ echo -e "${WHITE}🚀 STARTING SERVICES${NC}"
 echo -e "${WHITE}====================${NC}"
 
 # Backend Service (most critical)
-start_service "backend" "backend" \
-    "PORT=3000 BACKEND_PORT=3000 ENABLE_CONTINUOUS_LEARNING=true ENABLE_PATTERN_DEFENSE=true ENABLE_DIFFICULTY_AWARE_LEARNING=true ENABLE_SERVICE_INTEGRATION=true SIMULATION_WORKERS=2 INTEGRATION_PORT=8888 npm run start:prod" \
-    "3000" 90
+if [ "$M1_OPTIMIZED" = true ]; then
+    # M1-optimized backend with memory limits and thread optimization
+    start_service "backend" "backend" \
+        "PORT=3000 BACKEND_PORT=3000 ENABLE_CONTINUOUS_LEARNING=true ENABLE_PATTERN_DEFENSE=true ENABLE_DIFFICULTY_AWARE_LEARNING=true ENABLE_SERVICE_INTEGRATION=true SIMULATION_WORKERS=2 INTEGRATION_PORT=8888 M1_OPTIMIZED=true ENABLE_M1_FEATURES=true npm run start:m1" \
+        "3000" 90
+else
+    # Standard backend
+    start_service "backend" "backend" \
+        "PORT=3000 BACKEND_PORT=3000 ENABLE_CONTINUOUS_LEARNING=true ENABLE_PATTERN_DEFENSE=true ENABLE_DIFFICULTY_AWARE_LEARNING=true ENABLE_SERVICE_INTEGRATION=true SIMULATION_WORKERS=2 INTEGRATION_PORT=8888 npm run start:prod" \
+        "3000" 90
+fi
 
 # Frontend Service
 start_service "frontend" "frontend" \
@@ -757,8 +767,13 @@ echo "   • Frontend:        http://localhost:3001"
 echo "   • Backend API:     http://localhost:3000/api"
 echo "   • Backend Health:  http://localhost:3000/api/health"
 if [ "$M1_OPTIMIZED" = true ]; then
-    echo "   • M1 Dashboard:    http://localhost:3001/dashboard"
-    echo "   • Emergency API:   http://localhost:3000/api/emergency/status"
+    echo ""
+    echo -e "${CYAN}🍎 M1 Optimization Endpoints:${NC}"
+    echo "   • Memory Dashboard: http://localhost:3000/api/dashboard/metrics"
+    echo "   • Dashboard Health: http://localhost:3000/api/dashboard/health-summary"
+    echo "   • Emergency API:    http://localhost:3000/api/emergency/status"
+    echo "   • Stress Testing:   http://localhost:3000/api/dashboard/stress-test/status"
+    echo "   • WebSocket Metrics: ws://localhost:3000/metrics"
 fi
 if [ "$FAST_MODE" != true ]; then
     echo "   • ML Service:      http://localhost:8000"

@@ -79,6 +79,7 @@ export class GameAIOrganicService {
       }
       
       // Emit the completed move
+      this.logger.log(`[${gameId}] Emitting aiMove event with nextPlayer=${moveResult.nextPlayer}`);
       this.eventEmitter.emit('aiMove', {
         gameId,
         column: aiResult.column,

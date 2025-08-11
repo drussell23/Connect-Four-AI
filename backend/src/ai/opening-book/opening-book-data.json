@@ -1,0 +1,174 @@
+{
+  "0000000|0000000|0000000|0000000|0000000|0000000": [
+    {
+      "column": 3,
+      "score": 0.6,
+      "winRate": 0.52,
+      "drawRate": 0.31,
+      "lossRate": 0.17,
+      "playCount": 10000,
+      "depth": 0,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    }
+  ],
+  "0000000|0000000|0000000|0000000|0002000|0001000": [
+    {
+      "column": 2,
+      "score": 0.55,
+      "winRate": 0.5,
+      "drawRate": 0.35,
+      "lossRate": 0.15,
+      "playCount": 1000,
+      "depth": 2,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    },
+    {
+      "column": 4,
+      "score": 0.53,
+      "winRate": 0.49,
+      "drawRate": 0.35,
+      "lossRate": 0.16,
+      "playCount": 800,
+      "depth": 2,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    },
+    {
+      "column": 3,
+      "score": 0.51,
+      "winRate": 0.48,
+      "drawRate": 0.35,
+      "lossRate": 0.16999999999999998,
+      "playCount": 600,
+      "depth": 2,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    }
+  ],
+  "0000000|0000000|0000000|0000000|0000000|0021000": [
+    {
+      "column": 3,
+      "score": 0.55,
+      "winRate": 0.5,
+      "drawRate": 0.35,
+      "lossRate": 0.15,
+      "playCount": 1000,
+      "depth": 2,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    },
+    {
+      "column": 4,
+      "score": 0.53,
+      "winRate": 0.49,
+      "drawRate": 0.35,
+      "lossRate": 0.16,
+      "playCount": 800,
+      "depth": 2,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    },
+    {
+      "column": 2,
+      "score": 0.51,
+      "winRate": 0.48,
+      "drawRate": 0.35,
+      "lossRate": 0.16999999999999998,
+      "playCount": 600,
+      "depth": 2,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    }
+  ],
+  "0000000|0000000|0000000|0000000|0000000|0001200": [
+    {
+      "column": 3,
+      "score": 0.55,
+      "winRate": 0.5,
+      "drawRate": 0.35,
+      "lossRate": 0.15,
+      "playCount": 1000,
+      "depth": 2,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    },
+    {
+      "column": 2,
+      "score": 0.53,
+      "winRate": 0.49,
+      "drawRate": 0.35,
+      "lossRate": 0.16,
+      "playCount": 800,
+      "depth": 2,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    },
+    {
+      "column": 4,
+      "score": 0.51,
+      "winRate": 0.48,
+      "drawRate": 0.35,
+      "lossRate": 0.16999999999999998,
+      "playCount": 600,
+      "depth": 2,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    }
+  ],
+  "0000000|0000000|0000000|0000000|0000000|1000000": [
+    {
+      "column": 3,
+      "score": 0.55,
+      "winRate": 0.5,
+      "drawRate": 0.35,
+      "lossRate": 0.15,
+      "playCount": 1000,
+      "depth": 1,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    },
+    {
+      "column": 1,
+      "score": 0.53,
+      "winRate": 0.49,
+      "drawRate": 0.35,
+      "lossRate": 0.16,
+      "playCount": 800,
+      "depth": 1,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    },
+    {
+      "column": 2,
+      "score": 0.51,
+      "winRate": 0.48,
+      "drawRate": 0.35,
+      "lossRate": 0.16999999999999998,
+      "playCount": 600,
+      "depth": 1,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    }
+  ],
+  "0000000|0000000|0000000|0000000|0000000|0000001": [
+    {
+      "column": 3,
+      "score": 0.55,
+      "winRate": 0.5,
+      "drawRate": 0.35,
+      "lossRate": 0.15,
+      "playCount": 1000,
+      "depth": 1,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    },
+    {
+      "column": 5,
+      "score": 0.53,
+      "winRate": 0.49,
+      "drawRate": 0.35,
+      "lossRate": 0.16,
+      "playCount": 800,
+      "depth": 1,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    },
+    {
+      "column": 4,
+      "score": 0.51,
+      "winRate": 0.48,
+      "drawRate": 0.35,
+      "lossRate": 0.16999999999999998,
+      "playCount": 600,
+      "depth": 1,
+      "lastUpdated": "2025-08-11T16:32:46.471Z"
+    }
+  ]
+}

@@ -9,7 +9,13 @@
         "start": "npm run start:prod",
         "test": "jest",
         "test:watch": "jest --watch",
-        "test:coverage": "jest --coverage"
+        "test:coverage": "jest --coverage",
+        "test:memory": "jest --testPathPattern=memory-stress-test --forceExit",
+        "benchmark": "npm run benchmark:memory && npm run benchmark:algorithms",
+        "benchmark:memory": "ts-node src/tests/simple-memory-test.ts",
+        "benchmark:algorithms": "ts-node src/ai/profiling/standalone-benchmark.ts",
+        "benchmark:memory:full": "ts-node src/tests/run-memory-benchmark.ts",
+        "benchmark:algorithms:full": "ts-node src/ai/profiling/run-algorithm-benchmark.ts"
     },
     "dependencies": {
         "@nestjs/cli": "^11.0.7",

@@ -29,13 +29,16 @@ Connect Four AI is an enterprise-grade AI research platform with a sophisticated
 npm run dev
 
 # Alternative: Start all services with automatic Python setup
-npm run start:all
+npm run start:all  # Auto-detects M1 Macs and enables optimizations
 
 # Fast mode without ML services (fastest startup)
 npm run start:all:fast
 
 # Optimized mode with ML failover (fast AI responses even with ML issues)
 npm run start:all:optimized
+
+# Force M1 optimizations (for non-M1 Macs or testing)
+npm run start:m1
 
 # Enhanced restart with comprehensive cleanup
 npm run restart:turbo:build:enhanced:force:clean
@@ -54,19 +57,39 @@ npm run system:health
 ```
 
 ### Apple Silicon (M1/M2/M3) Optimization
+
+The system **automatically detects** M1/M2/M3 Macs and enables optimizations. When detected:
+- Memory limits are automatically adjusted (1GB heap for backend)
+- TensorFlow thread count is optimized (2 threads)
+- Worker scaling based on memory pressure
+- Background learning throttle with automatic pause/resume
+- Lightweight inference mode during high memory pressure
+- Real-time memory dashboard for monitoring
+
 ```bash
-# Start with M1 optimizations (for Apple Silicon Macs)
+# All commands auto-detect M1 and optimize accordingly:
+npm run start:all        # Auto-enables M1 optimizations on Apple Silicon
+npm run restart:all      # Auto-enables M1 optimizations on Apple Silicon
+
+# Force M1 optimizations (useful for testing or non-M1 Macs)
 npm run start:m1
+npm run restart:m1
 
 # M1-specific operations
 npm run m1:cleanup       # Emergency memory cleanup for M1
 npm run m1:monitor       # Monitor M1-specific performance
 npm run m1:benchmark     # Run M1 optimization benchmarks
 
-# Manual control
-./start-all.sh --m1-opt  # Start with M1 optimizations
-./restart-all.sh --m1-opt # Restart with M1 optimizations
+# Manual control with explicit flags
+./start-all.sh --m1-opt  # Force M1 optimizations
+./restart-all.sh --m1-opt # Force M1 optimizations
 ```
+
+When M1 optimizations are active, additional endpoints become available:
+- Memory Dashboard: http://localhost:3000/api/dashboard/metrics
+- Health Summary: http://localhost:3000/api/dashboard/health-summary
+- Emergency API: http://localhost:3000/api/emergency/status
+- Stress Testing: http://localhost:3000/api/dashboard/stress-test/start
 
 ### Testing
 ```bash
@@ -209,6 +232,15 @@ New async components at `/backend/src/ai/async/`:
 - Frontend: 3001
 - Backend: 3000
 - ML Service: 8000
+
+### Memory Dashboard API
+The M1-optimized memory dashboard provides real-time monitoring:
+- `GET /api/dashboard/metrics` - Current system metrics
+- `GET /api/dashboard/metrics/history` - Historical metrics data
+- `GET /api/dashboard/health-summary` - System health status and recommendations
+- `POST /api/dashboard/stress-test/start` - Start stress testing
+- `GET /api/dashboard/stress-test/status` - Check active stress tests
+- WebSocket: `/metrics` namespace for real-time updates
 
 ### Development Workflow
 1. Always use `npm run restart:turbo:build:enhanced:force:clean` for a clean restart

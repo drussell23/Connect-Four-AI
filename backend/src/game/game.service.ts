@@ -378,9 +378,14 @@ export class GameService {
       result.draw = true;
       await this.handleGameEnd(gameId, null, 'draw');
     } else {
-      // Switch to next player
-      game.currentPlayer = game.currentPlayer === 'Red' ? 'Yellow' : 'Red';
+      // Switch to next player based on who just played
+      // If Red (human) just played, switch to Yellow (AI)
+      // If Yellow (AI) just played, switch to Red (human)
+      game.currentPlayer = playerColor === 'Red' ? 'Yellow' : 'Red';
       result.nextPlayer = game.currentPlayer;
+      
+      // Debug logging for turn switching
+      this.logger.log(`Turn switch: ${playerColor} (${playerId}) just played -> nextPlayer is ${result.nextPlayer}`);
     }
 
     return result;

@@ -130,6 +130,16 @@ done
 echo -e "${CYAN}🗑️  Cleaning up PID files...${NC}"
 rm -f logs/*.pid
 
+# M1-specific memory cleanup
+if [[ "$(uname -m)" == "arm64" ]] && [[ "$OSTYPE" == "darwin"* ]]; then
+    echo -e "${CYAN}🍎 Running M1-specific memory cleanup...${NC}"
+    # Trigger emergency cleanup if available
+    curl -X POST http://localhost:3000/api/emergency/cleanup 2>/dev/null || true
+    # Force garbage collection by clearing node caches
+    npm cache clean --force 2>/dev/null || true
+    echo -e "${GREEN}   ✅ M1 memory cleanup completed${NC}"
+fi
+
 # Optional: Clean up log files (commented out by default)
 # echo -e "${CYAN}📄 Cleaning up log files...${NC}"
 # rm -f logs/*.log

@@ -106,6 +106,7 @@ const App: React.FC = () => {
   const [aiSafetyScore, setAiSafetyScore] = useState<number>(1.0);
   const [aiThinkingTime, setAiThinkingTime] = useState<number>(0);
   const [showAiInsights, setShowAiInsights] = useState<boolean>(false);
+  const [lastAiMoveTime, setLastAiMoveTime] = useState<number>(0);
   const [gameMetrics, setGameMetrics] = useState<any>({
     totalThinkingTime: 0,
     averageConfidence: 0,
@@ -994,6 +995,18 @@ const App: React.FC = () => {
 
     // Enhanced AI thinking with detailed logging
     socket.on('aiThinking', (data?: any) => {
+      // Ignore aiThinking events if it's not the AI's turn or if game is over
+      if (currentPlayer !== 'Yellow' || status.includes('wins') || status === 'Draw game') {
+        console.log('⚠️ Ignoring aiThinking event - not AI turn or game over (currentPlayer:', currentPlayer, ', status:', status, ')');
+        return;
+      }
+      
+      // Ignore aiThinking events that arrive shortly after an AI move (race condition protection)
+      if (lastAiMoveTime && Date.now() - lastAiMoveTime < 1000) {
+        console.log('⚠️ Ignoring aiThinking event - too soon after AI move (', Date.now() - lastAiMoveTime, 'ms)');
+        return;
+      }
+      
       // Log detailed AI thinking process to console
       if (data?.type) {
         const timestamp = new Date(data.timestamp).toLocaleTimeString();
@@ -1137,7 +1150,9 @@ const App: React.FC = () => {
         curriculumUpdate?: any;
       }) => {
         console.log('⬅️ Enhanced aiMove', data);
+        console.log('   nextPlayer:', data.nextPlayer, 'currentPlayer before:', currentPlayer);
         setBoard(data.board);
+        setLastAiMoveTime(Date.now());
 
         // Track move in stats
         const boardString = data.board.map(row => row.join('')).join('|');
@@ -1211,8 +1226,22 @@ const App: React.FC = () => {
           return;
         }
 
-        setStatus('Your turn (Red)');
-        setCurrentPlayer('Red');
+        // Set status and current player based on nextPlayer from server
+        if (data.nextPlayer) {
+          setCurrentPlayer(data.nextPlayer);
+          // After AI move, nextPlayer should be Red (human)
+          if (data.nextPlayer === 'Red') {
+            setStatus('Your turn (Red)');
+          } else {
+            // This shouldn't happen after an AI move
+            console.error('⚠️ Unexpected: AI turn after AI move? nextPlayer:', data.nextPlayer);
+            setStatus(`${getCurrentAI().name} AI is thinking…`);
+          }
+        } else {
+          // Fallback to Red if nextPlayer not provided
+          setStatus('Your turn (Red)');
+          setCurrentPlayer('Red');
+        }
       }
     );
 
@@ -1275,8 +1304,15 @@ const App: React.FC = () => {
           return;
         }
 
-        setStatus(`${getCurrentAI().name} AI is thinking…`);
-        setCurrentPlayer('Yellow');
+        // Set status and current player based on nextPlayer from server
+        if (data.nextPlayer) {
+          setCurrentPlayer(data.nextPlayer);
+          setStatus(data.nextPlayer === 'Red' ? 'Your turn (Red)' : `${getCurrentAI().name} AI is thinking…`);
+        } else {
+          // Fallback to Yellow if nextPlayer not provided
+          setStatus(`${getCurrentAI().name} AI is thinking…`);
+          setCurrentPlayer('Yellow');
+        }
       }
     );
 
@@ -1327,7 +1363,7 @@ const App: React.FC = () => {
       socket.off('serviceStatusUpdate');
       socket.off('service_status_bulk_update');
     };
-  }, [socket, aiLevel]);
+  }, [socket, aiLevel, currentPlayer, status, lastAiMoveTime]);
 
   const handleLoadingPreferencesChange = (preferences: any) => {
     setLoadingPreferences(preferences);

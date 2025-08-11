@@ -19,6 +19,8 @@ import { AICoordinationModule } from '../ai/coordination/ai-coordination.module'
 import { OrganicAITimingService } from '../ai/organic-ai-timing.service';
 import { GameAIOrganicService } from './game-ai-organic.service';
 import { EventThrottle } from '../utils/event-throttle';
+import { MemoryManagementService } from './memory-management.service';
+import { M1OptimizedModule } from '../ai/m1-optimized/m1-optimized.module';
 
 @Module({
   imports: [
@@ -26,9 +28,14 @@ import { EventThrottle } from '../utils/event-throttle';
     AIIntegrationModule,
     UnifiedAIIntegrationModule,
     AICoordinationModule, // ← Added AI Coordination Hub integration!
+    M1OptimizedModule, // ← Import M1 optimized services and controllers
     EventEmitterModule.forRoot()
   ],
-  controllers: [GameController, AIProfileController],
+  controllers: [
+    GameController, 
+    AIProfileController
+    // Controllers from M1OptimizedModule (EmergencyCleanupController, MemoryDashboardController) are now imported
+  ],
   providers: [
     GameService,
     GameHistoryService,
@@ -42,7 +49,8 @@ import { EventThrottle } from '../utils/event-throttle';
     SettingsService,
     AIGameIntegrationService,
     EventThrottle,
-    // AdaptiveAIOrchestrator is already provided by AIIntegrationModule - removed to avoid duplicate instantiation
+    MemoryManagementService
+    // M1 services are now provided by M1OptimizedModule
   ],
   exports: [GameService, GameGateway],
 })

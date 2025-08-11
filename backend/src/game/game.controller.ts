@@ -10,6 +10,7 @@ import { AIPerformanceCollector } from "../ai/ai-performance-collector";
 import { SelfTuningOptimizer } from "../ai/self-tuning-optimizer";
 import { AsyncDecisionEngine } from "../ai/async-decision-engine";
 import type { CellValue } from "../ai/connect4AI";
+import { MemoryManagementService } from "./memory-management.service";
 
 interface CreateGameDto {
     playerId: string;
@@ -30,7 +31,8 @@ export class GameController {
         private readonly adaptiveResourceManager?: AdaptiveResourceManager,
         private readonly performanceCollector?: AIPerformanceCollector,
         private readonly selfTuningOptimizer?: SelfTuningOptimizer,
-        private readonly asyncDecisionEngine?: AsyncDecisionEngine
+        private readonly asyncDecisionEngine?: AsyncDecisionEngine,
+        private readonly memoryManagement?: MemoryManagementService
     ) { }
 
     @Post()
@@ -103,6 +105,44 @@ export class GameController {
     async getAIStatus() {
         try {
             return this.gameService.getAIHealthStatus();
+        } catch (e: any) {
+            throw new HttpException(e.message, 500);
+        }
+    }
+
+    @Get('memory/status')
+    async getMemoryStatus() {
+        if (!this.memoryManagement) {
+            return { 
+                enabled: false, 
+                message: 'Memory management not enabled',
+                tip: 'Run with M1 optimizations enabled for memory management'
+            };
+        }
+        
+        try {
+            return {
+                enabled: true,
+                ...this.memoryManagement.getMemoryStats()
+            };
+        } catch (e: any) {
+            throw new HttpException(e.message, 500);
+        }
+    }
+
+    @Post('memory/cleanup')
+    async forceMemoryCleanup() {
+        if (!this.memoryManagement) {
+            throw new HttpException('Memory management not enabled', 404);
+        }
+        
+        try {
+            this.memoryManagement.forceCleanup();
+            return { 
+                success: true, 
+                message: 'Memory cleanup triggered',
+                stats: this.memoryManagement.getMemoryStats()
+            };
         } catch (e: any) {
             throw new HttpException(e.message, 500);
         }

@@ -263,7 +263,7 @@ export class AdaptiveCacheManager<T = any> {
   /**
    * Resize cache
    */
-  private resize(newSize: number): void {
+  public resize(newSize: number): void {
     if (newSize === this.maxSize) return;
     
     this.maxSize = newSize;

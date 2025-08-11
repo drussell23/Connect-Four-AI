@@ -33,6 +33,7 @@ import { GameHistoryService, GameHistoryEntry } from './game-history.service';
 import { OrganicAITimingService } from '../ai/organic-ai-timing.service';
 import { GameAIOrganicService } from './game-ai-organic.service';
 import { EventThrottle } from '../utils/event-throttle';
+import { MemoryManagementService } from './memory-management.service';
 
 interface CreateGamePayload {
   playerId: string;
@@ -104,9 +105,48 @@ export class GameGateway
     private readonly coordinationIntegration?: CoordinationGameIntegrationService,
     private readonly aiCoordinationClient?: AICoordinationClient,
     private readonly eventThrottle?: EventThrottle,
+    private readonly memoryManagement?: MemoryManagementService,
   ) {
     // Subscribe to AI thinking events and forward to frontend
     this.setupAIEventListeners();
+  }
+
+  /**
+   * Get cached AI move if available
+   */
+  private getCachedAIMove(board: any[][], difficulty: number): number | null {
+    if (!this.memoryManagement) return null;
+    
+    const cache = this.memoryManagement.getCacheManager();
+    if (!cache) return null;
+    
+    // Create a cache key from board state and difficulty
+    const boardKey = board.flat().join('');
+    const cacheKey = `ai-move-${boardKey}-${difficulty}`;
+    
+    const cached = cache.get(cacheKey);
+    if (cached && typeof cached === 'number') {
+      this.logger.debug(`Cache hit for AI move: column ${cached}`);
+      return cached;
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Cache AI move for future use
+   */
+  private cacheAIMove(board: any[][], difficulty: number, column: number): void {
+    if (!this.memoryManagement) return;
+    
+    const cache = this.memoryManagement.getCacheManager();
+    if (!cache) return;
+    
+    const boardKey = board.flat().join('');
+    const cacheKey = `ai-move-${boardKey}-${difficulty}`;
+    
+    cache.set(cacheKey, column);
+    this.logger.debug(`Cached AI move: column ${column}`);
   }
 
   /**
@@ -279,6 +319,32 @@ export class GameGateway
       const requestedDifficulty = game.aiLevel || 5;
       const difficulty = Math.max(20, requestedDifficulty);
       this.logger.log(`[${gameId}] AI Level: ${difficulty} (enforced min 20, requested: ${requestedDifficulty})`);
+      
+      // Check cache first for instant response (if not in lightweight mode)
+      if (!this.memoryManagement?.isLightweightModeActive()) {
+        const cachedMove = this.getCachedAIMove(game.board, difficulty);
+        if (cachedMove !== null && game.board[0][cachedMove] === 'Empty') {
+          this.logger.log(`[${gameId}] ⚡ Using cached AI move: column ${cachedMove}`);
+          
+          const aiRes = await this.gameService.dropDisc(gameId, 'AI', cachedMove);
+          if (aiRes.success) {
+            this.server.to(gameId).emit('aiMove', {
+              column: cachedMove,
+              board: aiRes.board,
+              lastMove: { column: cachedMove, playerId: 'Yellow' },
+              winner: aiRes.winner,
+              draw: aiRes.draw,
+              nextPlayer: aiRes.nextPlayer,
+              thinkingTime: Date.now() - startTime,
+              confidence: 0.95,
+              explanation: 'Cached optimal move',
+              strategy: 'cached',
+              fromCache: true
+            });
+            return;
+          }
+        }
+      }
 
       // PRIORITY 1: Use AI Coordination Hub for ensemble decision making
       if (this.coordinationIntegration) {
@@ -333,6 +399,9 @@ export class GameGateway
             throw new Error(aiRes.error || 'Coordinated AI move execution failed');
           }
 
+          // Cache the successful move
+          this.cacheAIMove(game.board, difficulty, coordResult.move);
+          
           // Emit the coordinated AI move result
           this.server.to(gameId).emit('aiMove', {
             column: coordResult.move,
@@ -1230,11 +1299,21 @@ export class GameGateway
           });
 
           this.logger.log(`[${gameId}] Game ended: ${result.winner ? `${result.winner} wins` : 'Draw'}`);
+          
+          // Trigger memory cleanup after game ends
+          if (this.memoryManagement) {
+            this.logger.debug(`[${gameId}] Triggering post-game memory cleanup`);
+            setTimeout(() => {
+              this.memoryManagement.forceCleanup();
+            }, 2000); // Cleanup after 2 seconds
+          }
         }
       }
 
       // If game continues and it's AI's turn, use organic timing
-      if (!result.winner && !result.draw && result.nextPlayer === 'Yellow') {
+      // IMPORTANT: Only trigger AI if this was a HUMAN move (not an AI move)
+      this.logger.log(`[${gameId}] After move: nextPlayer=${result.nextPlayer}, playerId=${playerId}, checking if AI should play`);
+      if (!result.winner && !result.draw && result.nextPlayer === 'Yellow' && playerId !== 'AI') {
         this.logger.log(`[${gameId}] 🤖 Triggering AI response with organic timing`);
         // Use organic AI service for smooth, consistent timing
         await this.gameAIOrganicService.executeOrganicAIMove({
@@ -1242,6 +1321,8 @@ export class GameGateway
           playerId,
           difficulty: 5, // Default difficulty
         });
+      } else {
+        this.logger.log(`[${gameId}] Not triggering AI: winner=${result.winner}, draw=${result.draw}, nextPlayer=${result.nextPlayer}, playerId=${playerId}`);
       }
 
     } catch (error: any) {
