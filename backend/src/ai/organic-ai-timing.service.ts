@@ -114,8 +114,8 @@ export class OrganicAITimingService {
     ];
     
     let elapsedTime = 0;
-    const UPDATE_INTERVAL = 250; // Update every 250ms instead of 100ms
-    const MAX_UPDATES_PER_PHASE = 4; // Maximum 4 updates per phase
+    const UPDATE_INTERVAL = 500; // Update every 500ms to reduce frequency
+    const MAX_UPDATES_PER_PHASE = 2; // Maximum 2 updates per phase to reduce spam
     
     for (const phaseInfo of phases) {
       const phaseDuration = totalTime * phaseInfo.duration;
@@ -125,7 +125,7 @@ export class OrganicAITimingService {
       );
       
       // Only emit updates if phase is long enough
-      if (phaseDuration < 100) {
+      if (phaseDuration < 300) { // Increased from 100ms to 300ms
         elapsedTime += phaseDuration;
         continue;
       }
@@ -141,8 +141,8 @@ export class OrganicAITimingService {
           message: phaseInfo.message,
         };
         
-        // Emit progress event with throttling
-        if (this.eventEmitter && i % 2 === 0) { // Only emit every other update
+        // Emit progress event with throttling - only emit first and last update of each phase
+        if (this.eventEmitter && (i === 0 || i === steps)) {
           this.eventEmitter.emit('ai.thinking.progress', {
             gameId,
             ...event,

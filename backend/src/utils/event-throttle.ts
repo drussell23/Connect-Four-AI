@@ -10,8 +10,8 @@ interface ThrottledEvent {
 export class EventThrottle {
   private readonly logger = new Logger(EventThrottle.name);
   private throttledEvents = new Map<string, ThrottledEvent>();
-  private readonly minInterval: number = 500; // Minimum 500ms between events
-  private readonly maxDelay: number = 2000;   // Maximum 2s delay for pending events
+  private readonly minInterval: number = 1000; // Minimum 1s between events (increased from 500ms)
+  private readonly maxDelay: number = 3000;    // Maximum 3s delay for pending events
 
   /**
    * Throttle an event emission to prevent high frequency spam
