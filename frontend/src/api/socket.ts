@@ -1791,7 +1791,9 @@ class EnhancedSocketManager {
           spectatorJoined: '👁️',
           chatMessage: '💬',
           moveAnalysis: '🔍',
-          serviceStatusUpdate: '📡'
+          serviceStatusUpdate: '📡',
+          serviceStatusRequested: '📊',
+          'memory:alert': '🧠'
         };
 
         console.log(`${eventEmojis[event] || '📡'} ${event}:`, data);
@@ -2193,7 +2195,7 @@ class EnhancedSocketManager {
     'spectatorJoined', 'chatMessage', 'moveAnalysis', 'server:error',
     'validation:error', 'connection:analytics', 'sync:request', 'connection:quality',
     'serviceStatusUpdate', 'client:cleanup', 'game:analytics', 'request:event_buffer',
-    'replay:events'
+    'replay:events', 'memory:alert', 'serviceStatusRequested'
   ]);
 
   private isKnownEvent(eventName: string): boolean {

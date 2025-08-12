@@ -377,6 +377,9 @@ class IntegrationLogger {
       this.updateServiceStatus('Game WebSocket', gameWebSocketStatus);
       this.logServiceConnection('Game WebSocket', gameWebSocketStatus);
     }
+    
+    // Show updated service summary after processing all status updates
+    this.getServiceSummary();
   }
 
   // Get service summary

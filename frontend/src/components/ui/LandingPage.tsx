@@ -168,7 +168,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           onClick={handleStartWithDifficulty}
           initial={{ scale: 0, opacity: 0, boxShadow: '0 0 0px rgba(0,0,0,0)' }}
           animate={{ scale: 1, opacity: 1, boxShadow: '0 0 0px rgba(0,0,0,0)' }}
-          whileHover={{ scale: 1.05, boxShadow: getValidBoxShadowWithOpacity(currentAI.color) }}
+          whileHover={{ scale: 1.05, boxShadow: getValidBoxShadowWithOpacity(currentAI.color || '#10b981') }}
           whileTap={{ scale: 0.95 }}
           onTap={() => navigator.vibrate?.(50)}
           transition={{ type: 'spring', stiffness: 300, delay: 1.4 }}
@@ -289,7 +289,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                   className="px-8 py-3 text-white rounded-xl font-bold transition-colors"
                   style={{ background: `linear-gradient(135deg, ${currentAI.color || '#10b981'}, #10b981)` }}
                   initial={{ boxShadow: '0 0 0px rgba(0,0,0,0)' }}
-                  whileHover={{ scale: 1.05, boxShadow: getValidBoxShadowWithOpacity(currentAI.color) }}
+                  whileHover={{ scale: 1.05, boxShadow: getValidBoxShadowWithOpacity(currentAI.color || '#10b981') }}
                   whileTap={{ scale: 0.95 }}
                 >
                   Challenge {currentAI.name}
@@ -364,7 +364,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       <Footer />
     </motion.div>
   );

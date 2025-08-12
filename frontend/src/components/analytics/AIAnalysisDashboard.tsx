@@ -176,17 +176,22 @@ const AIAnalysisDashboard: React.FC<AIAnalysisDashboardProps> = ({
     useEffect(() => {
         if (!socket) return;
         
+        // Request initial service status
+        socket.emit('requestServiceStatus');
+        
         // Service status updates
         socket.on('serviceStatusUpdate', (data: any) => {
             console.log('📊 Service status update:', data);
-            setServiceStatus({
-                ml_service: data.ml_service || false,
-                ml_inference: data.ml_inference || false,
-                continuous_learning: data.continuous_learning || false,
-                ai_coordination: data.ai_coordination || false,
-                python_trainer: data.python_trainer || false,
-                integration_websocket: data.integration_websocket || false
-            });
+            // Convert the service status data to boolean values
+            const updatedStatus = {
+                ml_service: Boolean(data.ml_service),
+                ml_inference: Boolean(data.ml_inference),
+                continuous_learning: Boolean(data.continuous_learning),
+                ai_coordination: Boolean(data.ai_coordination),
+                python_trainer: Boolean(data.python_trainer),
+                integration_websocket: Boolean(data.integration_websocket)
+            };
+            setServiceStatus(updatedStatus);
             integrationLogger.updateServiceStatuses(data);
         });
         

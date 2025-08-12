@@ -281,8 +281,11 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
     // Simulation events
     this.eventEmitter.on('simulation.completed', (data) => this.handleSimulationCompleted(data));
     
-    // Service status request
-    this.eventEmitter.on('service.status.request', () => this.broadcastServiceStatus());
+    // Service status request - check health first then broadcast
+    this.eventEmitter.on('service.status.request', async () => {
+      this.logger.log('📊 Service status requested - checking health...');
+      await this.checkAllServicesHealth();
+    });
   }
 
   /**
@@ -679,7 +682,7 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
    */
   private async checkAllServicesHealth(): Promise<void> {
     // Resolve dynamic ports/URLs from configuration
-    const backendPort = this.configService.get('port') || 3001;
+    const backendPort = this.configService.get('port') || 3000;
     const backendUrl = this.configService.get('backendUrl') || `http://localhost:${backendPort}`;
 
     const services = [
@@ -692,15 +695,19 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
       { name: 'python_trainer', url: 'http://localhost:8004/health' },
     ];
     
+    this.logger.log('🔍 Checking health of all services...');
+    
     for (const service of services) {
       try {
         const response = await firstValueFrom(
           this.httpService.get(service.url, { timeout: 5000 })
         );
-        this.serviceStatus.set(service.name, response.status === 200);
-      } catch (error) {
+        const isHealthy = response.status === 200;
+        this.serviceStatus.set(service.name, isHealthy);
+        this.logger.log(`✅ ${service.name}: ${isHealthy ? 'HEALTHY' : 'UNHEALTHY'} (${service.url})`);
+      } catch (error: any) {
         this.serviceStatus.set(service.name, false);
-        this.logger.warn(`Service ${service.name} health check failed`);
+        this.logger.warn(`❌ ${service.name}: FAILED (${service.url}) - ${error.message}`);
       }
     }
     
