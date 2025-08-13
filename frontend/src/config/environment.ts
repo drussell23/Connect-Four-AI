@@ -92,11 +92,6 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
     return isNaN(parsed) ? defaultValue : parsed;
 };
 
-// Helper to determine if we need the /api prefix
-const needsApiPrefix = (): boolean => {
-    // Backend mounts API at /api in all environments per backend/src/main.ts
-    return true;
-};
 
 // Get dynamic service configuration
 const serviceConfig = environmentDetector.getServiceConfiguration();
@@ -175,33 +170,237 @@ if (appConfig.dev.debugMode || environmentDetector.shouldEnableDevelopmentFeatur
 // Export individual sections for convenience
 export const { api, enterprise, ai, game, ui, dev, analytics } = appConfig;
 
-// Helper function to build API endpoints with correct prefix
-export const buildApiEndpoint = (path: string): string => {
-    const baseUrl = appConfig.api.baseUrl;
-    const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    const shouldUsePrefix = needsApiPrefix();
+// ============================================================================
+// Advanced API Endpoint Builder
+// ============================================================================
 
-    // Debug logging
-    if (appConfig.dev.debugMode || appConfig.dev.verboseLogging) {
-        console.log('🔧 buildApiEndpoint:', {
-            baseUrl,
-            path,
-            cleanPath,
-            shouldUsePrefix,
-            apiUrl: getEnvVar('REACT_APP_API_URL', 'http://localhost:3001'),
-            useApiPrefix: getEnvVar('REACT_APP_USE_API_PREFIX', 'false')
-        });
+// Endpoint builder options
+export interface EndpointOptions {
+  // Path parameters (e.g., /users/:id => { id: '123' })
+  params?: Record<string, string | number>;
+  // Query parameters (e.g., ?page=1&limit=10)
+  query?: Record<string, string | number | boolean | string[] | undefined>;
+  // Override base URL
+  baseUrl?: string;
+  // API version (e.g., 'v2' => /api/v2/...)
+  version?: string;
+  // Skip API prefix
+  skipApiPrefix?: boolean;
+  // Include timestamp in query (cache busting)
+  timestamp?: boolean;
+  // Enable debug logging for this request
+  debug?: boolean;
+}
+
+// Cache for built endpoints
+class EndpointCache {
+  private cache = new Map<string, { url: string; timestamp: number }>();
+  private maxSize = 100;
+  private ttl = 60000; // 1 minute
+
+  get(key: string): string | null {
+    const cached = this.cache.get(key);
+    if (!cached) return null;
+
+    if (Date.now() - cached.timestamp > this.ttl) {
+      this.cache.delete(key);
+      return null;
     }
 
-    // ALWAYS add /api prefix for backend endpoints
-    // The backend serves everything under /api
-    if (cleanPath.startsWith('/api')) {
-        // Already has /api prefix
-        return `${baseUrl}${cleanPath}`;
+    return cached.url;
+  }
+
+  set(key: string, url: string): void {
+    // LRU eviction
+    if (this.cache.size >= this.maxSize) {
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey) this.cache.delete(firstKey);
+    }
+
+    this.cache.set(key, { url, timestamp: Date.now() });
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+// Global endpoint cache instance
+const endpointCache = new EndpointCache();
+
+// Helper to clean and normalize paths
+const cleanPath = (path: string): string => {
+  // Remove duplicate slashes
+  path = path.replace(/\/+/g, '/');
+  
+  // Ensure path starts with /
+  if (!path.startsWith('/')) {
+    path = '/' + path;
+  }
+  
+  // Remove trailing slash unless it's the root
+  if (path.length > 1 && path.endsWith('/')) {
+    path = path.slice(0, -1);
+  }
+  
+  return path;
+};
+
+// Helper to build query string
+const buildQueryString = (query: Record<string, any>): string => {
+  const params = new URLSearchParams();
+  
+  Object.entries(query).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    
+    if (Array.isArray(value)) {
+      value.forEach(v => params.append(key, String(v)));
     } else {
-        // Add /api prefix
-        return `${baseUrl}/api${cleanPath}`;
+      params.set(key, String(value));
     }
+  });
+  
+  return params.toString();
+};
+
+// Helper to substitute path parameters
+const substitutePathParams = (path: string, params: Record<string, string | number>): string => {
+  let result = path;
+  
+  Object.entries(params).forEach(([key, value]) => {
+    // Support both :param and {param} syntax
+    result = result.replace(`:${key}`, encodeURIComponent(String(value)));
+    result = result.replace(`{${key}}`, encodeURIComponent(String(value)));
+  });
+  
+  return result;
+};
+
+// Generate cache key for endpoint
+const generateCacheKey = (path: string, options: EndpointOptions): string => {
+  const keyParts = [
+    path,
+    JSON.stringify(options.params || {}),
+    JSON.stringify(options.query || {}),
+    options.version || '',
+    options.baseUrl || '',
+  ];
+  
+  // Simple hash function
+  let hash = 0;
+  const str = keyParts.join('|');
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  return Math.abs(hash).toString(36);
+};
+
+// Helper function to build API endpoints with correct prefix (enhanced)
+export const buildApiEndpoint = (path: string, options: EndpointOptions = {}): string => {
+  // Check cache first
+  const cacheKey = generateCacheKey(path, options);
+  const cached = endpointCache.get(cacheKey);
+  if (cached && !options.timestamp) {
+    return cached;
+  }
+
+  // Get base URL (from options or config)
+  const baseUrl = options.baseUrl || appConfig.api.baseUrl;
+  
+  // Clean and prepare the path
+  let finalPath = cleanPath(path);
+  
+  // Substitute path parameters
+  if (options.params) {
+    finalPath = substitutePathParams(finalPath, options.params);
+  }
+  
+  // Add API version if specified
+  if (options.version) {
+    // If path already has /api, insert version after it
+    if (finalPath.startsWith('/api/')) {
+      finalPath = finalPath.replace('/api/', `/api/${options.version}/`);
+    } else if (finalPath.startsWith('/api')) {
+      finalPath = `/api/${options.version}${finalPath.substring(4)}`;
+    } else {
+      finalPath = `/${options.version}${finalPath}`;
+    }
+  }
+  
+  // Smart API prefix handling
+  if (!options.skipApiPrefix) {
+    // Check various patterns to avoid double /api
+    const hasApiPrefix = finalPath.startsWith('/api/') || finalPath === '/api';
+    const containsApiInPath = finalPath.match(/\/api\/(?!.*\/api\/)/); // Check for /api/ not followed by another /api/
+    
+    if (!hasApiPrefix && !containsApiInPath) {
+      // Add /api prefix
+      finalPath = `/api${finalPath}`;
+    }
+  }
+  
+  // Build query string
+  const queryObj: Record<string, any> = { ...options.query };
+  
+  // Add timestamp if requested (cache busting)
+  if (options.timestamp) {
+    queryObj._t = Date.now();
+  }
+  
+  // Add debug flag in development
+  if ((options.debug || appConfig.dev.debugMode) && !environmentDetector.getEnvironmentInfo().isProduction) {
+    queryObj._debug = '1';
+  }
+  
+  const queryString = buildQueryString(queryObj);
+  const fullPath = queryString ? `${finalPath}?${queryString}` : finalPath;
+  
+  // Construct full URL
+  const fullUrl = `${baseUrl}${fullPath}`;
+  
+  // Debug logging
+  if (options.debug || appConfig.dev.verboseLogging) {
+    console.log('🔧 buildApiEndpoint:', {
+      input: { path, options },
+      processing: {
+        cleanedPath: cleanPath(path),
+        finalPath,
+        queryString,
+        hasApiPrefix: finalPath.startsWith('/api'),
+      },
+      output: {
+        fullUrl,
+        cacheKey,
+      },
+    });
+  }
+  
+  // Validate no double /api
+  if (fullUrl.includes('/api/api')) {
+    console.warn('⚠️ Double /api detected in URL:', fullUrl);
+  }
+  
+  // Cache the result
+  endpointCache.set(cacheKey, fullUrl);
+  
+  return fullUrl;
+};
+
+// Convenience functions for common patterns
+export const buildApiEndpointWithParams = (path: string, params: Record<string, string | number>): string => {
+  return buildApiEndpoint(path, { params });
+};
+
+export const buildApiEndpointWithQuery = (path: string, query: Record<string, any>): string => {
+  return buildApiEndpoint(path, { query });
+};
+
+// Clear endpoint cache
+export const clearEndpointCache = (): void => {
+  endpointCache.clear();
 };
 
 export default appConfig; 

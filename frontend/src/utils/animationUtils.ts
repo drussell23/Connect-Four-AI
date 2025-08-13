@@ -1,6 +1,9 @@
 /**
  * Utility functions for safe animation handling
+ * Enhanced with intelligent validation system
  */
+
+import { animationGuard } from './animationGuard';
 
 /**
  * Ensures a valid color value for boxShadow animations
@@ -9,10 +12,11 @@
  * @returns A valid color string
  */
 export const getValidColor = (color: string | undefined, fallbackColor: string = '#10b981'): string => {
-    if (!color || color === 'undefined' || color === 'null' || color === 'NaN') {
-        return fallbackColor;
-    }
-    return color;
+    return animationGuard.safeValue(
+        color,
+        fallbackColor,
+        (c) => !!c && c !== 'undefined' && c !== 'null' && c !== 'NaN' && !c.includes('NaN')
+    ) as string;
 };
 
 /**
@@ -30,7 +34,7 @@ export const getValidBoxShadow = (
     spread: string = '0px'
 ): string => {
     const validColor = getValidColor(color, fallbackColor);
-    return `0 0 ${blur} ${spread} ${validColor}`;
+    return animationGuard.safeBoxShadow(validColor, blur, spread);
 };
 
 /**
@@ -48,15 +52,33 @@ export const getValidBoxShadowWithOpacity = (
     blur: string = '30px'
 ): string => {
     const validColor = getValidColor(color, fallbackColor);
+    const safeOpacity = animationGuard.safeValue(opacity, 0.5, (o) => o >= 0 && o <= 1);
+    
     // Convert hex to rgba if needed
     if (validColor.startsWith('#')) {
         const hex = validColor.replace('#', '');
-        const r = parseInt(hex.substr(0, 2), 16);
-        const g = parseInt(hex.substr(2, 2), 16);
-        const b = parseInt(hex.substr(4, 2), 16);
-        return `0 0 ${blur} rgba(${r}, ${g}, ${b}, ${opacity})`;
+        const r = parseInt(hex.substring(0, 2), 16) || 0;
+        const g = parseInt(hex.substring(2, 4), 16) || 0;
+        const b = parseInt(hex.substring(4, 6), 16) || 0;
+        
+        // Validate RGB values
+        const safeR = animationGuard.safeValue(r, 0, (v) => v >= 0 && v <= 255);
+        const safeG = animationGuard.safeValue(g, 0, (v) => v >= 0 && v <= 255);
+        const safeB = animationGuard.safeValue(b, 0, (v) => v >= 0 && v <= 255);
+        
+        return animationGuard.safeBoxShadow(
+            `rgba(${safeR}, ${safeG}, ${safeB}, ${safeOpacity})`,
+            blur
+        );
     }
-    return `0 0 ${blur} ${validColor}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`;
+    
+    // For non-hex colors, append opacity if it's a simple color name
+    if (/^[a-zA-Z]+$/.test(validColor)) {
+        return animationGuard.safeBoxShadow(`${validColor}${Math.round(safeOpacity * 255).toString(16).padStart(2, '0')}`, blur);
+    }
+    
+    // For other formats (rgb, rgba, hsl, etc.), return as is
+    return animationGuard.safeBoxShadow(validColor, blur);
 };
 
 /**
