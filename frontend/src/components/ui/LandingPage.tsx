@@ -98,9 +98,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
       </div>
 
       {/* Main Title Section */}
-      <div className="title-animation">
+      <div className="title-animation px-4">
         <motion.h1
-          className="text-7xl font-extrabold title-gradient hover-wiggle title-float"
+          className="text-4xl md:text-6xl lg:text-7xl font-extrabold title-gradient hover-wiggle title-float"
           initial={{ scale: 0.8, y: -50, opacity: 0 }}
           animate={{ scale: 1, y: 0, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 100, damping: 15, delay: 0.2 }}
@@ -121,7 +121,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
         </motion.div>
 
         <motion.p
-          className="text-xl text-white opacity-90 mt-4 font-medium"
+          className="text-base md:text-xl text-white opacity-90 mt-4 font-medium text-center px-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.6 }}
@@ -132,23 +132,23 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
 
       {/* AI Showcase Section */}
       <motion.div
-        className="ai-showcase-section mt-8"
+        className="ai-showcase-section mt-8 px-4 w-full max-w-lg"
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 1, duration: 0.8 }}
       >
-        <div className="current-ai-display bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20">
-          <div className="text-lg font-bold text-white mb-2">Current Challenge</div>
-          <div className="flex items-center gap-4">
-            <div className="ai-avatar" style={{ backgroundColor: currentAI.color || '#10b981' }}>
-              <span className="text-white font-bold text-xl">{currentAI.name.charAt(0)}</span>
+        <div className="current-ai-display bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white border-opacity-20">
+          <div className="text-base md:text-lg font-bold text-white mb-2">Current Challenge</div>
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="ai-avatar w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-full" style={{ backgroundColor: currentAI.color || '#10b981' }}>
+              <span className="text-white font-bold text-lg md:text-xl">{currentAI.name.charAt(0)}</span>
             </div>
-            <div>
-              <div className="text-2xl font-bold" style={{ color: currentAI.color || '#10b981' }}>
+            <div className="flex-1">
+              <div className="text-xl md:text-2xl font-bold" style={{ color: currentAI.color || '#10b981' }}>
                 {currentAI.name} AI
               </div>
-              <div className="text-white opacity-80">{currentAI.description}</div>
-              <div className="threat-badge" style={{ backgroundColor: currentAI.color || '#10b981' }}>
+              <div className="text-sm md:text-base text-white opacity-80">{currentAI.description}</div>
+              <div className="threat-badge inline-block text-xs md:text-sm px-2 py-1 rounded-full mt-1" style={{ backgroundColor: currentAI.color || '#10b981' }}>
                 Level {selectedDifficulty} • {currentAI.threat}
               </div>
             </div>
@@ -158,7 +158,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
 
       {/* Action Buttons */}
       <motion.div
-        className="action-buttons-section mt-8 flex flex-col gap-4"
+        className="action-buttons-section mt-8 flex flex-col gap-4 px-4 w-full max-w-md"
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 1.2, duration: 0.6 }}
@@ -174,34 +174,34 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           transition={{ type: 'spring', stiffness: 300, delay: 1.4 }}
           style={{ background: `linear-gradient(135deg, ${currentAI.color || '#10b981'}, #10b981)` }}
         >
-          <span className="button-icon">🚀</span>
-          <span className="button-text">CHALLENGE {currentAI.name.toUpperCase()}</span>
-          <span className="button-subtitle">Level {selectedDifficulty} • {currentAI.threat}</span>
+          <span className="button-icon text-xl md:text-2xl">🚀</span>
+          <span className="button-text text-sm md:text-base">CHALLENGE {currentAI.name.toUpperCase()}</span>
+          <span className="button-subtitle text-xs md:text-sm">Level {selectedDifficulty} • {currentAI.threat}</span>
         </motion.button>
 
-        <div className="secondary-buttons flex gap-4">
+        <div className="secondary-buttons flex flex-col md:flex-row gap-2 md:gap-4 w-full">
           <motion.button
-            className="secondary-action-button"
+            className="secondary-action-button flex-1"
             onClick={() => startTransition(() => setShowDifficultySelector(true))}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onTap={() => navigator.vibrate?.(30)}
             transition={{ type: 'spring', stiffness: 300 }}
           >
-            <span className="button-icon">⚙️</span>
-            <span className="button-text">Select Difficulty</span>
+            <span className="button-icon text-lg md:text-xl">⚙️</span>
+            <span className="button-text text-sm md:text-base">Select Difficulty</span>
           </motion.button>
 
           <motion.button
-            className="secondary-action-button"
+            className="secondary-action-button flex-1"
             onClick={() => startTransition(() => setShowInfo(true))}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onTap={() => navigator.vibrate?.(30)}
             transition={{ type: 'spring', stiffness: 300 }}
           >
-            <span className="button-icon">📖</span>
-            <span className="button-text">How to Play</span>
+            <span className="button-icon text-lg md:text-xl">📖</span>
+            <span className="button-text text-sm md:text-base">How to Play</span>
           </motion.button>
         </div>
       </motion.div>
