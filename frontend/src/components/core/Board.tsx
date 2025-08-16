@@ -14,32 +14,36 @@ interface BoardProps {
 // Grid container style
 const gridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateRows: 'repeat(6, 80px)',
-  gridTemplateColumns: 'repeat(7, 80px)',
-  gap: '12px',
+  gridTemplateRows: 'repeat(6, 1fr)',
+  gridTemplateColumns: 'repeat(7, 1fr)',
+  gap: 'clamp(4px, 1vw, 12px)',
   background: 'transparent',
-  padding: '16px',
+  padding: 'clamp(8px, 2vw, 16px)',
   borderRadius: '8px',
+  width: '100%',
+  maxWidth: '644px', // 7 * 80px + 6 * 12px + 2 * 16px
+  aspectRatio: '7 / 6',
 };
 
 // Individual slot style (ring)
 const cellStyle: React.CSSProperties = {
-  width: '80px',
-  height: '80px',
+  width: '100%',
+  aspectRatio: '1',
   borderRadius: '50%',
-  border: '6px solid #26418f',
+  border: 'clamp(3px, 0.5vw, 6px) solid #26418f',
   background: '#1e2a47',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   transition: 'background 0.2s ease, transform 0.2s ease',
   cursor: 'pointer',
+  position: 'relative',
 };
 
-// Disc style matching slot interior (60px - 2*4px border = 52px)
+// Disc style matching slot interior
 const discStyle = (color: 'red' | 'yellow'): React.CSSProperties => ({
-  width: '68px',
-  height: '68px',
+  width: '85%',
+  height: '85%',
   borderRadius: '50%',
   backgroundColor: color,
   pointerEvents: 'none',
@@ -106,7 +110,10 @@ const Board: React.FC<BoardProps> = ({ board, onDrop, winningLine = [] }) => {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        marginTop: '2rem',
+        marginTop: 'clamp(1rem, 3vh, 2rem)',
+        width: '100%',
+        paddingLeft: 'clamp(8px, 2vw, 24px)',
+        paddingRight: 'clamp(8px, 2vw, 24px)',
       }}
     >
       <div className="board-bg board-float" style={gridStyle}>

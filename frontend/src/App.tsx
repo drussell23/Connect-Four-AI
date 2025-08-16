@@ -147,6 +147,9 @@ const App: React.FC = () => {
     averageMovesPerGame: 0
   });
 
+  // Mobile menu state
+  const [showMobileMenu, setShowMobileMenu] = useState<boolean>(false);
+
   // New API Components state
   const [showPlayerStats, setShowPlayerStats] = useState<boolean>(false);
   const [showMoveExplanation, setShowMoveExplanation] = useState<boolean>(false);
@@ -1640,7 +1643,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-4"
+    <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-2 md:p-4 overflow-x-hidden"
       style={{ fontFamily: "'Poppins', sans-serif" }}>
 
       {/* Inactivity Detector */}
@@ -1734,20 +1737,20 @@ const App: React.FC = () => {
 
       {/* Game Header */}
       <motion.div
-        className="text-center mb-6"
+        className="text-center mb-4 md:mb-6 w-full px-2"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
-        <h1 className="text-4xl font-extrabold title-gradient mb-2">
+        <h1 className="text-2xl md:text-4xl font-extrabold title-gradient mb-2">
           Connect Four AI
         </h1>
-        <div className="flex items-center justify-center gap-4">
-          <div className="ai-info-display bg-white bg-opacity-10 rounded-lg px-4 py-2">
-            <div className="text-lg font-bold" style={{ color: getCurrentAI().color }}>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4">
+          <div className="ai-info-display bg-white bg-opacity-10 rounded-lg px-3 md:px-4 py-2 max-w-full">
+            <div className="text-sm md:text-lg font-bold" style={{ color: getCurrentAI().color }}>
               {getCurrentAI().name} AI - Level {aiLevel}
             </div>
-            <div className="text-sm text-white opacity-80">
+            <div className="text-xs md:text-sm text-white opacity-80">
               {getCurrentAI().description}
             </div>
           </div>
@@ -1764,16 +1767,16 @@ const App: React.FC = () => {
       </motion.div>
 
       {/* Game Controls */}
-      <div className="absolute top-4 left-4 flex gap-2">
+      <div className="fixed md:absolute top-2 md:top-4 left-2 md:left-4 flex gap-2 z-50">
         <button
           onClick={() => setStarted(false)}
-          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition-all duration-200 hover:scale-105"
+          className="bg-red-500 hover:bg-red-600 text-white px-2 md:px-3 py-1 text-sm md:text-base rounded transition-all duration-200 hover:scale-105"
         >
           Quit
         </button>
         <button
           onClick={handlePlayAgain}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded transition-all duration-200 hover:scale-105"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-2 md:px-3 py-1 text-sm md:text-base rounded transition-all duration-200 hover:scale-105"
         >
           New Game
         </button>
@@ -1781,20 +1784,20 @@ const App: React.FC = () => {
 
       {/* Game Status */}
       <motion.div
-        className="mb-4 text-center"
+        className="mb-2 md:mb-4 text-center w-full px-2"
         animate={{ scale: status.includes('thinking') ? [1, 1.05, 1] : 1 }}
         transition={{ duration: 1, repeat: status.includes('thinking') ? Infinity : 0 }}
       >
         {status === 'Connection ready - click to start' ? (
           <button
             onClick={handleStartGame}
-            className="text-xl font-semibold text-white bg-green-600 hover:bg-green-700 px-6 py-2 rounded-full transition-all duration-200 hover:scale-105 cursor-pointer"
+            className="text-base md:text-xl font-semibold text-white bg-green-600 hover:bg-green-700 px-4 md:px-6 py-2 rounded-full transition-all duration-200 hover:scale-105 cursor-pointer"
           >
             {status}
           </button>
         ) : (
           <div className="flex items-center justify-center gap-2">
-            <div className="text-xl font-semibold text-white bg-black bg-opacity-30 px-6 py-2 rounded-full">
+            <div className="text-base md:text-xl font-semibold text-white bg-black bg-opacity-30 px-4 md:px-6 py-2 rounded-full">
               {status}
             </div>
             {aiExplanation && (status.includes('wins!') || status.includes('AI')) && (
@@ -1816,14 +1819,14 @@ const App: React.FC = () => {
       {aiExplanation && !showVictoryModal && (
         <motion.button
           onClick={() => setShowAIInsightsPanel(true)}
-          className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 hover:scale-110 z-[9999]"
+          className="fixed bottom-4 md:bottom-6 right-4 md:right-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 md:p-4 rounded-full shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 hover:scale-110 z-[9999]"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           title="View AI's Analysis"
         >
           <div className="flex flex-col items-center">
-            <span className="text-2xl">🧠</span>
-            <span className="text-xs font-semibold mt-1">AI</span>
+            <span className="text-xl md:text-2xl">🧠</span>
+            <span className="text-xs font-semibold mt-1 hidden md:block">AI</span>
           </div>
         </motion.button>
       )}
@@ -1836,7 +1839,7 @@ const App: React.FC = () => {
             // analyze the board position after the move
             setShowMoveAnalysis(true);
           }}
-          className="fixed bottom-6 left-6 bg-gradient-to-r from-yellow-600 to-orange-600 text-white p-4 rounded-full shadow-2xl hover:shadow-yellow-500/50 transition-all duration-300 hover:scale-110 z-[9999]"
+          className="fixed bottom-4 md:bottom-6 left-4 md:left-6 bg-gradient-to-r from-yellow-600 to-orange-600 text-white p-3 md:p-4 rounded-full shadow-2xl hover:shadow-yellow-500/50 transition-all duration-300 hover:scale-110 z-[9999]"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           initial={{ opacity: 0, y: 50 }}
@@ -1845,8 +1848,8 @@ const App: React.FC = () => {
           title={`Analyze ${lastAnalyzedMove.player === 'ai' ? 'AI' : 'Your'} Move (Column ${lastAnalyzedMove.column})`}
         >
           <div className="flex flex-col items-center">
-            <span className="text-2xl">🔍</span>
-            <span className="text-xs font-semibold mt-1">Analyze</span>
+            <span className="text-xl md:text-2xl">🔍</span>
+            <span className="text-xs font-semibold mt-1 hidden md:block">Analyze</span>
           </div>
         </motion.button>
       )}
@@ -1914,31 +1917,57 @@ const App: React.FC = () => {
         playerStats={playerStats}
       />
 
-      {/* Right Side Navigation - Vertical Stack */}
-      <div className="absolute top-4 right-4 flex flex-col gap-2">
+      {/* Mobile Menu Toggle */}
+      <button
+        onClick={() => setShowMobileMenu(!showMobileMenu)}
+        className="fixed top-2 right-2 md:hidden bg-black bg-opacity-50 text-white p-2 rounded-lg z-50"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {showMobileMenu ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          )}
+        </svg>
+      </button>
+
+      {/* Right Side Navigation - Desktop and Mobile */}
+      <div className={`fixed md:absolute top-14 md:top-4 right-2 md:right-4 flex flex-col gap-2 z-50 ${showMobileMenu ? 'block' : 'hidden md:flex'} bg-black bg-opacity-80 md:bg-transparent p-2 md:p-0 rounded-lg`}>
         <button
-          onClick={() => setShowAIDashboard(true)}
-          className="bg-blue-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
+          onClick={() => {
+            setShowAIDashboard(true);
+            setShowMobileMenu(false);
+          }}
+          className="bg-blue-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold w-full md:w-auto"
           title="Open AI Analysis Dashboard"
         >
           📊 AI Dashboard
         </button>
         <button
-          onClick={() => setShowTrainingGround(true)}
-          className="bg-purple-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
+          onClick={() => {
+            setShowTrainingGround(true);
+            setShowMobileMenu(false);
+          }}
+          className="bg-purple-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold w-full md:w-auto"
           title="Open AI Training Ground"
         >
           🧪 Training Ground
         </button>
         <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="bg-white bg-opacity-20 text-white px-3 py-2 rounded hover:bg-opacity-40 transition-all duration-200 hover:scale-105 text-sm font-semibold"
+          onClick={() => {
+            setSidebarOpen(!sidebarOpen);
+            setShowMobileMenu(false);
+          }}
+          className="bg-white bg-opacity-20 text-white px-3 py-2 rounded-lg hover:bg-opacity-40 transition-all duration-200 hover:scale-105 text-sm font-semibold w-full md:w-auto"
         >
           📈 Stats & History
         </button>
         <button
-          onClick={() => setShowPlayerStats(true)}
-          className="bg-green-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
+          onClick={() => {
+            setShowPlayerStats(true);
+            setShowMobileMenu(false);
+          }}
+          className="bg-green-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold w-full md:w-auto"
           title="Player Analytics"
         >
           🧑‍💼 Player Stats
@@ -1947,29 +1976,39 @@ const App: React.FC = () => {
           onClick={() => {
             // Show move explanation panel - it will handle empty columns intelligently
             setShowMoveExplanation(true);
+            setShowMobileMenu(false);
           }}
-          className="bg-yellow-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
+          className="bg-yellow-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold w-full md:w-auto"
           title="AI Move Explanation"
         >
           💡 Move Explanation
         </button>
         <button
-          onClick={analyzeCurrentMove}
-          className="bg-orange-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
+          onClick={() => {
+            analyzeCurrentMove();
+            setShowMobileMenu(false);
+          }}
+          className="bg-orange-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold w-full md:w-auto"
           title="Analyze Current Position"
         >
           🔍 Move Analysis
         </button>
         <button
-          onClick={() => setShowGameHistory(true)}
-          className="bg-pink-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
+          onClick={() => {
+            setShowGameHistory(true);
+            setShowMobileMenu(false);
+          }}
+          className="bg-pink-600 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold w-full md:w-auto"
           title="Game History"
         >
           🕰️ Game History
         </button>
         <button
-          onClick={() => setShowUserSettings(true)}
-          className="bg-gray-700 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold"
+          onClick={() => {
+            setShowUserSettings(true);
+            setShowMobileMenu(false);
+          }}
+          className="bg-gray-700 bg-opacity-80 text-white px-3 py-2 rounded-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm font-semibold w-full md:w-auto"
           title="User Settings"
         >
           ⚙️ Settings
@@ -1980,15 +2019,15 @@ const App: React.FC = () => {
       <AnimatePresence>
         {showPlayerStats && (
           <motion.div
-            className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-60 z-[9999] flex items-center justify-center"
+            className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-60 z-[9999] flex items-center justify-center p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 max-w-lg w-full relative">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-4 md:p-8 max-w-lg w-full relative max-h-[90vh] overflow-y-auto">
               <button
                 onClick={() => setShowPlayerStats(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-black dark:hover:text-white text-2xl"
+                className="absolute top-2 right-2 md:top-4 md:right-4 text-gray-500 hover:text-black dark:hover:text-white text-2xl p-2"
               >
                 ×
               </button>
@@ -2006,15 +2045,15 @@ const App: React.FC = () => {
       <AnimatePresence>
         {showMoveExplanation && (
           <motion.div
-            className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-60 z-[9999] flex items-center justify-center"
+            className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-60 z-[9999] flex items-center justify-center p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 max-w-lg w-full relative">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-4 md:p-8 max-w-lg w-full relative max-h-[90vh] overflow-y-auto">
               <button
                 onClick={() => setShowMoveExplanation(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-black dark:hover:text-white text-2xl"
+                className="absolute top-2 right-2 md:top-4 md:right-4 text-gray-500 hover:text-black dark:hover:text-white text-2xl p-2"
               >
                 ×
               </button>
@@ -2039,15 +2078,15 @@ const App: React.FC = () => {
       <AnimatePresence>
         {showGameHistory && (
           <motion.div
-            className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-60 z-[9999] flex items-center justify-center"
+            className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-60 z-[9999] flex items-center justify-center p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 max-w-2xl w-full relative">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-4 md:p-8 max-w-2xl w-full relative max-h-[90vh] overflow-y-auto">
               <button
                 onClick={() => setShowGameHistory(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-black dark:hover:text-white text-2xl"
+                className="absolute top-2 right-2 md:top-4 md:right-4 text-gray-500 hover:text-black dark:hover:text-white text-2xl p-2"
               >
                 ×
               </button>
@@ -2065,15 +2104,15 @@ const App: React.FC = () => {
       <AnimatePresence>
         {showUserSettings && (
           <motion.div
-            className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-60 z-[9999] flex items-center justify-center"
+            className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-60 z-[9999] flex items-center justify-center p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 max-w-2xl w-full relative">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-4 md:p-8 max-w-2xl w-full relative max-h-[90vh] overflow-y-auto">
               <button
                 onClick={() => setShowUserSettings(false)}
-                className="absolute top-4 right-4 text-gray-500 hover:text-black dark:hover:text-white text-2xl"
+                className="absolute top-2 right-2 md:top-4 md:right-4 text-gray-500 hover:text-black dark:hover:text-white text-2xl p-2"
               >
                 ×
               </button>
@@ -2101,10 +2140,10 @@ const App: React.FC = () => {
       <AnimatePresence>
         {showAIInsightsPanel && aiExplanation && (
           <motion.div
-            className="fixed top-0 right-0 h-full w-80 bg-gradient-to-b from-blue-900 to-purple-900 shadow-2xl border-l border-blue-400 z-[9999] overflow-y-auto"
-            initial={{ x: 320 }} 
+            className="fixed top-0 right-0 h-full w-full md:w-80 bg-gradient-to-b from-blue-900 to-purple-900 shadow-2xl border-l border-blue-400 z-[9999] overflow-y-auto"
+            initial={{ x: '100%' }} 
             animate={{ x: 0 }}
-            exit={{ x: 320 }}
+            exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           >
             <div className="p-6">
