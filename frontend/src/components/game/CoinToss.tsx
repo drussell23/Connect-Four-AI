@@ -87,9 +87,10 @@ const CoinToss: React.FC<CoinTossProps> = ({
         setTimeout(() => playSound(600, 0.1, 'square'), 200);
         setTimeout(() => playSound(400, 0.1, 'square'), 400);
 
-        // Simulate coin flip animation with multiple flips
-        const flipDuration = 2000;
-        const flipInterval = 100;
+        // Simulate coin flip animation with multiple flips - optimized for mobile
+        const isMobile = window.innerWidth < 768;
+        const flipDuration = isMobile ? 1200 : 2000;
+        const flipInterval = isMobile ? 200 : 100;
         let currentFlip = 0;
         const maxFlips = flipDuration / flipInterval;
 
@@ -290,14 +291,14 @@ const CoinToss: React.FC<CoinTossProps> = ({
                             <motion.div
                                 className="coin-display"
                                 animate={isFlipping ? {
-                                    rotateY: [0, 360, 720, 1080, 1440, 1800, 2160],
-                                    scale: [1, 1.1, 1, 1.1, 1, 1.1, 1],
-                                    y: [0, -10, 0, -10, 0, -10, 0]
+                                    rotateY: window.innerWidth < 768 ? [0, 720] : [0, 360, 720, 1080, 1440, 1800, 2160],
+                                    scale: window.innerWidth < 768 ? [1, 1.05, 1] : [1, 1.1, 1, 1.1, 1, 1.1, 1],
+                                    y: window.innerWidth < 768 ? [0, -5, 0] : [0, -10, 0, -10, 0, -10, 0]
                                 } : {}}
                                 transition={{
-                                    duration: 2,
+                                    duration: window.innerWidth < 768 ? 1.2 : 2,
                                     ease: "easeInOut",
-                                    times: [0, 0.14, 0.28, 0.42, 0.56, 0.7, 1]
+                                    times: window.innerWidth < 768 ? [0, 0.5, 1] : [0, 0.14, 0.28, 0.42, 0.56, 0.7, 1]
                                 }}
                             >
                                 <div className={`coin ${flipAnimation ? 'flipping' : ''}`}>

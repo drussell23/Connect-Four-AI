@@ -103,6 +103,13 @@
     margin: 1rem 0;
 }
 
+/* Reduce perspective on mobile for better performance */
+@media (max-width: 768px) {
+    .coin-display {
+        perspective: 500px;
+    }
+}
+
 .coin {
     width: 120px;
     height: 120px;
@@ -123,6 +130,22 @@
 
     100% {
         transform: rotateY(180deg);
+    }
+}
+
+/* Simplified animation for mobile */
+@media (max-width: 768px) {
+    .coin.flipping {
+        animation: coinFlipMobile 0.2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes coinFlipMobile {
+        0% {
+            transform: rotateY(0deg) scale(1);
+        }
+        100% {
+            transform: rotateY(180deg) scale(0.95);
+        }
     }
 }
 
@@ -410,6 +433,21 @@
     font-size: 0.7rem;
     opacity: 0.7;
     font-weight: 400;
+}
+
+/* Accessibility - Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .coin.flipping {
+        animation: none !important;
+    }
+    
+    .coin-display {
+        perspective: none !important;
+    }
+    
+    .loading-spinner {
+        animation: spin 2s linear infinite;
+    }
 }
 
 /* Responsive Design */
