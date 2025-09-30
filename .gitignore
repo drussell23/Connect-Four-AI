@@ -215,7 +215,7 @@ dist/
 
 # Gatsby
 .cache/
-public/
+# public/  # Commented out - needed for React frontend
 
 # Storybook
 storybook-static/
