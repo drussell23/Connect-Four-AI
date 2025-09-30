@@ -2,66 +2,7 @@
 <html lang="en">
 
 <head>
-  <script>
-    // Inject error suppression as early as possible
-    (function() {
-      const originalError = console.error;
-      const originalWarn = console.warn;
-      const originalLog = console.log;
-      
-      const suppressPatterns = [
-        /Unchecked runtime\.lastError/i,
-        /The message port closed before a response was received/i,
-        /Extension context invalidated/i,
-        /Failed to load resource.*chrome-extension/i,
-        /Access to .* from origin .* has been blocked/i,
-        /content\.js/i,
-        /Manifest.*Syntax error/i,
-        /code: 403/i,
-        /httpStatus: 200.*code: 403/i
-      ];
-      
-      const shouldSuppress = (args) => {
-        const message = args.join(' ');
-        return suppressPatterns.some(pattern => pattern.test(message));
-      };
-      
-      console.error = function(...args) {
-        if (!shouldSuppress(args)) {
-          originalError.apply(console, args);
-        }
-      };
-      
-      console.warn = function(...args) {
-        if (!shouldSuppress(args)) {
-          originalWarn.apply(console, args);
-        }
-      };
-      
-      console.log = function(...args) {
-        if (!shouldSuppress(args)) {
-          originalLog.apply(console, args);
-        }
-      };
-      
-      // Catch errors as early as possible
-      window.addEventListener('error', function(e) {
-        if (e.message && suppressPatterns.some(pattern => pattern.test(e.message))) {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }
-      }, true);
-      
-      window.addEventListener('unhandledrejection', function(e) {
-        if (e.reason && suppressPatterns.some(pattern => pattern.test(String(e.reason)))) {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }
-      }, true);
-    })();
-  </script>
+  <script src="/error-suppressor.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
