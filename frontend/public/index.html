@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#1e3a8a" />
   <title>Connect Four AI</title>
@@ -356,7 +357,46 @@
 <body>
   <div id="root" style="position: relative;"></div>
 
-
+  <script>
+    // Suppress browser extension errors that clutter the console
+    (function() {
+      const originalError = console.error;
+      const originalWarn = console.warn;
+      
+      // Patterns of extension-related errors to suppress
+      const suppressPatterns = [
+        /Unchecked runtime\.lastError/i,
+        /The message port closed before a response was received/i,
+        /Extension context invalidated/i,
+        /Failed to load resource.*chrome-extension/i,
+        /Access to .* from origin .* has been blocked/i,
+        /content\.js/i
+      ];
+      
+      // Override console.error
+      console.error = function(...args) {
+        const message = args.join(' ');
+        if (!suppressPatterns.some(pattern => pattern.test(message))) {
+          originalError.apply(console, args);
+        }
+      };
+      
+      // Override console.warn  
+      console.warn = function(...args) {
+        const message = args.join(' ');
+        if (!suppressPatterns.some(pattern => pattern.test(message))) {
+          originalWarn.apply(console, args);
+        }
+      };
+      
+      // Catch unhandled promise rejections from extensions
+      window.addEventListener('unhandledrejection', function(event) {
+        if (event.reason && event.reason.toString().match(/chrome-extension|content\.js|runtime\.lastError/i)) {
+          event.preventDefault();
+        }
+      });
+    })();
+  </script>
 </body>
 
 </html>
