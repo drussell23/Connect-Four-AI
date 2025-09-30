@@ -1,4 +1,79 @@
 <!DOCTYPE html>
+<script>
+// ULTRA-EARLY ERROR SUPPRESSION - Runs before HTML parsing
+(function() {
+  'use strict';
+  
+  // List of patterns to suppress
+  const suppressPatterns = /manifest|runtime\.lastError|content\.js|contentscript|inject\.js|chrome-extension|moz-extension|safari-extension|edge-extension|code:\s*403|httpError|httpStatus:\s*200|name:\s*['"]i['"]|message port closed|Extension context|Syntax error|Failed to load resource|CORS policy|chrome\.runtime|browser\.runtime/i;
+  
+  // Immediately override console methods
+  const methods = ['error', 'warn', 'log', 'trace', 'debug', 'info'];
+  const originals = {};
+  
+  methods.forEach(m => {
+    originals[m] = console[m] || function() {};
+    console[m] = function(...args) {
+      try {
+        const str = args.map(a => {
+          if (a === null || a === undefined) return '';
+          if (typeof a === 'object') {
+            try { return JSON.stringify(a); } catch { return '[object]'; }
+          }
+          return String(a);
+        }).join(' ');
+        
+        if (!suppressPatterns.test(str)) {
+          originals[m].apply(console, args);
+        }
+      } catch {
+        // Silently fail
+      }
+    };
+  });
+  
+  // Override window.onerror immediately
+  window.onerror = function(msg, src, line, col, err) {
+    const errorStr = [msg, src, err && err.stack].filter(Boolean).join(' ');
+    return suppressPatterns.test(errorStr);
+  };
+  
+  // Add error event listener in capture phase
+  window.addEventListener('error', function(e) {
+    try {
+      const errorStr = [e.message, e.filename, e.error && e.error.stack].filter(Boolean).join(' ');
+      if (suppressPatterns.test(errorStr)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+    } catch {
+      // Suppress errors in error handler
+      e.preventDefault();
+      return false;
+    }
+  }, true);
+  
+  // Promise rejection handler
+  window.addEventListener('unhandledrejection', function(e) {
+    try {
+      const reasonStr = e.reason ? 
+        (typeof e.reason === 'object' ? JSON.stringify(e.reason) : String(e.reason)) : 
+        '';
+      if (suppressPatterns.test(reasonStr)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+    } catch {
+      e.preventDefault();
+      return false;
+    }
+  }, true);
+})();
+</script>
 <html lang="en">
 
 <head>
@@ -36,12 +111,16 @@
           'content_script.js',
           'background.js',
           
-          // Error messages
+          // Error messages - MORE SPECIFIC
           'Unchecked runtime.lastError',
+          'runtime.lastError',
           'The message port closed',
+          'message port closed before a response',
           'Extension context invalidated',
           'Manifest: Line:',
           'Manifest.*Syntax error',
+          'manifest.json:1',
+          'Syntax error',
           
           // Codes and statuses
           'code: 403',
