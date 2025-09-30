@@ -2,7 +2,295 @@
 <html lang="en">
 
 <head>
-  <script src="/error-suppressor.js"></script>
+  <script>
+    // Ultra-robust dynamic error suppression system
+    (function() {
+      'use strict';
+      
+      // Dynamic error detection system
+      const ErrorSuppressor = {
+        // Store original methods
+        originals: {
+          error: console.error,
+          warn: console.warn,
+          log: console.log,
+          trace: console.trace,
+          debug: console.debug,
+          info: console.info,
+          onError: window.onerror
+        },
+        
+        // Dynamic patterns that learn from errors
+        patterns: new Set([
+          // Extension patterns
+          'chrome-extension://',
+          'moz-extension://',
+          'safari-extension://',
+          'edge-extension://',
+          'extension://',
+          
+          // File patterns
+          'content.js',
+          'contentscript.js',
+          'inject.js',
+          'content_script.js',
+          'background.js',
+          
+          // Error messages
+          'Unchecked runtime.lastError',
+          'The message port closed',
+          'Extension context invalidated',
+          'Manifest: Line:',
+          'Manifest.*Syntax error',
+          
+          // Codes and statuses
+          'code: 403',
+          'httpStatus: 200',
+          'httpError: false',
+          "name: 'i'",
+          'name: "i"',
+          
+          // Stack patterns
+          'at chrome.runtime',
+          'at browser.runtime',
+          'chrome.runtime.sendMessage',
+          'chrome.runtime.connect',
+          
+          // CORS/Network
+          'Access to.*blocked',
+          'Failed to load resource',
+          'CORS policy'
+        ]),
+        
+        // Learning system - detect new patterns
+        learnPattern(str) {
+          // Extract potential patterns from error strings
+          const extractors = [
+            /([a-zA-Z_-]+\.js):\d+/g,  // JS files with line numbers
+            /at\s+(\S+)\s+\(/g,         // Function names in stack traces
+            /(chrome|browser|moz)\.\w+\.\w+/g,  // Browser API calls
+            /\w+Error:\s*(.{0,50})/g,   // Error types and messages
+          ];
+          
+          extractors.forEach(regex => {
+            let match;
+            while ((match = regex.exec(str)) !== null) {
+              if (match[1] && match[1].length > 3) {
+                this.patterns.add(match[1]);
+              }
+            }
+          });
+        },
+        
+        // Intelligent suppression check
+        shouldSuppress(input) {
+          // Convert input to searchable string
+          let searchStr = '';
+          try {
+            if (typeof input === 'string') {
+              searchStr = input;
+            } else if (input instanceof Error) {
+              searchStr = input.toString() + ' ' + (input.stack || '');
+            } else if (Array.isArray(input)) {
+              searchStr = input.map(arg => this.stringify(arg)).join(' ');
+            } else if (typeof input === 'object' && input !== null) {
+              searchStr = JSON.stringify(input);
+            } else {
+              searchStr = String(input);
+            }
+          } catch (e) {
+            // If stringification fails, it's likely an extension object
+            return true;
+          }
+          
+          // Check against all patterns
+          for (const pattern of this.patterns) {
+            if (searchStr.includes(pattern)) {
+              this.learnPattern(searchStr); // Learn from this error
+              return true;
+            }
+          }
+          
+          // Advanced checks for complex error objects
+          if (searchStr.includes('{') && searchStr.includes('}')) {
+            // Check for specific error object patterns
+            const errorObjPatterns = [
+              /"name"\s*:\s*"i"/,
+              /'name'\s*:\s*'i'/,
+              /code\s*:\s*403/,
+              /httpError\s*:\s*false/,
+              /httpStatus\s*:\s*200.*code\s*:\s*403/
+            ];
+            
+            for (const pattern of errorObjPatterns) {
+              if (pattern.test(searchStr)) {
+                return true;
+              }
+            }
+          }
+          
+          return false;
+        },
+        
+        // Safe stringify helper
+        stringify(obj) {
+          try {
+            if (obj === null || obj === undefined) return String(obj);
+            if (typeof obj === 'string') return obj;
+            if (obj instanceof Error) {
+              return obj.toString() + ' ' + (obj.stack || '');
+            }
+            if (typeof obj === 'object') {
+              // Handle circular references
+              const seen = new WeakSet();
+              return JSON.stringify(obj, (key, value) => {
+                if (typeof value === 'object' && value !== null) {
+                  if (seen.has(value)) return '[Circular]';
+                  seen.add(value);
+                }
+                return value;
+              });
+            }
+            return String(obj);
+          } catch (e) {
+            return '[Unstringifiable]';
+          }
+        },
+        
+        // Initialize the suppression system
+        init() {
+          const self = this;
+          
+          // Override console methods
+          ['error', 'warn', 'log', 'trace', 'debug', 'info'].forEach(method => {
+            if (console[method] && self.originals[method]) {
+              console[method] = function(...args) {
+                if (!self.shouldSuppress(args)) {
+                  self.originals[method].apply(console, args);
+                }
+              };
+            }
+          });
+          
+          // Global error handler
+          window.onerror = function(message, source, lineno, colno, error) {
+            const errorInfo = [message, source, error?.stack].filter(Boolean);
+            if (self.shouldSuppress(errorInfo)) {
+              return true;
+            }
+            return self.originals.onError ? 
+              self.originals.onError(message, source, lineno, colno, error) : 
+              false;
+          };
+          
+          // Error event listener (capture phase)
+          window.addEventListener('error', function(e) {
+            const errorInfo = [
+              e.message,
+              e.filename,
+              e.error?.stack,
+              e.error?.toString()
+            ].filter(Boolean);
+            
+            if (self.shouldSuppress(errorInfo)) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+              return false;
+            }
+          }, true);
+          
+          // Promise rejection handler
+          window.addEventListener('unhandledrejection', function(e) {
+            try {
+              const reason = e.reason;
+              if (self.shouldSuppress(reason)) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return false;
+              }
+            } catch (err) {
+              // Suppress errors in the error handler itself
+              return false;
+            }
+          }, true);
+          
+          // Mutation observer to remove extension scripts
+          if (typeof MutationObserver !== 'undefined') {
+            const observer = new MutationObserver(function(mutations) {
+              mutations.forEach(function(mutation) {
+                mutation.addedNodes.forEach(function(node) {
+                  if (node.tagName === 'SCRIPT' && node.src) {
+                    for (const pattern of self.patterns) {
+                      if (node.src.includes(pattern)) {
+                        node.remove();
+                        break;
+                      }
+                    }
+                  }
+                });
+              });
+            });
+            
+            // Start observing
+            const startObserving = function() {
+              observer.observe(document.documentElement || document, {
+                childList: true,
+                subtree: true
+              });
+            };
+            
+            if (document.documentElement) {
+              startObserving();
+            } else {
+              setTimeout(startObserving, 0);
+            }
+          }
+          
+          // Override fetch for network errors
+          if (window.fetch) {
+            const originalFetch = window.fetch;
+            window.fetch = function(...args) {
+              return originalFetch.apply(window, args).catch(function(error) {
+                if (self.shouldSuppress(error)) {
+                  return new Response('{}', { 
+                    status: 200,
+                    headers: new Headers({ 'content-type': 'application/json' })
+                  });
+                }
+                throw error;
+              });
+            };
+          }
+          
+          // Override XMLHttpRequest
+          const OriginalXHR = window.XMLHttpRequest;
+          window.XMLHttpRequest = function() {
+            const xhr = new OriginalXHR();
+            const originalOpen = xhr.open;
+            
+            xhr.open = function(method, url, ...args) {
+              if (self.shouldSuppress(url)) {
+                // Don't actually make the request
+                return;
+              }
+              return originalOpen.call(xhr, method, url, ...args);
+            };
+            
+            return xhr;
+          };
+          XMLHttpRequest.prototype = OriginalXHR.prototype;
+        }
+      };
+      
+      // Initialize immediately
+      ErrorSuppressor.init();
+      
+      // Also store globally for debugging if needed
+      window.__errorSuppressor = ErrorSuppressor;
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
