@@ -223,16 +223,16 @@ jobs:
           npx eslint frontend/src --ext .ts,.tsx,.js,.jsx --format json --output-file eslint-frontend-security.json || true
 
       - name: Run CodeQL Analysis
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: javascript,python
           config-file: ./.github/codeql/codeql-config.yml
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@v4
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
 
       - name: Run Bandit security analysis (Python)
         working-directory: ml_service
@@ -359,7 +359,7 @@ jobs:
           retention-days: 30
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-${{ matrix.component }}.sarif'
