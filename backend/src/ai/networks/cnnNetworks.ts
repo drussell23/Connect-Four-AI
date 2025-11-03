@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs';
 import { CellValue } from '../connect4AI';
-import { TensorOps, tidyPredict } from '../shared/tensor-ops';
+import { TensorOps } from '../shared/tensor-ops';
 
 export interface NetworkConfig {
     boardHeight: number;

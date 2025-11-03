@@ -91,7 +91,7 @@ export class EventThrottle {
    * Clear all throttled events
    */
   clear(): void {
-    for (const [key, throttled] of this.throttledEvents) {
+    for (const throttled of this.throttledEvents.values()) {
       if (throttled.timeoutId) {
         clearTimeout(throttled.timeoutId);
       }

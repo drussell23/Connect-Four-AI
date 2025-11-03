@@ -54,9 +54,8 @@ export class ServiceIntegrationOrchestrator implements OnModuleInit {
 
   async onModuleInit() {
     this.logger.log('🚀 Initializing Service Integration Orchestrator...');
-    
-    // Check if services should be disabled in production
-    const isProduction = this.configService.get('NODE_ENV') === 'production';
+
+    // Check if services should be disabled
     const disableExternalServices = this.configService.get('DISABLE_EXTERNAL_SERVICES', 'false') === 'true';
     
     if (disableExternalServices) {

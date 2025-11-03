@@ -4,7 +4,7 @@
  */
 
 import { useMemo, useCallback } from 'react';
-import { animationGuard, useAnimationGuard } from '../utils/animationGuard';
+import { useAnimationGuard } from '../utils/animationGuard';
 import { MotionProps } from 'framer-motion';
 
 interface SafeAnimationConfig {

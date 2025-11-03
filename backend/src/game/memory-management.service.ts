@@ -5,7 +5,7 @@ import { DynamicMemoryMonitor, MemoryPressureLevel } from '../ai/m1-optimized/dy
 import { TensorFlowMemoryManager } from '../ai/m1-optimized/tensorflow-memory-manager';
 import { GracefulDegradationService } from '../ai/m1-optimized/graceful-degradation.service';
 import { AdaptiveCacheManager } from '../ai/m1-optimized/adaptive-cache-manager';
-import { BackgroundLearningThrottle, TaskPriority } from '../ai/m1-optimized/background-learning-throttle';
+import { BackgroundLearningThrottle } from '../ai/m1-optimized/background-learning-throttle';
 import { LightweightInferenceService } from '../ai/m1-optimized/lightweight-inference.service';
 import * as os from 'os';
 

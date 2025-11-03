@@ -481,11 +481,12 @@ export class M1StressTestService {
    * Aggregate metrics from simulators
    */
   private aggregateMetrics(testId: string, simulators: LoadSimulator[]): void {
-    const metrics = this.activeTests.get(testId)!;
-    
+    // Get current test metrics
+    this.activeTests.get(testId);
+
     // Aggregate from each simulator
     simulators.forEach(sim => {
-      const simMetrics = sim.getMetrics();
+      sim.getMetrics();
       // Process simulator-specific metrics
       // This would be expanded based on actual simulator implementations
     });

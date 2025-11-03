@@ -14,7 +14,7 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
-import { Logger, UseInterceptors } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { GracefulDegradationService } from '../ai/m1-optimized/graceful-degradation.service';
 import { M1AIIntegrationService } from '../ai/m1-optimized/m1-ai-integration.service';

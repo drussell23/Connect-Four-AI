@@ -18,7 +18,6 @@ import PlayerStatsComponent from './components/analytics/PlayerStats';
 import { updatePlayerStats } from './services/playerStatsService';
 import { analyzeCurrentPosition, clearMoveAnalysisCache } from './services/moveAnalysisService';
 import { statsTracker } from './services/StatsTracker';
-import { memoryLogger } from './utils/memory-console-logger';
 import './utils/memory-console-commands'; // Load memory console commands
 import './services/DebugStats'; // Load debug utilities
 import './services/TestStats'; // Load test utilities

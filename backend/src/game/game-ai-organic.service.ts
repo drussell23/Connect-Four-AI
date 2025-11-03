@@ -26,7 +26,7 @@ export class GameAIOrganicService {
    * Execute AI move with organic, consistent timing
    */
   async executeOrganicAIMove(request: OrganicAIMove): Promise<void> {
-    const { gameId, playerId, difficulty } = request;
+    const { gameId, difficulty } = request;
     const startTime = Date.now();
     
     try {

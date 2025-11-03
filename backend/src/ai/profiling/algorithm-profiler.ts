@@ -6,7 +6,6 @@ import { UnifiedAISystem } from '../unified/unified-ai-system-simple';
 import { AdaptiveAIOrchestrator } from '../adaptive/adaptive-ai-orchestrator';
 import { AsyncAIOrchestrator } from '../async/async-ai-orchestrator';
 import { LightweightInferenceService } from '../m1-optimized/lightweight-inference.service';
-import { Board } from '../unified/unified-threat-detector.service';
 import { CellValue } from '../connect4AI';
 
 export interface AlgorithmProfile {

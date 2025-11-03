@@ -3,8 +3,6 @@
  * Automatically intercepts and fixes animation errors across the entire app
  */
 
-import { animationGuard } from './animationGuard';
-
 interface InterceptorConfig {
   enabled: boolean;
   logErrors: boolean;

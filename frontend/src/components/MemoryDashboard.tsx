@@ -7,9 +7,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import {
-  LineChart, Line, AreaChart, Area, BarChart, Bar,
+  LineChart, Line, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, PieChart, Pie, Cell
+  ResponsiveContainer
 } from 'recharts';
 import './MemoryDashboard.css';
 
@@ -59,13 +59,6 @@ const PRESSURE_COLORS: Record<string, string> = {
   moderate: '#f59e0b',
   high: '#ef4444',
   critical: '#991b1b'
-};
-
-const DEGRADATION_COLORS: Record<string, string> = {
-  normal: '#10b981',
-  reduced: '#3b82f6',
-  minimal: '#f59e0b',
-  emergency: '#ef4444'
 };
 
 export const MemoryDashboard: React.FC = () => {

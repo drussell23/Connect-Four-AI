@@ -131,7 +131,6 @@ export class OrganicAITimingService {
       }
       
       for (let i = 0; i <= steps; i++) {
-        const phaseProgress = (i / steps) * 100;
         const overallProgress = (elapsedTime / totalTime) * 100;
         
         const event: AITimingEvent = {
