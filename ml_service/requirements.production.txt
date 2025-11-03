@@ -2,21 +2,21 @@
 # Core dependencies
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-gunicorn==21.2.0
+gunicorn>=23.0.0
 pydantic==2.4.2
-python-multipart==0.0.6
+python-multipart>=0.0.20
 
 # ML dependencies - using CPU-only version for Render free tier
 --index-url https://download.pytorch.org/whl/cpu
-torch==2.1.0+cpu
+torch==2.5.1+cpu
 numpy==1.24.3
-scikit-learn==1.3.2
-transformers==4.35.0
+scikit-learn>=1.6.0
+transformers>=4.48.0
 
 # WebSocket support for real-time services
 websockets==12.0
-python-socketio[asyncio]==5.10.0
-aiohttp==3.9.1
+python-socketio[asyncio]>=5.12.0
+aiohttp>=3.11.10
 
 # Async and performance
 aiofiles==23.2.1
