@@ -12,6 +12,10 @@ on:
         default: true
         type: boolean
 
+permissions:
+  contents: write
+  issues: write
+
 env:
   SERVICES: |
     backend,https://connect-four-ai-roge.onrender.com/api/health
@@ -106,28 +110,33 @@ jobs:
     runs-on: ubuntu-latest
     needs: health-check
     if: needs.health-check.outputs.any-unhealthy == 'true'
+    permissions:
+      issues: write
+      contents: read
     steps:
       - name: Create issue for unhealthy services
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const issueTitle = '🚨 Service Health Alert: One or more services are unhealthy';
+            const statusSummary = `${{ needs.health-check.outputs.status-summary }}`;
             const issueBody = `## Service Health Alert
-            
+
             One or more services are not responding correctly.
-            
-            ${{ needs.health-check.outputs.status-summary }}
-            
+
+            ${statusSummary}
+
             ### Actions Required:
             1. Check Render dashboard for service status
             2. Review service logs for errors
             3. Verify deployment status
             4. Check for any ongoing incidents
-            
+
             ---
             _This issue was automatically created by the health monitoring workflow._
             `;
-            
+
             // Check if similar issue already exists
             const issues = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
@@ -135,11 +144,11 @@ jobs:
               state: 'open',
               labels: ['service-health', 'automated']
             });
-            
-            const existingIssue = issues.data.find(issue => 
+
+            const existingIssue = issues.data.find(issue =>
               issue.title.includes('Service Health Alert')
             );
-            
+
             if (!existingIssue) {
               await github.rest.issues.create({
                 owner: context.repo.owner,
@@ -148,16 +157,16 @@ jobs:
                 body: issueBody,
                 labels: ['service-health', 'automated', 'high-priority']
               });
+              console.log('Created new health alert issue');
             } else {
               // Update existing issue with new status
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: existingIssue.number,
-                body: `## Updated Health Status
-                
-                ${{ needs.health-check.outputs.status-summary }}`
+                body: `## Updated Health Status\n\n${statusSummary}`
               });
+              console.log(`Updated existing issue #${existingIssue.number}`);
             }
 
       - name: Send Slack notification
@@ -184,11 +193,14 @@ jobs:
     runs-on: ubuntu-latest
     needs: health-check
     if: always()
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - name: Update README with status
         run: |
@@ -198,26 +210,27 @@ jobs:
           else
             badge_url="https://img.shields.io/badge/Service%20Health-Operational-green"
           fi
-          
+
           # Update README if it exists
           if [ -f README.md ]; then
-            # Remove old badge if exists
-            sed -i '/\[!\[Service Health\]/d' README.md
-            
+            # Remove old badge if exists (works on both Linux and macOS)
+            grep -v '\[!\[Service Health\]' README.md > README.tmp && mv README.tmp README.md
+
             # Add new badge at the top
-            sed -i "1s/^/[![Service Health]($badge_url)](https://github.com/${{ github.repository }}/actions/workflows/health-monitoring.yml)\n\n/" README.md
+            badge_line="[![Service Health]($badge_url)](https://github.com/${{ github.repository }}/actions/workflows/health-monitoring.yml)"
+            echo -e "$badge_line\n" | cat - README.md > README.tmp && mv README.tmp README.md
           fi
 
       - name: Commit status update
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
+
           if git diff --quiet; then
             echo "No changes to commit"
           else
             git add README.md
-            git commit -m "Update service health status badge"
+            git commit -m "chore: Update service health status badge [skip ci]"
             git push
           fi
 
