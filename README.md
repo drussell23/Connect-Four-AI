@@ -1,6 +1,7 @@
 [![Service Health](https://img.shields.io/badge/Service%20Health-Degraded-yellow)](https://github.com/drussell23/Connect-Four-AI/actions/workflows/health-monitoring.yml)
 
 
+
 # Connect-Four-AI 🧠 | Enterprise AI Research Platform
 
 ![Author: Derek J. Russell](https://img.shields.io/badge/Author-Derek%20J.%20Russell-blue) 
