@@ -86,18 +86,18 @@ export class M1PerformanceOptimizer {
     
     if (isM1) {
       // M1-specific optimizations
-      if (memoryGB >= 16) {
-        // M1 Pro/Max with 16GB+ RAM
+      if (memoryGB >= 32) {
+        // M1 Pro/Max with 32GB+ RAM
         settings = {
-          maxOldSpaceSize: 2048,
+          maxOldSpaceSize: 3072,
           tfNumThreads: Math.min(cores / 2, 4),
-          replayBufferSize: 5000,
-          cacheMaxSize: 500,
+          replayBufferSize: 30000,
+          cacheMaxSize: 800,
           enableBackgroundTraining: true,
           enableSelfPlay: false, // Still disable to reduce background load
-          batchSize: 32,
-          predictionCacheSize: 200,
-          transpositionTableSize: 50000
+          batchSize: 64,
+          predictionCacheSize: 300,
+          transpositionTableSize: 80000
         };
       } else if (memoryGB >= 16) {
         // M1 with 16GB RAM - More conservative than Pro/Max
@@ -202,11 +202,11 @@ export class M1PerformanceOptimizer {
    */
   static checkMemoryPressure(): boolean {
     const stats = this.getMemoryStats();
-    const pressureThreshold = 0.8; // 80% heap usage
-    
-    if (stats.heapPercentage > pressureThreshold * 100) {
+    const pressureThresholdPercent = 80; // 80% heap usage
+
+    if (stats.heapPercentage > pressureThresholdPercent) {
       this.logger.warn(`High memory pressure detected: ${stats.heapPercentage}% heap usage`);
-      
+
       // Force garbage collection if enabled
       if (global.gc) {
         this.logger.log('Running garbage collection...');
@@ -214,7 +214,7 @@ export class M1PerformanceOptimizer {
         return true;
       }
     }
-    
+
     return false;
   }
   

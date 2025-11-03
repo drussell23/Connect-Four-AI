@@ -244,7 +244,8 @@ class MetalInferenceService:
                     text=True
                 )
                 return result.stdout.strip()
-            except:
+            except (OSError, subprocess.SubprocessError) as e:
+                logger.warning(f"Failed to get CPU info: {e}")
                 return "Apple Silicon (MPS)"
         
         elif torch.cuda.is_available():
