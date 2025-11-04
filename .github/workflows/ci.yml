@@ -1,5 +1,11 @@
 name: "🔧 Comprehensive CI Pipeline"
 
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  pull-requests: write
+
 on:
   workflow_call:
     inputs:
