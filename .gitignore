@@ -230,6 +230,9 @@ storybook-static/
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# Claude Code
+.claude/
+
 # WebStorm/IntelliJ
 .idea/
 *.iws
