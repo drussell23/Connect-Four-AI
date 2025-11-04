@@ -41,7 +41,7 @@ export class GameStateManager extends EventEmitter {
   private currentGame: GameState | null = null;
   private localStorage: Storage;
   private indexedDB: IDBDatabase | null = null;
-  private autoSaveTimer: NodeJS.Timer | null = null;
+  private autoSaveTimer: ReturnType<typeof setInterval> | null = null;
   private syncQueue: Move[] = [];
   private options: PersistenceOptions;
 
@@ -591,8 +591,8 @@ export class GameStateManager extends EventEmitter {
   }
 
   private detectConflicts(serverState: Partial<GameState>): any[] {
-    const conflicts = [];
-    
+    const conflicts: any[] = [];
+
     if (!this.currentGame || !serverState.moves) return conflicts;
 
     // Check for divergent moves

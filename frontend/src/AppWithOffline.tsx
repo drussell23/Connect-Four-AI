@@ -108,7 +108,7 @@ function AppWithOffline() {
   // Load last game
   const loadLastGame = async (service: OfflineGameService) => {
     try {
-      const recentGames = await service.getRecentGames();
+      const { games: recentGames } = await service.getRecentGames();
       if (recentGames.length > 0 && recentGames[0].status === 'active') {
         const game = await service.loadGame(recentGames[0].id);
         if (game) {

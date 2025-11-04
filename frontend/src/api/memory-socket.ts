@@ -34,7 +34,7 @@ memorySocket.on('disconnect', () => {
 
 memorySocket.on('connect_error', (error: Error) => {
   console.error('Memory dashboard connection error:', error.message);
-  console.error('   Type:', error.type);
+  console.error('   Type:', (error as any).type || 'unknown');
   console.error('   Stack:', error.stack);
 });
 

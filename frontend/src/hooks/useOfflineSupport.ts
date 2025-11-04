@@ -78,7 +78,7 @@ export function useOfflineSupport(config: Partial<OfflineConfig> = {}) {
         // Register background sync if supported
         if (finalConfig.enableBackgroundSync && 'sync' in registration) {
           try {
-            await registration.sync.register('sync-game-state');
+            await (registration as any).sync.register('sync-game-state');
             console.log('Background sync registered');
           } catch (error) {
             console.warn('Background sync registration failed:', error);
@@ -139,7 +139,7 @@ export function useOfflineSupport(config: Partial<OfflineConfig> = {}) {
 
       // Trigger background sync
       if (swRegistration.current && 'sync' in swRegistration.current) {
-        swRegistration.current.sync.register('sync-game-state');
+        (swRegistration.current as any).sync.register('sync-game-state');
       }
 
       // Check connection quality
@@ -194,11 +194,12 @@ export function useOfflineSupport(config: Partial<OfflineConfig> = {}) {
   const cacheGameState = useCallback(async (gameState: any) => {
     if (navigator.serviceWorker.controller) {
       const channel = new MessageChannel();
-      
+      const controller = navigator.serviceWorker.controller;
+
       return new Promise((resolve) => {
         channel.port1.onmessage = () => resolve(true);
-        
-        navigator.serviceWorker.controller.postMessage(
+
+        controller!.postMessage(
           { type: 'CACHE_GAME_STATE', data: gameState },
           [channel.port2]
         );
@@ -230,8 +231,9 @@ export function useOfflineSupport(config: Partial<OfflineConfig> = {}) {
       throw new Error('Service worker not available');
     }
 
+    const controller = navigator.serviceWorker.controller;
     const channel = new MessageChannel();
-    
+
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('AI computation timeout'));
@@ -245,8 +247,8 @@ export function useOfflineSupport(config: Partial<OfflineConfig> = {}) {
           reject(new Error('AI computation failed'));
         }
       };
-      
-      navigator.serviceWorker.controller.postMessage(
+
+      controller!.postMessage(
         { type: 'COMPUTE_AI_MOVE', data: { board, player } },
         [channel.port2]
       );

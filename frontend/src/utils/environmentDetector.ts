@@ -170,9 +170,9 @@ class EnvironmentDetector {
     return this.environmentInfo!;
   }
 
-  public getServiceUrl(service: keyof typeof this.serviceEndpoints): string {
+  public getServiceUrl(service: string): string {
     const env = this.getEnvironmentInfo();
-    const endpoint = this.serviceEndpoints[service];
+    const endpoint = this.serviceEndpoints[service as keyof typeof this.serviceEndpoints];
     
     if (!endpoint) {
       console.warn(`⚠️ Unknown service: ${service}`);
