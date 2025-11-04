@@ -10,11 +10,11 @@ Enhanced startup script for the Connect4 ML service with:
 - Development and production modes
 """
 
-import os
-import sys
-import subprocess
 import argparse
 import asyncio
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -150,7 +150,11 @@ Examples:
     )
 
     # Core settings
-    parser.add_argument("--host", default="127.0.0.1", help="Host address (use 0.0.0.0 for all interfaces)")
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Host address (use 0.0.0.0 for all interfaces)",
+    )
     parser.add_argument("--port", type=int, default=8001, help="Port number")
     parser.add_argument(
         "--workers", type=int, default=1, help="Number of worker processes"

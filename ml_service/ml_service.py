@@ -13,17 +13,17 @@ Enterprise-grade machine learning service featuring:
 - Health checks and graceful degradation
 """
 
-import sys
-import os
 import asyncio
 import hashlib
-import time
 import json
 import logging
-from datetime import datetime, timedelta
-from typing import List, Union, Optional, Dict, Any, Tuple
+import os
+import sys
+import time
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # Environment Configuration
 from dotenv import load_dotenv
@@ -31,33 +31,20 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+import numpy as np
+import structlog
 # Core ML and Web Framework
 import torch
 import torch.nn.functional as F
-import numpy as np
-from fastapi import (
-    FastAPI,
-    Request,
-    HTTPException,
-    Depends,
-    BackgroundTasks,
-    status,
-    Response,
-)
-from fastapi.responses import JSONResponse
+from fastapi import (BackgroundTasks, Depends, FastAPI, HTTPException, Request,
+                     Response, status)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from prometheus_client import (CONTENT_TYPE_LATEST, CollectorRegistry, Counter,
+                               Gauge, Histogram, generate_latest)
 from pydantic import BaseModel, Field, field_validator
-from prometheus_client import (
-    Counter,
-    Histogram,
-    Gauge,
-    generate_latest,
-    CONTENT_TYPE_LATEST,
-    CollectorRegistry,
-)
-import structlog
 
 # Create custom registry to avoid conflicts
 custom_registry = CollectorRegistry()
@@ -543,7 +530,7 @@ class ModelManager:
             "request_counts": self.request_counts,
             "available_types": ["lightweight", "standard", "heavyweight", "legacy"],
         }
-    
+
     async def reload_model(self, model_type: str) -> None:
         """Reload a model with updated weights"""
         try:
@@ -551,21 +538,22 @@ class ModelManager:
             if model_type in self.models:
                 del self.models[model_type]
                 logger.info(f"Removed {model_type} from cache")
-            
+
             # Reload with latest weights
             model_path = config.MODEL_VERSIONS.get(model_type)
             if not model_path:
                 # Check for versioned model file
                 model_file = config.MODEL_DIR / f"{model_type}_v*.pt"
                 import glob
+
                 matches = glob.glob(str(model_file))
                 if matches:
                     # Use the latest version
                     model_path = sorted(matches)[-1]
-            
+
             await self.load_model(model_type, model_path)
             logger.info(f"✅ Reloaded {model_type} with latest weights")
-            
+
         except Exception as e:
             logger.error(f"Failed to reload model {model_type}: {e}")
             raise
@@ -1325,6 +1313,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 # Import and setup model sync endpoints
 try:
     from model_sync_endpoint import setup_model_sync_routes
+
     setup_model_sync_routes(app, model_manager)
     logger.info("✅ Model synchronization endpoints configured")
 except ImportError:

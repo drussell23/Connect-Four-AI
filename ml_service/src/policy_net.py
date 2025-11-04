@@ -6,11 +6,12 @@ Neural network implementation for Connect Four game intelligence.
 Simplified but robust architecture that focuses on compatibility.
 """
 
+import math
+from typing import Any, Dict, List, Optional, Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
-from typing import Optional, Tuple, Dict, Any, List
 
 
 class Connect4PolicyNet(nn.Module):

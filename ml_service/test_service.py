@@ -9,8 +9,9 @@ Test script for validating the enhanced Connect4 ML service functionality.
 import asyncio
 import json
 import time
+from typing import Any, Dict
+
 import httpx
-from typing import Dict, Any
 
 
 class MLServiceTester:

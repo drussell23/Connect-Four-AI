@@ -5,10 +5,11 @@ Lightweight ML service for development and testing
 Bypasses heavy dependencies like torch for faster startup
 """
 
-from flask import Flask, jsonify
-import time
-import threading
 import logging
+import threading
+import time
+
+from flask import Flask, jsonify
 
 # Configure minimal logging
 logging.basicConfig(level=logging.INFO)

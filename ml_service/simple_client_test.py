@@ -4,8 +4,9 @@ Simple client test to verify ML service HTTP endpoints
 """
 
 import asyncio
-import httpx
 import json
+
+import httpx
 
 
 async def test_ml_service():

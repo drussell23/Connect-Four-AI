@@ -5,7 +5,7 @@
     "lib": [
       "DOM",
       "ES2022",
-      "ES2023"
+      "ESNext"
     ],
     "jsx": "react-jsx",
     "strict": true,

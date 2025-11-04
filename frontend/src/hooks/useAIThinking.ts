@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { socket } from '../services/socket';
+import socket from '../api/socket';
 
 interface AIThinkingState {
   isThinking: boolean;

@@ -3,7 +3,8 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "types": [
-      "node"
+      "node",
+      "jest"
     ],
     "target": "ES2020",
     "module": "CommonJS",

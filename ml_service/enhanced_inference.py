@@ -10,20 +10,20 @@ Advanced prediction engine with specialized capabilities:
 - Multi-modal predictions
 """
 
-import torch
-import torch.nn.functional as F
-import numpy as np
-import time
 import asyncio
-from typing import Dict, List, Tuple, Optional, Union
+import json
+import time
 from dataclasses import dataclass
 from enum import Enum
-import json
+from typing import Dict, List, Optional, Tuple, Union
+
+import numpy as np
+import torch
+import torch.nn.functional as F
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import uvicorn
-
 # Import policy network
 from src.policy_net import Connect4PolicyNet
 
@@ -100,7 +100,9 @@ class EnhancedInferenceEngine:
         try:
             model_path = "../models/best_policy_net.pt"
             # Use weights_only=True for security (PyTorch 1.13+)
-            checkpoint = torch.load(model_path, map_location=self.device, weights_only=True)
+            checkpoint = torch.load(
+                model_path, map_location=self.device, weights_only=True
+            )
             state_dict = checkpoint.get("model_state_dict", checkpoint)
             model.load_state_dict(state_dict)
             print("✅ Loaded trained weights")
@@ -605,6 +607,7 @@ async def health_check():
 
 if __name__ == "__main__":
     import os
+
     # Use environment variable for host binding, defaulting to localhost for security
     host = os.environ.get("ML_INFERENCE_HOST", "127.0.0.1")
     port = int(os.environ.get("ML_INFERENCE_PORT", "8001"))

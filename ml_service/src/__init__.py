@@ -10,20 +10,12 @@ __author__ = "Connect4 AI Team"
 __description__ = "ML inference service for Connect Four game intelligence"
 
 # Core neural network exports
-from .policy_net import (
-    Connect4PolicyNet,
-    AdvancedConnect4PolicyNet,
-    create_lightweight_model,
-    create_standard_model,
-    create_heavyweight_model,
-    create_legacy_model,
-    get_model,
-    get_available_models,
-    get_model_info,
-    ResidualBlock,
-    AdvancedResidualBlock,
-    MODEL_REGISTRY,
-)
+from .policy_net import (MODEL_REGISTRY, AdvancedConnect4PolicyNet,
+                         AdvancedResidualBlock, Connect4PolicyNet,
+                         ResidualBlock, create_heavyweight_model,
+                         create_legacy_model, create_lightweight_model,
+                         create_standard_model, get_available_models,
+                         get_model, get_model_info)
 
 # Version and metadata
 __all__ = [
