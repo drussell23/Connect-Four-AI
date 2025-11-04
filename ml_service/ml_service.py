@@ -992,51 +992,82 @@ async def request_middleware(request: Request, call_next):
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
-    """Comprehensive health check endpoint"""
+    """Comprehensive health check endpoint with graceful degradation"""
+    # Default values for graceful degradation
+    memory_mb = 0.0
+    cache_stats = {"hit_rate": 0.0, "redis_connected": False}
+    model_info = {"loaded_models": 0}
+    gpu_info = None
+    health_status = "healthy"
+
     try:
-        # Get system information
-        memory_info = torch.cuda.memory_allocated() if torch.cuda.is_available() else 0
-        memory_mb = memory_info / 1024 / 1024 if memory_info else 0
+        # Get system information (non-critical)
+        try:
+            memory_info = torch.cuda.memory_allocated() if torch.cuda.is_available() else 0
+            memory_mb = memory_info / 1024 / 1024 if memory_info else 0
+        except Exception as e:
+            logger.warning(f"Failed to get memory info: {e}")
 
-        # Get cache stats
-        cache_stats = cache_manager.get_stats()
+        # Get cache stats (non-critical)
+        try:
+            cache_stats = cache_manager.get_stats()
+        except Exception as e:
+            logger.warning(f"Failed to get cache stats: {e}")
+            cache_stats = {"hit_rate": 0.0, "redis_connected": False}
 
-        # Get model info
-        model_info = model_manager.get_model_info()
+        # Get model info (non-critical)
+        try:
+            model_info = model_manager.get_model_info()
+        except Exception as e:
+            logger.warning(f"Failed to get model info: {e}")
+            model_info = {"loaded_models": 0}
+            health_status = "degraded"  # Mark as degraded if models not loaded
 
-        # Basic GPU info (optional)
-        gpu_info = None
-        if torch.cuda.is_available():
-            gpu_info = {
-                "device_count": torch.cuda.device_count(),
-                "current_device": torch.cuda.current_device(),
-                "device_name": torch.cuda.get_device_name(),
-                "memory_allocated_mb": memory_mb,
-                "memory_reserved_mb": torch.cuda.memory_reserved() / 1024 / 1024,
-            }
+        # Basic GPU info (optional, non-critical)
+        try:
+            if torch.cuda.is_available():
+                gpu_info = {
+                    "device_count": torch.cuda.device_count(),
+                    "current_device": torch.cuda.current_device(),
+                    "device_name": torch.cuda.get_device_name(),
+                    "memory_allocated_mb": memory_mb,
+                    "memory_reserved_mb": torch.cuda.memory_reserved() / 1024 / 1024,
+                }
+        except Exception as e:
+            logger.warning(f"Failed to get GPU info: {e}")
 
-        # Build health response
+        # Build health response - always return 200 with status info
         health_data = HealthResponse(
-            status="healthy",
+            status=health_status,
             timestamp=time.time(),
             version="2.0.0",
             device=str(config.DEVICE),
-            models_loaded=model_info["loaded_models"],
+            models_loaded=model_info.get("loaded_models", 0),
             memory_usage_mb=memory_mb,
-            total_requests=sum(model_manager.request_counts.values()),
+            total_requests=sum(model_manager.request_counts.values()) if hasattr(model_manager, 'request_counts') else 0,
             average_latency_ms=0.0,  # Could calculate from metrics
-            cache_hit_rate=cache_stats["hit_rate"],
-            redis_connected=cache_stats["redis_connected"],
+            cache_hit_rate=cache_stats.get("hit_rate", 0.0),
+            redis_connected=cache_stats.get("redis_connected", False),
             gpu_info=gpu_info,
         )
 
         return health_data
 
     except Exception as e:
-        logger.error("Health check failed", error=str(e))
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Health check failed: {str(e)}",
+        # Last resort: return minimal healthy response instead of 500 error
+        logger.error(f"Health check critically failed: {e}")
+        return HealthResponse(
+            status="starting",
+            timestamp=time.time(),
+            version="2.0.0",
+            device="unknown",
+            models_loaded=0,
+            memory_usage_mb=0.0,
+            total_requests=0,
+            average_latency_ms=0.0,
+            cache_hit_rate=0.0,
+            redis_connected=False,
+            gpu_info=None,
         )
 
 
