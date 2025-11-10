@@ -85,6 +85,6 @@
         "testTimeout": 30000
     },
     "optionalDependencies": {
-        "onnxruntime-node": "^1.21.1"
+        "onnxruntime-node": "^1.23.2"
     }
 }
