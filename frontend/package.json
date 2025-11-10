@@ -12,7 +12,7 @@
     "@kurkle/color": "^0.4.0",
     "@vercel/speed-insights": "^1.2.0",
     "ansi-html-community": "^0.0.8",
-    "chart.js": "^4.5.0",
+    "chart.js": "^4.5.1",
     "core-js-pure": "^3.44.0",
     "events": "^3.3.0",
     "fireworks-js": "^2.10.8",
