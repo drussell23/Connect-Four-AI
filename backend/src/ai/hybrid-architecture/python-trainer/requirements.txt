@@ -4,7 +4,7 @@ uvicorn==0.24.0
 pydantic==2.5.0
 numpy==1.24.3
 torch>=2.5.1
-tensorflow==2.15.0
+tensorflow==2.20.0
 jax==0.4.20
 optax==0.1.7
 onnx==1.15.0
