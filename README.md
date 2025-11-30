@@ -1428,6 +1428,7 @@
 
 
 
+
 # Connect-Four-AI 🧠 | Enterprise AI Research Platform
 
 ![Author: Derek J. Russell](https://img.shields.io/badge/Author-Derek%20J.%20Russell-blue) 
