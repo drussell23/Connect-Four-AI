@@ -10,7 +10,7 @@ optax==0.1.7
 onnx==1.15.0
 onnxruntime==1.16.3
 scikit-learn==1.3.2
-wandb==0.16.0
+wandb==0.22.3
 mlflow>=2.18.0
 ray[tune]>=2.40.0
 stable-baselines3==2.2.1
