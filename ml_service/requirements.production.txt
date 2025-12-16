@@ -9,7 +9,7 @@ python-multipart>=0.0.20
 # ML dependencies - using CPU-only version for Render free tier
 --index-url https://download.pytorch.org/whl/cpu
 torch==2.5.1+cpu
-numpy==1.24.3
+numpy==2.3.5
 scikit-learn>=1.6.0
 transformers>=4.48.0
 
