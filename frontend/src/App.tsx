@@ -1,38 +1,39 @@
 // src/App.tsx
-import React, { useState, useEffect, useRef, startTransition } from 'react';
+import React, { useState, useEffect, useRef, startTransition, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Fireworks } from 'fireworks-js';
 import { injectSpeedInsights } from '@vercel/speed-insights';
 import Board from './components/core/Board';
-import Sidebar from './components/ui/Sidebar';
 import LandingPage from './components/ui/LandingPage';
-import VictoryModal from './components/modals/VictoryModal';
-import SimplifiedEnhancedLoading from './components/loading/SimplifiedEnhancedLoading';
-import ConnectFourLoading from './components/loading/ConnectFourLoading';
-import RealTimeConnectFourLoading from './components/loading/RealTimeConnectFourLoading';
-import LoadingPreferences from './components/loading/LoadingPreferences';
 import CoinToss, { type CoinResult, type CoinTossResult } from './components/game/CoinToss';
-import AIAnalysisDashboard from './components/analytics/AIAnalysisDashboard';
-import AITrainingGround from './components/analytics/AITrainingGround';
-import PlayerStatsComponent from './components/analytics/PlayerStats';
 import { updatePlayerStats } from './services/playerStatsService';
 import { analyzeCurrentPosition, clearMoveAnalysisCache } from './services/moveAnalysisService';
 import { statsTracker } from './services/StatsTracker';
-import './utils/memory-console-commands'; // Load memory console commands
-import './services/DebugStats'; // Load debug utilities
-import './services/TestStats'; // Load test utilities
-import InactivityDetector from './components/InactivityDetector';
-import MoveExplanationPanel from './components/ai-insights/MoveExplanation';
-import MoveAnalysis from './components/ai-insights/MoveAnalysis';
-import GameHistory from './components/game-history/GameHistory';
-import UserSettings from './components/settings/UserSettings';
 import apiSocket, { getConnectionStatus } from './api/socket';
 import { setupMemoryListeners, removeMemoryListeners } from './utils/setup-memory-listeners';
-import { appConfig, enterprise, ai, game, ui, dev, analytics } from './config/environment';
-import { integrationLogger } from './utils/integrationLogger';
-import { serviceHealthMonitor } from './utils/serviceHealthMonitor';
+import { enterprise, ui, dev } from './config/environment';
 import { cleanupService } from './services/cleanupService';
 import type { CellValue, PlayerStats, AIPersonalityData } from './declarations';
+
+// Lazy load heavy components - only loaded when needed
+const Sidebar = lazy(() => import('./components/ui/Sidebar'));
+const VictoryModal = lazy(() => import('./components/modals/VictoryModal'));
+const RealTimeConnectFourLoading = lazy(() => import('./components/loading/RealTimeConnectFourLoading'));
+const LoadingPreferences = lazy(() => import('./components/loading/LoadingPreferences'));
+const AIAnalysisDashboard = lazy(() => import('./components/analytics/AIAnalysisDashboard'));
+const AITrainingGround = lazy(() => import('./components/analytics/AITrainingGround'));
+const PlayerStatsComponent = lazy(() => import('./components/analytics/PlayerStats'));
+const InactivityDetector = lazy(() => import('./components/InactivityDetector'));
+const MoveExplanationPanel = lazy(() => import('./components/ai-insights/MoveExplanation'));
+const MoveAnalysis = lazy(() => import('./components/ai-insights/MoveAnalysis'));
+const GameHistory = lazy(() => import('./components/game-history/GameHistory'));
+const UserSettings = lazy(() => import('./components/settings/UserSettings'));
+
+// Defer non-critical side-effect imports until after first paint
+const loadDeferredModules = () => {
+  import('./utils/memory-console-commands');
+  import('./services/DebugStats');
+  import('./services/TestStats');
+};
 
 interface Move {
   player: CellValue;
@@ -183,54 +184,62 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Initialize Speed Insights (only in production)
+  // Initialize Speed Insights and deferred modules after first paint
   useEffect(() => {
-    if (process.env.NODE_ENV === 'production' && window.location.hostname !== 'localhost') {
-      injectSpeedInsights();
-    }
+    // Use requestIdleCallback (or setTimeout fallback) to defer non-critical init
+    const deferInit = (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 200));
+    deferInit(() => {
+      if (process.env.NODE_ENV === 'production' && window.location.hostname !== 'localhost') {
+        injectSpeedInsights();
+      }
+      loadDeferredModules();
+    });
   }, []);
 
-  // Initialize integration monitoring
+  // Initialize integration monitoring - deferred until game starts
   useEffect(() => {
-    console.log('🚀 Initializing service integration monitoring...');
-    
-    // Show initial dashboard
-    integrationLogger.showDashboard();
-    
-    // Start service health monitoring
-    serviceHealthMonitor.startMonitoring();
-    
-    // Monitor service connections periodically
-    const monitoringInterval = setInterval(() => {
-      integrationLogger.getServiceSummary();
-    }, 30000); // Every 30 seconds
-    
-    // Add keyboard shortcuts for debugging
-    const handleKeyPress = (event: KeyboardEvent) => {
-      // Ctrl/Cmd + Shift + D for dashboard
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'D') {
-        integrationLogger.showDashboard();
-      }
-      // Ctrl/Cmd + Shift + T for test integration
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'T') {
-        serviceHealthMonitor.testIntegration();
-      }
-      // Ctrl/Cmd + Shift + L for toggle detailed logging
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'L') {
-        integrationLogger.toggleDetailedMode();
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyPress);
-    
+    if (!started) return; // Don't monitor services until user starts playing
+
+    // Dynamically import monitoring utilities only when needed
+    let monitoringInterval: ReturnType<typeof setInterval>;
+    let handleKeyPress: (event: KeyboardEvent) => void;
+
+    Promise.all([
+      import('./utils/integrationLogger'),
+      import('./utils/serviceHealthMonitor')
+    ]).then(([{ integrationLogger }, { serviceHealthMonitor }]) => {
+      integrationLogger.showDashboard();
+
+      serviceHealthMonitor.startMonitoring();
+
+      monitoringInterval = setInterval(() => {
+        integrationLogger.getServiceSummary();
+      }, 60000); // Every 60 seconds (was 30s, reduced for CPU savings)
+
+      handleKeyPress = (event: KeyboardEvent) => {
+        if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'D') {
+          integrationLogger.showDashboard();
+        }
+        if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'T') {
+          serviceHealthMonitor.testIntegration();
+        }
+        if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'L') {
+          integrationLogger.toggleDetailedMode();
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyPress);
+    });
+
     return () => {
-      clearInterval(monitoringInterval);
-      serviceHealthMonitor.stopMonitoring();
-      window.removeEventListener('keydown', handleKeyPress);
-      // Clear move analysis cache when component unmounts
+      if (monitoringInterval) clearInterval(monitoringInterval);
+      if (handleKeyPress) window.removeEventListener('keydown', handleKeyPress);
+      import('./utils/serviceHealthMonitor').then(({ serviceHealthMonitor }) => {
+        serviceHealthMonitor.stopMonitoring();
+      });
       clearMoveAnalysisCache();
     };
-  }, []);
+  }, [started]);
 
   // App initialization effect
   useEffect(() => {
@@ -553,27 +562,25 @@ const App: React.FC = () => {
       playVictory();
       setGameResult('victory');
 
-      // Enterprise victory celebrations control
+      // Enterprise victory celebrations control - dynamically loaded
       if (ui.victoryCelebrations) {
-        const fw = new Fireworks(document.body, {
-          sound: { enabled: false }
+        import('fireworks-js').then(({ Fireworks }) => {
+          const fw = new Fireworks(document.body, {
+            sound: { enabled: false }
+          });
+          const canvas = (fw as any).canvas as HTMLCanvasElement;
+          if (canvas) {
+            canvas.style.position = 'fixed';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.pointerEvents = 'none';
+            canvas.style.zIndex = '9999';
+          }
+          fw.start();
+          setTimeout(() => fw.stop(), 5000);
         });
-        const canvas = (fw as any).canvas as HTMLCanvasElement;
-        if (canvas) {
-          canvas.style.position = 'fixed';
-          canvas.style.top = '0';
-          canvas.style.left = '0';
-          canvas.style.width = '100%';
-          canvas.style.height = '100%';
-          canvas.style.pointerEvents = 'none';
-          canvas.style.zIndex = '9999';
-        }
-        fw.start();
-        setTimeout(() => fw.stop(), 5000);
-
-        if (dev.verboseLogging) {
-          console.log('🎉 Enterprise victory celebration triggered');
-        }
       }
 
     } else if (isDefeat) {
@@ -1354,16 +1361,18 @@ const App: React.FC = () => {
       setPlayerProgress(data);
     });
 
-    // Service status updates
+    // Service status updates - dynamically import logger
     socket.on('serviceStatusUpdate', (data: any) => {
-      console.log('📊 Service status update:', data);
-      integrationLogger.updateServiceStatuses(data);
+      import('./utils/integrationLogger').then(({ integrationLogger }) => {
+        integrationLogger.updateServiceStatuses(data);
+      });
     });
-    
+
     // Also listen for bulk status updates from integration websocket
     socket.on('service_status_bulk_update', (data: any) => {
-      console.log('📊 Bulk service status update:', data);
-      integrationLogger.updateServiceStatuses(data);
+      import('./utils/integrationLogger').then(({ integrationLogger }) => {
+        integrationLogger.updateServiceStatuses(data);
+      });
     });
 
     return () => {
@@ -1645,31 +1654,39 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-blue-800 flex flex-col items-center justify-center p-2 md:p-4 overflow-x-hidden"
       style={{ fontFamily: "'Poppins', sans-serif" }}>
 
-      {/* Inactivity Detector */}
-      <InactivityDetector
-        enabled={started && !showVictoryModal}
-        isGameActive={!!gameId && board.some(row => row.some(cell => cell !== 'Empty'))}
-        inactivityTimeout={120000} // 2 minutes
-        onInactive={handleInactiveUser}
-        onResume={handleResumeGame}
-        onQuit={handleInactivityQuit}
-      />
-
-      {/* Real-Time Connect Four Loading System */}
-      {appInitialized && (
-        <RealTimeConnectFourLoading
-          isVisible={showLoadingProgress || isInitializing}
-          onComplete={handleLoadingComplete}
+      {/* Inactivity Detector - lazy loaded */}
+      <Suspense fallback={null}>
+        <InactivityDetector
+          enabled={started && !showVictoryModal}
+          isGameActive={!!gameId && board.some(row => row.some(cell => cell !== 'Empty'))}
+          inactivityTimeout={120000}
+          onInactive={handleInactiveUser}
+          onResume={handleResumeGame}
+          onQuit={handleInactivityQuit}
         />
+      </Suspense>
+
+      {/* Real-Time Connect Four Loading System - lazy loaded */}
+      {appInitialized && (showLoadingProgress || isInitializing) && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black flex items-center justify-center z-50"><div className="text-white text-xl">Loading...</div></div>}>
+          <RealTimeConnectFourLoading
+            isVisible={true}
+            onComplete={handleLoadingComplete}
+          />
+        </Suspense>
       )}
 
-      {/* Loading Preferences Modal */}
-      <LoadingPreferences
-        isOpen={showLoadingPreferences}
-        onClose={() => setShowLoadingPreferences(false)}
-        preferences={loadingPreferences}
-        onPreferencesChange={handleLoadingPreferencesChange}
-      />
+      {/* Loading Preferences Modal - lazy loaded */}
+      {showLoadingPreferences && (
+        <Suspense fallback={null}>
+          <LoadingPreferences
+            isOpen={showLoadingPreferences}
+            onClose={() => setShowLoadingPreferences(false)}
+            preferences={loadingPreferences}
+            onPreferencesChange={handleLoadingPreferencesChange}
+          />
+        </Suspense>
+      )}
 
       {/* Enhanced Landing Page with Loading Preferences */}
       {!started && (
@@ -1860,61 +1877,75 @@ const App: React.FC = () => {
         onDrop={onColumnClick}
       />
 
-      {/* Sidebar */}
+      {/* Sidebar - lazy loaded */}
       <AnimatePresence>
         {sidebarOpen && (
-          <Sidebar
-            history={history}
-            onClose={() => setSidebarOpen(false)}
-            aiLevel={aiLevel}
-            aiJustLeveledUp={aiJustLeveledUp}
-            playerStats={playerStats}
-            currentAI={getCurrentAI()}
-          />
+          <Suspense fallback={null}>
+            <Sidebar
+              history={history}
+              onClose={() => setSidebarOpen(false)}
+              aiLevel={aiLevel}
+              aiJustLeveledUp={aiJustLeveledUp}
+              playerStats={playerStats}
+              currentAI={getCurrentAI()}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 
-      {/* AI Analysis Dashboard */}
-      <AIAnalysisDashboard
-        isVisible={showAIDashboard}
-        onClose={() => setShowAIDashboard(false)}
-        gameData={{
-          board,
-          currentPlayer: currentPlayer,
-          gameId,
-          history
-        }}
-        aiMetrics={{
-          confidence: aiConfidence,
-          thinkingTime: aiThinkingTime,
-          safetyScore: aiSafetyScore,
-          explanation: aiExplanation,
-          adaptationInfo: aiAdaptationInfo,
-          curriculumInfo: curriculumInfo,
-          debateResult: debateResult
-        }}
-        systemHealth={systemHealth}
-        socket={socket}
-      />
+      {/* AI Analysis Dashboard - lazy loaded */}
+      {showAIDashboard && (
+        <Suspense fallback={null}>
+          <AIAnalysisDashboard
+            isVisible={showAIDashboard}
+            onClose={() => setShowAIDashboard(false)}
+            gameData={{
+              board,
+              currentPlayer: currentPlayer,
+              gameId,
+              history
+            }}
+            aiMetrics={{
+              confidence: aiConfidence,
+              thinkingTime: aiThinkingTime,
+              safetyScore: aiSafetyScore,
+              explanation: aiExplanation,
+              adaptationInfo: aiAdaptationInfo,
+              curriculumInfo: curriculumInfo,
+              debateResult: debateResult
+            }}
+            systemHealth={systemHealth}
+            socket={socket}
+          />
+        </Suspense>
+      )}
 
-      {/* AI Training Ground */}
-      <AITrainingGround
-        isVisible={showTrainingGround}
-        onClose={() => setShowTrainingGround(false)}
-        socket={socket}
-      />
+      {/* AI Training Ground - lazy loaded */}
+      {showTrainingGround && (
+        <Suspense fallback={null}>
+          <AITrainingGround
+            isVisible={showTrainingGround}
+            onClose={() => setShowTrainingGround(false)}
+            socket={socket}
+          />
+        </Suspense>
+      )}
 
-      {/* Victory Modal */}
-      <VictoryModal
-        isVisible={showVictoryModal}
-        gameResult={gameResult}
-        currentLevel={aiLevel}
-        aiPersonality={getCurrentAI().name}
-        onNextLevel={handleNextLevel}
-        onReplayLevel={handleReplayLevel}
-        onQuitToMenu={handleQuitToMenu}
-        playerStats={playerStats}
-      />
+      {/* Victory Modal - lazy loaded */}
+      {showVictoryModal && (
+        <Suspense fallback={null}>
+          <VictoryModal
+            isVisible={showVictoryModal}
+            gameResult={gameResult}
+            currentLevel={aiLevel}
+            aiPersonality={getCurrentAI().name}
+            onNextLevel={handleNextLevel}
+            onReplayLevel={handleReplayLevel}
+            onQuitToMenu={handleQuitToMenu}
+            playerStats={playerStats}
+          />
+        </Suspense>
+      )}
 
       {/* Mobile Menu Toggle */}
       <button
@@ -2014,7 +2045,7 @@ const App: React.FC = () => {
         </button>
       </div>
 
-      {/* Player Stats Panel */}
+      {/* Player Stats Panel - lazy loaded */}
       <AnimatePresence>
         {showPlayerStats && (
           <motion.div
@@ -2030,17 +2061,19 @@ const App: React.FC = () => {
               >
                 ×
               </button>
-              <PlayerStatsComponent
-                playerId="player"
-                isVisible={showPlayerStats}
-                onClose={() => setShowPlayerStats(false)}
-              />
+              <Suspense fallback={<div className="text-center py-8">Loading stats...</div>}>
+                <PlayerStatsComponent
+                  playerId="player"
+                  isVisible={showPlayerStats}
+                  onClose={() => setShowPlayerStats(false)}
+                />
+              </Suspense>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Move Explanation Panel */}
+      {/* Move Explanation Panel - lazy loaded */}
       <AnimatePresence>
         {showMoveExplanation && (
           <motion.div
@@ -2056,24 +2089,26 @@ const App: React.FC = () => {
               >
                 ×
               </button>
-              <MoveExplanationPanel
-                gameId={gameId || 'demo-game'}
-                move={selectedMoveIndex >= 0 ? selectedMoveIndex : (lastAnalyzedMove?.column ?? -1)}
-                player={selectedMoveIndex >= 0 ? 'player' : (lastAnalyzedMove?.player ?? 'player')}
-                boardState={board}
-                aiLevel={aiLevel}
-                isVisible={showMoveExplanation}
-                onClose={() => {
-                  setShowMoveExplanation(false);
-                  setSelectedMoveIndex(-1); // Reset selection when closing
-                }}
-              />
+              <Suspense fallback={<div className="text-center py-8">Loading analysis...</div>}>
+                <MoveExplanationPanel
+                  gameId={gameId || 'demo-game'}
+                  move={selectedMoveIndex >= 0 ? selectedMoveIndex : (lastAnalyzedMove?.column ?? -1)}
+                  player={selectedMoveIndex >= 0 ? 'player' : (lastAnalyzedMove?.player ?? 'player')}
+                  boardState={board}
+                  aiLevel={aiLevel}
+                  isVisible={showMoveExplanation}
+                  onClose={() => {
+                    setShowMoveExplanation(false);
+                    setSelectedMoveIndex(-1);
+                  }}
+                />
+              </Suspense>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Game History Panel */}
+      {/* Game History Panel - lazy loaded */}
       <AnimatePresence>
         {showGameHistory && (
           <motion.div
@@ -2089,17 +2124,19 @@ const App: React.FC = () => {
               >
                 ×
               </button>
-              <GameHistory
-                playerId={gameId || 'demo-user'}
-                isVisible={showGameHistory}
-                onClose={() => setShowGameHistory(false)}
-              />
+              <Suspense fallback={<div className="text-center py-8">Loading history...</div>}>
+                <GameHistory
+                  playerId={gameId || 'demo-user'}
+                  isVisible={showGameHistory}
+                  onClose={() => setShowGameHistory(false)}
+                />
+              </Suspense>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* User Settings Panel */}
+      {/* User Settings Panel - lazy loaded */}
       <AnimatePresence>
         {showUserSettings && (
           <motion.div
@@ -2115,23 +2152,27 @@ const App: React.FC = () => {
               >
                 ×
               </button>
-              <UserSettings playerId={gameId || 'demo-user'} />
+              <Suspense fallback={<div className="text-center py-8">Loading settings...</div>}>
+                <UserSettings playerId={gameId || 'demo-user'} />
+              </Suspense>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Move Analysis Modal */}
+      {/* Move Analysis Modal - lazy loaded */}
       <AnimatePresence>
         {showMoveAnalysis && (
-          <MoveAnalysis
-            boardState={board} // Board state
-            currentPlayer={currentPlayer === 'Red' ? 'player' : 'ai'} // Current player
-            aiLevel={aiLevel} // AI level
-            gameId={gameId} // Game ID 
-            isVisible={showMoveAnalysis} // Show move analysis
-            onClose={() => setShowMoveAnalysis(false)} // Close move analysis
-          />
+          <Suspense fallback={null}>
+            <MoveAnalysis
+              boardState={board}
+              currentPlayer={currentPlayer === 'Red' ? 'player' : 'ai'}
+              aiLevel={aiLevel}
+              gameId={gameId}
+              isVisible={showMoveAnalysis}
+              onClose={() => setShowMoveAnalysis(false)}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 
