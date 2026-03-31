@@ -1,7 +1,6 @@
 // src/App.tsx
 import React, { useState, useEffect, useRef, startTransition, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { injectSpeedInsights } from '@vercel/speed-insights';
 import Board from './components/core/Board';
 import LandingPage from './components/ui/LandingPage';
 import CoinToss, { type CoinResult, type CoinTossResult } from './components/game/CoinToss';
@@ -184,16 +183,10 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Initialize Speed Insights and deferred modules after first paint
+  // Load deferred modules after first paint
   useEffect(() => {
-    // Use requestIdleCallback (or setTimeout fallback) to defer non-critical init
     const deferInit = (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 200));
-    deferInit(() => {
-      if (process.env.NODE_ENV === 'production' && window.location.hostname !== 'localhost') {
-        injectSpeedInsights();
-      }
-      loadDeferredModules();
-    });
+    deferInit(() => loadDeferredModules());
   }, []);
 
   // Initialize integration monitoring - deferred until game starts
