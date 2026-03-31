@@ -15,7 +15,6 @@ import { MlModule } from '../ml/ml.module';
 import { AIIntegrationModule } from '../ai/ai-integration.module';
 import { AIGameIntegrationService } from '../ai/ai-game-integration.service';
 import { UnifiedAIIntegrationModule } from '../ai/unified/unified-ai-integration.module';
-import { AICoordinationModule } from '../ai/coordination/ai-coordination.module';
 import { OrganicAITimingService } from '../ai/organic-ai-timing.service';
 import { GameAIOrganicService } from './game-ai-organic.service';
 import { EventThrottle } from '../utils/event-throttle';
@@ -27,7 +26,6 @@ import { M1OptimizedModule } from '../ai/m1-optimized/m1-optimized.module';
     MlModule,
     AIIntegrationModule,
     UnifiedAIIntegrationModule,
-    AICoordinationModule, // ← Added AI Coordination Hub integration!
     M1OptimizedModule, // ← Import M1 optimized services and controllers
     EventEmitterModule.forRoot()
   ],
