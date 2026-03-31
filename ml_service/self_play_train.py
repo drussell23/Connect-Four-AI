@@ -1,548 +1,700 @@
 #!/usr/bin/env python3
 """
-AlphaZero-style Self-Play Training for Connect Four
-====================================================
+AlphaZero Self-Play Training for Connect Four
+==============================================
 
-Run locally on your Mac to improve the AI model:
+Usage:
+    python self_play_train.py                      # Default settings
+    python self_play_train.py --iterations 20      # More iterations
+    python self_play_train.py --games 100 --sims 200  # Harder training
+    python self_play_train.py --workers 4          # Parallel self-play
+    python self_play_train.py --fast                # Quick test run
 
-    cd ml_service
-    python self_play_train.py
-
-This script:
-1. Loads the current policy network
-2. Plays games against itself using MCTS + neural net guidance
-3. Trains the model on self-play data
-4. Saves the improved model
-5. Repeats for multiple iterations
-
-Each iteration the AI gets stronger by learning from its own games.
+All settings configurable via CLI args or environment variables.
 """
 
-import copy
+import argparse
 import math
 import os
 import random
 import sys
 import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# Add parent dir to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
-from src.policy_net import Connect4PolicyNet
+# ─── Model Architecture (matches saved weights exactly) ──────────────────────
 
-# ─── Game Constants ───────────────────────────────────────────────────────────
-ROWS = 6
-COLS = 7
-EMPTY = 0
-PLAYER1 = 1  # "Red" - first mover
-PLAYER2 = -1  # "Yellow" - AI
+class ResBlock(nn.Module):
+    """Residual block matching the trained model's architecture."""
+    def __init__(self, channels: int):
+        super().__init__()
+        self.conv1 = nn.Conv2d(channels, channels, 3, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(channels)
+        self.conv2 = nn.Conv2d(channels, channels, 3, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(channels)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        identity = x
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        return F.relu(out + identity)
 
 
-# ─── Connect Four Game Logic ─────────────────────────────────────────────────
-class Connect4:
-    """Fast Connect Four game state."""
+class Connect4Net(nn.Module):
+    """
+    Connect Four neural network with policy and value heads.
 
-    def __init__(self):
-        self.board = [[EMPTY] * COLS for _ in range(ROWS)]
-        self.current_player = PLAYER1
-        self.move_count = 0
+    Auto-detects architecture from saved weights or creates fresh model.
+    Supports both the legacy format (conv_in/res_blocks/fc1/fc2) and
+    the new format with explicit value head.
+    """
 
-    def copy(self) -> "Connect4":
-        g = Connect4()
-        g.board = [row[:] for row in self.board]
-        g.current_player = self.current_player
-        g.move_count = self.move_count
+    def __init__(self, channels: int = 64, num_blocks: int = 4):
+        super().__init__()
+        self.channels = channels
+
+        # Feature extraction
+        self.conv_in = nn.Conv2d(2, channels, 3, padding=1, bias=False)
+        self.bn_in = nn.BatchNorm2d(channels)
+        self.res_blocks = nn.ModuleList([ResBlock(channels) for _ in range(num_blocks)])
+
+        # Policy head (move selection)
+        self.fc1 = nn.Linear(channels, 128)
+        self.fc2 = nn.Linear(128, 7)
+
+        # Value head (position evaluation)
+        self.value_fc1 = nn.Linear(channels, 64)
+        self.value_fc2 = nn.Linear(64, 1)
+
+        self._init_weights()
+
+    def _init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
+                nn.init.constant_(m.bias, 0)
+
+    def _features(self, x: torch.Tensor) -> torch.Tensor:
+        x = F.relu(self.bn_in(self.conv_in(x)))
+        for block in self.res_blocks:
+            x = block(x)
+        return F.adaptive_avg_pool2d(x, 1).view(x.size(0), -1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Returns policy logits (7,)."""
+        feat = self._features(x)
+        return self.fc2(F.relu(self.fc1(feat)))
+
+    def forward_both(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Returns (policy_logits, value) for training."""
+        feat = self._features(x)
+        policy = self.fc2(F.relu(self.fc1(feat)))
+        value = torch.tanh(self.value_fc2(F.relu(self.value_fc1(feat))))
+        return policy, value
+
+    def get_value(self, x: torch.Tensor) -> float:
+        with torch.no_grad():
+            feat = self._features(x)
+            return torch.tanh(self.value_fc2(F.relu(self.value_fc1(feat)))).item()
+
+
+def load_model(path: Path, device: torch.device) -> Connect4Net:
+    """Load a model, auto-detecting architecture from the state dict."""
+    if not path.exists():
+        print(f"  No model found at {path}, starting fresh")
+        model = Connect4Net()
+        return model.to(device)
+
+    state_dict = torch.load(path, map_location="cpu", weights_only=True)
+
+    # Detect channel count from conv_in weight shape
+    if "conv_in.weight" in state_dict:
+        channels = state_dict["conv_in.weight"].shape[0]
+    elif "input_conv.weight" in state_dict:
+        channels = state_dict["input_conv.weight"].shape[0]
+    else:
+        channels = 64
+
+    # Detect block count
+    block_count = 0
+    while f"res_blocks.{block_count}.conv1.weight" in state_dict:
+        block_count += 1
+    if block_count == 0:
+        # Try alternate naming
+        while f"residual_blocks.{block_count}.conv1.weight" in state_dict:
+            block_count += 1
+    if block_count == 0:
+        block_count = 4
+
+    print(f"  Detected architecture: {channels} channels, {block_count} res blocks")
+    model = Connect4Net(channels=channels, num_blocks=block_count)
+
+    # Load compatible weights, skip mismatched
+    model_keys = set(model.state_dict().keys())
+    loaded = 0
+    skipped = 0
+    new_state = model.state_dict()
+
+    for key, tensor in state_dict.items():
+        if key in model_keys and new_state[key].shape == tensor.shape:
+            new_state[key] = tensor
+            loaded += 1
+        else:
+            skipped += 1
+
+    model.load_state_dict(new_state)
+    print(f"  Loaded {loaded} weight tensors, initialized {skipped} fresh")
+    return model.to(device)
+
+
+# ─── Game Engine ──────────────────────────────────────────────────────────────
+
+ROWS, COLS = 6, 7
+EMPTY, P1, P2 = 0, 1, -1
+
+
+@dataclass
+class GameState:
+    """Compact, fast Connect Four state."""
+    board: list = field(default_factory=lambda: [0] * 42)
+    heights: list = field(default_factory=lambda: [0] * 7)  # pieces per column
+    current: int = P1
+    moves: int = 0
+    last_row: int = -1
+    last_col: int = -1
+
+    def copy(self) -> "GameState":
+        g = GameState()
+        g.board = self.board[:]
+        g.heights = self.heights[:]
+        g.current = self.current
+        g.moves = self.moves
+        g.last_row = self.last_row
+        g.last_col = self.last_col
         return g
 
     def valid_moves(self) -> List[int]:
-        return [c for c in range(COLS) if self.board[0][c] == EMPTY]
+        return [c for c in range(COLS) if self.heights[c] < ROWS]
 
-    def drop(self, col: int) -> int:
-        """Drop a piece in column. Returns the row it landed on, or -1."""
-        for r in range(ROWS - 1, -1, -1):
-            if self.board[r][col] == EMPTY:
-                self.board[r][col] = self.current_player
-                self.move_count += 1
-                landed_row = r
-                self.current_player *= -1
-                return landed_row
-        return -1
+    def drop(self, col: int) -> bool:
+        """Drop piece, return True if move was valid."""
+        if self.heights[col] >= ROWS:
+            return False
+        row = ROWS - 1 - self.heights[col]
+        self.board[row * COLS + col] = self.current
+        self.heights[col] += 1
+        self.last_row = row
+        self.last_col = col
+        self.moves += 1
+        self.current *= -1
+        return True
 
-    def check_win(self, row: int, col: int) -> bool:
-        """Check if the piece at (row, col) is part of a 4-in-a-row."""
-        player = self.board[row][col]
+    def check_win(self) -> bool:
+        """Check if the last move created a 4-in-a-row."""
+        r, c = self.last_row, self.last_col
+        if r < 0:
+            return False
+        player = self.board[r * COLS + c]
         if player == EMPTY:
             return False
-        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
-        for dr, dc in directions:
+        for dr, dc in [(0, 1), (1, 0), (1, 1), (1, -1)]:
             count = 1
-            for sign in [1, -1]:
-                r, c = row + dr * sign, col + dc * sign
-                while 0 <= r < ROWS and 0 <= c < COLS and self.board[r][c] == player:
+            for sign in (1, -1):
+                nr, nc = r + dr * sign, c + dc * sign
+                while 0 <= nr < ROWS and 0 <= nc < COLS and self.board[nr * COLS + nc] == player:
                     count += 1
-                    r += dr * sign
-                    c += dc * sign
+                    nr += dr * sign
+                    nc += dc * sign
             if count >= 4:
                 return True
         return False
 
-    def is_draw(self) -> bool:
-        return self.move_count >= ROWS * COLS
+    def is_terminal(self) -> bool:
+        return self.check_win() or self.moves >= 42
 
     def to_tensor(self, perspective: int) -> torch.Tensor:
-        """Convert board to 2-channel tensor from a player's perspective.
-        Channel 0: current player's pieces, Channel 1: opponent's pieces."""
-        mine = [[0.0] * COLS for _ in range(ROWS)]
-        theirs = [[0.0] * COLS for _ in range(ROWS)]
-        for r in range(ROWS):
-            for c in range(COLS):
-                if self.board[r][c] == perspective:
-                    mine[r][c] = 1.0
-                elif self.board[r][c] == -perspective:
-                    theirs[r][c] = 1.0
-        return torch.tensor([mine, theirs], dtype=torch.float32).unsqueeze(0)
+        """2-channel tensor: [my_pieces, opponent_pieces]."""
+        mine = [0.0] * 42
+        theirs = [0.0] * 42
+        for i in range(42):
+            if self.board[i] == perspective:
+                mine[i] = 1.0
+            elif self.board[i] == -perspective:
+                theirs[i] = 1.0
+        t = torch.tensor([mine, theirs], dtype=torch.float32).view(1, 2, ROWS, COLS)
+        return t
 
 
 # ─── MCTS ─────────────────────────────────────────────────────────────────────
-class MCTSNode:
-    __slots__ = ["parent", "action", "prior", "visit_count", "value_sum", "children"]
 
-    def __init__(self, parent: Optional["MCTSNode"], action: int, prior: float):
+class Node:
+    __slots__ = ("parent", "action", "prior", "visits", "value_sum", "children")
+
+    def __init__(self, parent: Optional["Node"], action: int, prior: float):
         self.parent = parent
         self.action = action
         self.prior = prior
-        self.visit_count = 0
+        self.visits = 0
         self.value_sum = 0.0
-        self.children: List[MCTSNode] = []
+        self.children: Optional[List["Node"]] = None
 
-    def q_value(self) -> float:
-        if self.visit_count == 0:
-            return 0.0
-        return self.value_sum / self.visit_count
+    def q(self) -> float:
+        return self.value_sum / self.visits if self.visits > 0 else 0.0
 
-    def ucb_score(self, c_puct: float) -> float:
-        parent_visits = self.parent.visit_count if self.parent else 1
-        exploration = c_puct * self.prior * math.sqrt(parent_visits) / (1 + self.visit_count)
-        return self.q_value() + exploration
+    def ucb(self, c_puct: float) -> float:
+        parent_n = self.parent.visits if self.parent else 1
+        return self.q() + c_puct * self.prior * math.sqrt(parent_n) / (1 + self.visits)
+
+    def select_child(self, c_puct: float) -> "Node":
+        return max(self.children, key=lambda n: n.ucb(c_puct))
 
     def is_leaf(self) -> bool:
-        return len(self.children) == 0
+        return self.children is None
 
 
-def mcts_search(
-    game: Connect4,
+def run_mcts(
+    game: GameState,
     model: nn.Module,
-    num_simulations: int,
-    c_puct: float = 1.5,
-    device: torch.device = torch.device("cpu"),
+    num_sims: int,
+    c_puct: float,
+    device: torch.device,
+    add_noise: bool = True,
+    noise_alpha: float = 0.3,
+    noise_frac: float = 0.25,
 ) -> List[float]:
-    """Run MCTS and return visit-count-based policy for the current position."""
-    root = MCTSNode(parent=None, action=-1, prior=1.0)
+    """MCTS search returning visit-count policy."""
+    root = Node(None, -1, 1.0)
+    _expand(root, game, model, device)
 
-    # Expand root
-    _expand_node(root, game, model, device)
+    # Add Dirichlet noise at root for exploration
+    if add_noise and root.children:
+        noise = torch.distributions.Dirichlet(
+            torch.full((len(root.children),), noise_alpha)
+        ).sample().tolist()
+        for child, n in zip(root.children, noise):
+            child.prior = (1 - noise_frac) * child.prior + noise_frac * n
 
-    for _ in range(num_simulations):
+    for _ in range(num_sims):
         node = root
-        sim_game = game.copy()
+        sim = game.copy()
 
-        # SELECT: walk down tree using UCB
+        # Select
         while not node.is_leaf():
-            best = max(node.children, key=lambda n: n.ucb_score(c_puct))
-            row = sim_game.drop(best.action)
-            node = best
-
-            # Terminal check
-            if row >= 0 and sim_game.check_win(row, best.action):
-                # The player who just moved won — that's sim_game.current_player * -1
-                _backpropagate(node, -1.0)  # Loss for current player at this node
+            node = node.select_child(c_puct)
+            sim.drop(node.action)
+            if sim.check_win():
+                _backprop(node, -1.0)
                 break
-            if sim_game.is_draw():
-                _backpropagate(node, 0.0)
+            if sim.moves >= 42:
+                _backprop(node, 0.0)
                 break
         else:
-            # EXPAND & EVALUATE
-            value = _expand_node(node, sim_game, model, device)
-            _backpropagate(node, value)
+            # Expand & evaluate
+            if sim.is_terminal():
+                _backprop(node, 0.0)
+            else:
+                value = _expand(node, sim, model, device)
+                _backprop(node, value)
 
-    # Build policy from visit counts
-    total_visits = sum(c.visit_count for c in root.children)
-    if total_visits == 0:
-        valid = game.valid_moves()
-        return [1.0 / len(valid) if c in valid else 0.0 for c in range(COLS)]
-
+    # Extract policy
     policy = [0.0] * COLS
-    for child in root.children:
-        policy[child.action] = child.visit_count / total_visits
+    if root.children:
+        total = sum(c.visits for c in root.children)
+        if total > 0:
+            for c in root.children:
+                policy[c.action] = c.visits / total
     return policy
 
 
-def _expand_node(
-    node: MCTSNode,
-    game: Connect4,
-    model: nn.Module,
-    device: torch.device,
-) -> float:
-    """Expand a leaf node using the neural network. Returns value estimate."""
-    valid_moves = game.valid_moves()
-    if not valid_moves:
-        return 0.0  # Draw
+def _expand(node: Node, game: GameState, model: nn.Module, device: torch.device) -> float:
+    """Expand leaf, return value estimate."""
+    valid = game.valid_moves()
+    if not valid:
+        return 0.0
 
-    board_tensor = game.to_tensor(game.current_player).to(device)
-
+    tensor = game.to_tensor(game.current).to(device)
     with torch.no_grad():
-        logits = model(board_tensor)[0]  # (7,)
-        probs = F.softmax(logits, dim=0).cpu().numpy()
-
-        # Value estimate from value head
+        logits = model(tensor)[0].cpu()
         try:
-            value = model.get_value_estimate(board_tensor)
+            value = model.get_value(tensor)
         except Exception:
             value = 0.0
 
-    # Mask invalid moves and renormalize
-    for c in range(COLS):
-        if c not in valid_moves:
-            probs[c] = 0.0
-    prob_sum = probs.sum()
-    if prob_sum > 0:
-        probs /= prob_sum
+    # Mask and normalize
+    probs = F.softmax(logits, dim=0).numpy()
+    mask = [1.0 if c in valid else 0.0 for c in range(COLS)]
+    probs = probs * mask
+    s = probs.sum()
+    if s > 0:
+        probs /= s
     else:
-        probs = [1.0 / len(valid_moves) if c in valid_moves else 0.0 for c in range(COLS)]
+        probs = [m / sum(mask) for m in mask]
 
-    # Create children
-    for col in valid_moves:
-        child = MCTSNode(parent=node, action=col, prior=float(probs[col]))
-        node.children.append(child)
-
+    node.children = [Node(node, col, float(probs[col])) for col in valid]
     return value
 
 
-def _backpropagate(node: MCTSNode, value: float):
-    """Propagate value back up the tree, flipping sign at each level."""
+def _backprop(node: Node, value: float):
     while node is not None:
-        node.visit_count += 1
+        node.visits += 1
         node.value_sum += value
-        value = -value  # Flip for opponent
+        value = -value
         node = node.parent
 
 
-# ─── Self-Play ────────────────────────────────────────────────────────────────
-def play_one_game(
-    model: nn.Module,
-    num_simulations: int = 100,
-    temperature: float = 1.0,
-    temp_threshold: int = 12,
-    device: torch.device = torch.device("cpu"),
-) -> List[Tuple[torch.Tensor, List[float], int]]:
-    """Play a full game of self-play. Returns list of (board_tensor, policy, outcome)."""
-    game = Connect4()
-    history = []  # (board_tensor, mcts_policy, player_at_that_turn)
+# ─── Self-Play Worker ─────────────────────────────────────────────────────────
 
-    while True:
-        # Run MCTS from current position
-        policy = mcts_search(game, model, num_simulations, device=device)
+def _self_play_worker(args: tuple) -> List[Tuple[list, list, float]]:
+    """Worker function for parallel self-play. Returns serializable data."""
+    model_state, num_games, num_sims, c_puct, temperature, temp_drop, channels, num_blocks = args
 
-        # Store training data (from current player's perspective)
-        board_tensor = game.to_tensor(game.current_player)
-        history.append((board_tensor, policy, game.current_player))
+    # Reconstruct model in this process
+    device = torch.device("cpu")  # Workers use CPU for safety
+    model = Connect4Net(channels=channels, num_blocks=num_blocks)
+    model.load_state_dict(model_state)
+    model.to(device)
+    model.eval()
 
-        # Select move
-        if game.move_count < temp_threshold and temperature > 0:
-            # Sample proportional to visit counts (with temperature)
-            adjusted = [p ** (1.0 / temperature) for p in policy]
-            total = sum(adjusted)
-            adjusted = [p / total for p in adjusted]
-            col = random.choices(range(COLS), weights=adjusted, k=1)[0]
-        else:
-            # Greedy
-            col = max(range(COLS), key=lambda c: policy[c])
+    all_data = []
 
-        row = game.drop(col)
+    for _ in range(num_games):
+        game = GameState()
+        history = []
 
-        # Check terminal
-        if row >= 0 and game.check_win(row, col):
-            winner = -game.current_player  # Player who just moved
-            break
-        if game.is_draw():
-            winner = EMPTY
-            break
+        while not game.is_terminal():
+            policy = run_mcts(
+                game, model, num_sims, c_puct, device,
+                add_noise=True,
+            )
+            tensor_data = game.to_tensor(game.current).squeeze(0).tolist()
+            history.append((tensor_data, policy, game.current))
 
-    # Assign outcomes: +1 if you won, -1 if you lost, 0 if draw
-    training_data = []
-    for board_tensor, policy, player in history:
-        if winner == EMPTY:
-            outcome = 0.0
-        elif winner == player:
-            outcome = 1.0
-        else:
-            outcome = -1.0
-        training_data.append((board_tensor, policy, outcome))
+            # Temperature-based move selection
+            if game.moves < temp_drop and temperature > 0:
+                adj = [p ** (1.0 / max(temperature, 0.01)) for p in policy]
+                total = sum(adj)
+                adj = [p / total for p in adj]
+                col = random.choices(range(COLS), weights=adj, k=1)[0]
+            else:
+                col = max(range(COLS), key=lambda c: policy[c])
 
-    return training_data
+            game.drop(col)
+
+        # Determine winner
+        winner = 0
+        if game.check_win():
+            winner = -game.current  # current already flipped after last drop
+
+        for tensor_data, policy, player in history:
+            if winner == 0:
+                outcome = 0.0
+            elif winner == player:
+                outcome = 1.0
+            else:
+                outcome = -1.0
+            all_data.append((tensor_data, policy, outcome))
+
+    return all_data
 
 
 # ─── Training ─────────────────────────────────────────────────────────────────
-def train_on_data(
-    model: nn.Module,
-    training_data: List[Tuple[torch.Tensor, List[float], float]],
+
+def train_step(
+    model: Connect4Net,
+    data: List[Tuple[list, list, float]],
     optimizer: torch.optim.Optimizer,
-    batch_size: int = 64,
-    device: torch.device = torch.device("cpu"),
-) -> dict:
-    """Train the model on self-play data. Returns loss metrics."""
-    random.shuffle(training_data)
+    batch_size: int,
+    device: torch.device,
+) -> Dict[str, float]:
+    """Train on self-play data. Returns loss metrics."""
+    random.shuffle(data)
     model.train()
 
     total_policy_loss = 0.0
     total_value_loss = 0.0
-    num_batches = 0
+    batches = 0
 
-    for i in range(0, len(training_data), batch_size):
-        batch = training_data[i : i + batch_size]
-        if len(batch) < 4:
+    for i in range(0, len(data), batch_size):
+        batch = data[i: i + batch_size]
+        if len(batch) < 2:
             continue
 
-        boards = torch.cat([b for b, _, _ in batch], dim=0).to(device)
-        target_policies = torch.tensor([p for _, p, _ in batch], dtype=torch.float32).to(device)
-        target_values = torch.tensor([[v] for _, _, v in batch], dtype=torch.float32).to(device)
+        boards = torch.tensor([b for b, _, _ in batch], dtype=torch.float32).to(device)
+        target_pi = torch.tensor([p for _, p, _ in batch], dtype=torch.float32).to(device)
+        target_v = torch.tensor([[v] for _, _, v in batch], dtype=torch.float32).to(device)
 
-        # Forward pass — policy
-        policy_logits = model(boards)
+        policy_logits, value = model.forward_both(boards)
+
+        # Policy loss: cross-entropy with MCTS visit distribution
         log_probs = F.log_softmax(policy_logits, dim=1)
-        policy_loss = -(target_policies * log_probs).sum(dim=1).mean()
+        policy_loss = -(target_pi * log_probs).sum(dim=1).mean()
 
-        # Forward pass — value
-        # Get value from the value head
-        features = model.input_conv(boards)
-        features = model.input_bn(features)
-        features = F.relu(features)
-        for block in model.residual_blocks:
-            features = block(features)
-        value = model.value_conv(features)
-        value = model.value_bn(value)
-        value = F.relu(value)
-        value = value.view(value.size(0), -1)
-        value = model.dropout(value)
-        value = F.relu(model.value_fc1(value))
-        value = torch.tanh(model.value_fc2(value))
+        # Value loss: MSE
+        value_loss = F.mse_loss(value, target_v)
 
-        value_loss = F.mse_loss(value, target_values)
-
-        # Combined loss
         loss = policy_loss + value_loss
 
         optimizer.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
 
         total_policy_loss += policy_loss.item()
         total_value_loss += value_loss.item()
-        num_batches += 1
+        batches += 1
 
     model.eval()
 
-    if num_batches == 0:
-        return {"policy_loss": 0, "value_loss": 0, "batches": 0}
-
     return {
-        "policy_loss": total_policy_loss / num_batches,
-        "value_loss": total_value_loss / num_batches,
-        "batches": num_batches,
+        "policy_loss": total_policy_loss / max(batches, 1),
+        "value_loss": total_value_loss / max(batches, 1),
+        "total_loss": (total_policy_loss + total_value_loss) / max(batches, 1),
+        "batches": batches,
     }
 
 
 # ─── Evaluation ───────────────────────────────────────────────────────────────
-def evaluate_models(
-    model_a: nn.Module,
-    model_b: nn.Module,
-    num_games: int = 20,
-    num_simulations: int = 50,
-    device: torch.device = torch.device("cpu"),
-) -> dict:
-    """Play model_a vs model_b and return win rates."""
-    wins_a, wins_b, draws = 0, 0, 0
 
-    for game_idx in range(num_games):
-        game = Connect4()
-        # Alternate who goes first
-        models = {PLAYER1: model_a, PLAYER2: model_b} if game_idx % 2 == 0 else {PLAYER1: model_b, PLAYER2: model_a}
-        a_player = PLAYER1 if game_idx % 2 == 0 else PLAYER2
+def evaluate(
+    new_model: Connect4Net,
+    old_model: Connect4Net,
+    num_games: int,
+    num_sims: int,
+    device: torch.device,
+) -> Dict[str, float]:
+    """Pit new model vs old model."""
+    new_wins, old_wins, draws = 0, 0, 0
 
-        while True:
-            current_model = models[game.current_player]
-            policy = mcts_search(game, current_model, num_simulations, device=device)
+    for g in range(num_games):
+        game = GameState()
+        # Alternate starting player
+        models = {P1: new_model, P2: old_model} if g % 2 == 0 else {P1: old_model, P2: new_model}
+        new_is = P1 if g % 2 == 0 else P2
+
+        while not game.is_terminal():
+            m = models[game.current]
+            policy = run_mcts(game, m, num_sims, 1.5, device, add_noise=False)
             col = max(range(COLS), key=lambda c: policy[c])
-            row = game.drop(col)
+            game.drop(col)
 
-            if row >= 0 and game.check_win(row, col):
-                winner = -game.current_player
-                if winner == a_player:
-                    wins_a += 1
-                else:
-                    wins_b += 1
-                break
-            if game.is_draw():
-                draws += 1
-                break
+        if game.check_win():
+            winner = -game.current
+            if winner == new_is:
+                new_wins += 1
+            else:
+                old_wins += 1
+        else:
+            draws += 1
 
     return {
-        "new_wins": wins_a,
-        "old_wins": wins_b,
+        "new_wins": new_wins,
+        "old_wins": old_wins,
         "draws": draws,
-        "new_win_rate": wins_a / num_games,
+        "new_win_rate": new_wins / max(num_games, 1),
     }
 
 
-# ─── Main Training Loop ──────────────────────────────────────────────────────
+# ─── CLI & Config ─────────────────────────────────────────────────────────────
+
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="AlphaZero self-play training for Connect Four")
+
+    p.add_argument("--iterations", type=int,
+                   default=int(os.getenv("TRAIN_ITERATIONS", "10")),
+                   help="Training iterations (default: 10)")
+    p.add_argument("--games", type=int,
+                   default=int(os.getenv("TRAIN_GAMES", "50")),
+                   help="Self-play games per iteration (default: 50)")
+    p.add_argument("--sims", type=int,
+                   default=int(os.getenv("MCTS_SIMS", "100")),
+                   help="MCTS simulations per move (default: 100)")
+    p.add_argument("--eval-games", type=int,
+                   default=int(os.getenv("EVAL_GAMES", "20")),
+                   help="Evaluation games per iteration (default: 20)")
+    p.add_argument("--batch-size", type=int,
+                   default=int(os.getenv("BATCH_SIZE", "64")),
+                   help="Training batch size (default: 64)")
+    p.add_argument("--lr", type=float,
+                   default=float(os.getenv("LEARNING_RATE", "0.001")),
+                   help="Learning rate (default: 0.001)")
+    p.add_argument("--c-puct", type=float,
+                   default=float(os.getenv("C_PUCT", "1.5")),
+                   help="MCTS exploration constant (default: 1.5)")
+    p.add_argument("--temperature", type=float,
+                   default=float(os.getenv("TEMPERATURE", "1.0")),
+                   help="Move selection temperature (default: 1.0)")
+    p.add_argument("--temp-drop", type=int,
+                   default=int(os.getenv("TEMP_DROP", "12")),
+                   help="Switch to greedy after N moves (default: 12)")
+    p.add_argument("--win-threshold", type=float,
+                   default=float(os.getenv("WIN_THRESHOLD", "0.55")),
+                   help="Win rate threshold to accept new model (default: 0.55)")
+    p.add_argument("--workers", type=int,
+                   default=int(os.getenv("TRAIN_WORKERS", "1")),
+                   help="Parallel self-play workers (default: 1)")
+    p.add_argument("--model-dir", type=str,
+                   default=os.getenv("MODEL_DIR", str(Path(__file__).parent / "models")),
+                   help="Model directory")
+    p.add_argument("--fast", action="store_true",
+                   help="Quick test run (5 iters, 10 games, 30 sims)")
+
+    return p.parse_args()
+
+
+# ─── Main ─────────────────────────────────────────────────────────────────────
+
 def main():
-    # Configuration
-    NUM_ITERATIONS = 10       # Training iterations
-    GAMES_PER_ITERATION = 50  # Self-play games per iteration
-    MCTS_SIMULATIONS = 100    # MCTS simulations per move
-    EVAL_GAMES = 20           # Evaluation games between old and new model
-    BATCH_SIZE = 64
-    LEARNING_RATE = 1e-3
-    TEMPERATURE = 1.0
-    TEMP_THRESHOLD = 12       # Switch to greedy after this many moves
-    WIN_THRESHOLD = 0.55      # New model must win >55% to replace old
+    args = parse_args()
 
-    # Paths
-    model_dir = Path(__file__).parent / "models"
-    model_path = model_dir / "policy_net.pt"
-    best_model_path = model_dir / "best_policy_net.pt"
+    if args.fast:
+        args.iterations = 5
+        args.games = 10
+        args.sims = 30
+        args.eval_games = 10
 
-    # Device
+    # Device selection
     if torch.backends.mps.is_available():
-        device = torch.device("mps")  # Apple Silicon GPU
-        print(f"Using Apple Silicon GPU (MPS)")
+        device = torch.device("mps")
+        device_name = "Apple Silicon GPU (MPS)"
     elif torch.cuda.is_available():
         device = torch.device("cuda")
-        print(f"Using CUDA GPU")
+        device_name = f"CUDA ({torch.cuda.get_device_name()})"
     else:
         device = torch.device("cpu")
-        print(f"Using CPU")
+        device_name = "CPU"
 
-    # Load or create model
-    model = Connect4PolicyNet()
-    if model_path.exists():
-        model.load_state_dict(torch.load(model_path, map_location="cpu", weights_only=True))
-        print(f"Loaded existing model from {model_path}")
-    else:
-        print("Starting with fresh model")
-    model = model.to(device)
+    # Paths
+    model_dir = Path(args.model_dir)
+    model_dir.mkdir(parents=True, exist_ok=True)
+    model_path = model_dir / "policy_net.pt"
+    best_path = model_dir / "best_policy_net.pt"
+
+    # Load model
+    print(f"\n{'='*60}")
+    print(f"  AlphaZero Self-Play Training")
+    print(f"{'='*60}")
+    print(f"  Device:          {device_name}")
+
+    model = load_model(model_path, device)
     model.eval()
 
-    # Keep a copy of the best model for evaluation
-    best_model = Connect4PolicyNet()
-    best_model.load_state_dict(model.state_dict())
-    best_model = best_model.to(device)
-    best_model.eval()
-
-    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=1e-4)
-
-    print(f"\n{'='*60}")
-    print(f"  AlphaZero Self-Play Training for Connect Four")
-    print(f"{'='*60}")
-    print(f"  Iterations:      {NUM_ITERATIONS}")
-    print(f"  Games/iteration: {GAMES_PER_ITERATION}")
-    print(f"  MCTS sims/move:  {MCTS_SIMULATIONS}")
-    print(f"  Device:          {device}")
-    print(f"  Model params:    {sum(p.numel() for p in model.parameters()):,}")
+    params = sum(p.numel() for p in model.parameters())
+    print(f"  Model params:    {params:,}")
+    print(f"  Iterations:      {args.iterations}")
+    print(f"  Games/iter:      {args.games}")
+    print(f"  MCTS sims/move:  {args.sims}")
+    print(f"  Workers:         {args.workers}")
+    print(f"  Learning rate:   {args.lr}")
+    print(f"  C_PUCT:          {args.c_puct}")
+    print(f"  Win threshold:   {args.win_threshold:.0%}")
     print(f"{'='*60}\n")
 
-    all_training_data = []
+    # Best model copy
+    best_model = Connect4Net(channels=model.channels, num_blocks=len(model.res_blocks))
+    best_model.load_state_dict(model.state_dict())
+    best_model.to(device).eval()
 
-    for iteration in range(1, NUM_ITERATIONS + 1):
-        iter_start = time.time()
-        print(f"\n--- Iteration {iteration}/{NUM_ITERATIONS} ---")
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=1e-4)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=args.iterations, eta_min=args.lr * 0.1
+    )
 
-        # Phase 1: Self-play
-        print(f"  Self-play: generating {GAMES_PER_ITERATION} games...")
-        iteration_data = []
-        outcomes = {"p1_wins": 0, "p2_wins": 0, "draws": 0}
+    replay_buffer: List[Tuple[list, list, float]] = []
+    max_buffer = args.games * 42 * 3  # ~3 iterations of data
+    accepted_count = 0
 
-        for g in range(GAMES_PER_ITERATION):
-            game_data = play_one_game(
-                model,
-                num_simulations=MCTS_SIMULATIONS,
-                temperature=TEMPERATURE,
-                temp_threshold=TEMP_THRESHOLD,
-                device=device,
-            )
-            iteration_data.extend(game_data)
+    for iteration in range(1, args.iterations + 1):
+        t0 = time.time()
+        print(f"--- Iteration {iteration}/{args.iterations} (lr={optimizer.param_groups[0]['lr']:.6f}) ---")
 
-            # Track outcomes
-            if game_data:
-                final_outcome = game_data[-1][2]
-                if final_outcome > 0:
-                    outcomes["p1_wins"] += 1
-                elif final_outcome < 0:
-                    outcomes["p2_wins"] += 1
-                else:
-                    outcomes["draws"] += 1
+        # ── Phase 1: Self-play ───────────────────────────────────────────
+        print(f"  Self-play: {args.games} games, {args.sims} sims/move", end="", flush=True)
 
-            if (g + 1) % 10 == 0:
-                elapsed = time.time() - iter_start
-                rate = (g + 1) / elapsed
-                print(f"    Game {g+1}/{GAMES_PER_ITERATION} ({rate:.1f} games/sec)")
+        if args.workers > 1:
+            # Parallel self-play
+            games_per_worker = [args.games // args.workers] * args.workers
+            remainder = args.games % args.workers
+            for i in range(remainder):
+                games_per_worker[i] += 1
 
-        print(f"  Self-play done: {len(iteration_data)} positions, "
-              f"P1 wins={outcomes['p1_wins']}, P2 wins={outcomes['p2_wins']}, "
-              f"Draws={outcomes['draws']}")
+            model_state = model.state_dict()
+            worker_args = [
+                (model_state, gpw, args.sims, args.c_puct,
+                 args.temperature, args.temp_drop, model.channels, len(model.res_blocks))
+                for gpw in games_per_worker if gpw > 0
+            ]
 
-        # Keep a sliding window of training data
-        all_training_data.extend(iteration_data)
-        max_buffer = GAMES_PER_ITERATION * 42 * 3  # ~3 iterations worth
-        if len(all_training_data) > max_buffer:
-            all_training_data = all_training_data[-max_buffer:]
-
-        # Phase 2: Training
-        print(f"  Training on {len(all_training_data)} positions...")
-        metrics = train_on_data(model, all_training_data, optimizer, BATCH_SIZE, device)
-        print(f"  Loss: policy={metrics['policy_loss']:.4f}, "
-              f"value={metrics['value_loss']:.4f} ({metrics['batches']} batches)")
-
-        # Phase 3: Evaluation against previous best
-        print(f"  Evaluating new model vs best model ({EVAL_GAMES} games)...")
-        eval_result = evaluate_models(model, best_model, EVAL_GAMES, MCTS_SIMULATIONS // 2, device)
-        print(f"  Result: new={eval_result['new_wins']}, "
-              f"old={eval_result['old_wins']}, draws={eval_result['draws']} "
-              f"(win rate: {eval_result['new_win_rate']:.1%})")
-
-        # Phase 4: Model selection
-        if eval_result["new_win_rate"] >= WIN_THRESHOLD:
-            print(f"  New model accepted! Saving as best model.")
-            best_model.load_state_dict(model.state_dict())
-            torch.save(model.state_dict(), best_model_path)
-            torch.save(model.state_dict(), model_path)
+            iteration_data = []
+            with ProcessPoolExecutor(max_workers=args.workers) as pool:
+                futures = [pool.submit(_self_play_worker, wa) for wa in worker_args]
+                for future in as_completed(futures):
+                    iteration_data.extend(future.result())
         else:
-            print(f"  New model rejected (below {WIN_THRESHOLD:.0%} threshold). Keeping best.")
-            # Revert to best model but continue training from it
+            # Single-process self-play
+            model_state = model.state_dict()
+            iteration_data = _self_play_worker(
+                (model_state, args.games, args.sims, args.c_puct,
+                 args.temperature, args.temp_drop, model.channels, len(model.res_blocks))
+            )
+
+        elapsed = time.time() - t0
+        print(f" -> {len(iteration_data)} positions in {elapsed:.0f}s "
+              f"({args.games / elapsed:.1f} games/sec)")
+
+        # Add to replay buffer
+        replay_buffer.extend(iteration_data)
+        if len(replay_buffer) > max_buffer:
+            replay_buffer = replay_buffer[-max_buffer:]
+
+        # ── Phase 2: Training ────────────────────────────────────────────
+        print(f"  Training on {len(replay_buffer)} positions...", end="", flush=True)
+        metrics = train_step(model, replay_buffer, optimizer, args.batch_size, device)
+        scheduler.step()
+        print(f" -> policy={metrics['policy_loss']:.4f} value={metrics['value_loss']:.4f}")
+
+        # ── Phase 3: Evaluation ──────────────────────────────────────────
+        print(f"  Evaluating ({args.eval_games} games)...", end="", flush=True)
+        result = evaluate(model, best_model, args.eval_games, args.sims // 2, device)
+        print(f" -> new={result['new_wins']} old={result['old_wins']} "
+              f"draw={result['draws']} ({result['new_win_rate']:.0%})")
+
+        # ── Phase 4: Model selection ─────────────────────────────────────
+        if result["new_win_rate"] >= args.win_threshold:
+            best_model.load_state_dict(model.state_dict())
+            torch.save(model.state_dict(), best_path)
+            torch.save(model.state_dict(), model_path)
+            accepted_count += 1
+            print(f"  ACCEPTED ({accepted_count} total)")
+        else:
             model.load_state_dict(best_model.state_dict())
+            print(f"  rejected (below {args.win_threshold:.0%})")
 
-        iter_time = time.time() - iter_start
-        print(f"  Iteration time: {iter_time:.0f}s")
+        total_time = time.time() - t0
+        print(f"  Time: {total_time:.0f}s\n")
 
-    # Final save
+    # ── Save final model ─────────────────────────────────────────────────
     torch.save(best_model.state_dict(), model_path)
-    torch.save(best_model.state_dict(), best_model_path)
+    torch.save(best_model.state_dict(), best_path)
 
-    # Also copy to the repo root models/ directory
     root_models = Path(__file__).parent.parent / "models"
     if root_models.exists():
         torch.save(best_model.state_dict(), root_models / "best_policy_net.pt")
         torch.save(best_model.state_dict(), root_models / "current_policy_net.pt")
-        print(f"\nModel also saved to {root_models}/")
+        print(f"Model saved to {root_models}/")
 
-    print(f"\nTraining complete! Best model saved to {model_path}")
-    print(f"Deploy by pushing to GitHub and restarting the Render ML service.")
+    print(f"\nDone! {accepted_count}/{args.iterations} iterations improved the model.")
+    print(f"Model saved to {model_path}")
 
 
 if __name__ == "__main__":
