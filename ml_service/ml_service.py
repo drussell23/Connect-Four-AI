@@ -1293,6 +1293,136 @@ async def get_stats(_: bool = Depends(verify_api_key)):
 
 
 # -----------------------------------------------------------------------------
+# Online Learning Endpoint
+# -----------------------------------------------------------------------------
+class LearnRequest(BaseModel):
+    """Request for online learning from game outcome"""
+    game_id: str = Field(..., description="Unique game identifier")
+    outcome: str = Field(..., description="Game outcome: win, loss, or draw")
+    board_states: List[List[List[str]]] = Field(..., description="Sequence of board states")
+    moves: List[int] = Field(..., description="Sequence of AI moves (column indices)")
+    ai_level: int = Field(5, description="AI difficulty level")
+    loss_pattern: Optional[Dict[str, Any]] = Field(None, description="Detected loss pattern")
+
+
+# In-memory experience buffer for batch learning
+_experience_buffer: List[Dict[str, Any]] = []
+_BUFFER_CAPACITY = 64
+_LEARN_BATCH_SIZE = 16
+_LEARNING_RATE = 1e-4
+
+
+@app.post("/learn")
+async def learn_from_game(req: LearnRequest, background_tasks: BackgroundTasks):
+    """Accept game data and train the model in the background"""
+    global _experience_buffer
+
+    # Convert board states to tensors and pair with moves
+    experiences = []
+    for i, (board, move) in enumerate(zip(req.board_states, req.moves)):
+        try:
+            tensor = InferenceEngine.convert_board_to_tensor(board)
+            # Weight losses higher than wins, and later moves higher than early
+            weight = 1.0
+            if req.outcome == "loss":
+                weight = 2.0
+            elif req.outcome == "draw":
+                weight = 0.5
+            # Later moves matter more (closer to the outcome)
+            position_weight = 0.5 + 0.5 * (i / max(len(req.moves) - 1, 1))
+            experiences.append({
+                "tensor": tensor,
+                "move": move,
+                "outcome": req.outcome,
+                "weight": weight * position_weight,
+            })
+        except Exception:
+            continue
+
+    if not experiences:
+        return {"status": "skipped", "reason": "no valid board states"}
+
+    _experience_buffer.extend(experiences)
+
+    # Train when buffer is full enough
+    trained = False
+    if len(_experience_buffer) >= _LEARN_BATCH_SIZE:
+        background_tasks.add_task(_train_on_buffer)
+        trained = True
+
+    # Trim buffer if it exceeds capacity
+    if len(_experience_buffer) > _BUFFER_CAPACITY:
+        _experience_buffer = _experience_buffer[-_BUFFER_CAPACITY:]
+
+    return {
+        "status": "accepted",
+        "experiences_added": len(experiences),
+        "buffer_size": len(_experience_buffer),
+        "training_triggered": trained,
+        "game_id": req.game_id,
+    }
+
+
+async def _train_on_buffer():
+    """Train the model on buffered experiences"""
+    global _experience_buffer
+
+    if len(_experience_buffer) < _LEARN_BATCH_SIZE:
+        return
+
+    try:
+        model = await model_manager.get_model(config.DEFAULT_MODEL_TYPE)
+        model.train()
+
+        optimizer = torch.optim.Adam(model.parameters(), lr=_LEARNING_RATE)
+
+        # Sample a batch
+        batch = _experience_buffer[:_LEARN_BATCH_SIZE]
+        _experience_buffer = _experience_buffer[_LEARN_BATCH_SIZE:]
+
+        # Stack tensors and targets
+        board_tensors = torch.cat([exp["tensor"] for exp in batch], dim=0)
+        target_moves = torch.tensor(
+            [exp["move"] for exp in batch], dtype=torch.long, device=config.DEVICE
+        )
+        weights = torch.tensor(
+            [exp["weight"] for exp in batch], dtype=torch.float32, device=config.DEVICE
+        )
+
+        # Forward pass
+        logits = model(board_tensors)
+        loss = F.cross_entropy(logits, target_moves, reduction="none")
+        weighted_loss = (loss * weights).mean()
+
+        # Backward pass
+        optimizer.zero_grad()
+        weighted_loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        optimizer.step()
+
+        model.eval()
+
+        # Save updated model
+        model_path = Path(os.getenv("MODEL_PATH", "models")) / "policy_net.pt"
+        torch.save(model.state_dict(), model_path)
+
+        logger.info(
+            "Online learning step completed",
+            batch_size=len(batch),
+            loss=weighted_loss.item(),
+        )
+
+    except Exception as e:
+        logger.error("Online learning failed", error=str(e))
+        # Ensure model is back in eval mode
+        try:
+            model = await model_manager.get_model(config.DEFAULT_MODEL_TYPE)
+            model.eval()
+        except Exception:
+            pass
+
+
+# -----------------------------------------------------------------------------
 # Error Handlers
 # -----------------------------------------------------------------------------
 @app.exception_handler(HTTPException)
