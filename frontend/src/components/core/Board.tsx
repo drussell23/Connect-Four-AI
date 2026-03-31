@@ -17,12 +17,14 @@ const gridStyle: React.CSSProperties = {
   gridTemplateRows: 'repeat(6, 1fr)',
   gridTemplateColumns: 'repeat(7, 1fr)',
   gap: 'clamp(4px, 1vw, 12px)',
-  background: 'transparent',
-  padding: 'clamp(8px, 2vw, 16px)',
-  borderRadius: '8px',
+  background: '#1a2744',
+  padding: 'clamp(12px, 2.5vw, 24px)',
+  borderRadius: '16px',
   width: '100%',
   maxWidth: '644px', // 7 * 80px + 6 * 12px + 2 * 16px
   aspectRatio: '7 / 6',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+  border: '3px solid #2a3f6f',
 };
 
 // Individual slot style (ring)
