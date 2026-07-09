@@ -1,4 +1,5 @@
-[![Service Health](https://img.shields.io/badge/Service%20Health-Operational-green)](https://github.com/drussell23/Connect-Four-AI/actions/workflows/health-monitoring.yml)
+[![Service Health](https://img.shields.io/badge/Service%20Health-Degraded-yellow)](https://github.com/drussell23/Connect-Four-AI/actions/workflows/health-monitoring.yml)
+
 
 
 
